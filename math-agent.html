@@ -1081,11 +1081,12 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: transform .25s var(--ease);
+      transition: transform .25s var(--ease), margin-right .25s var(--ease);
     }
 
     .sidebar-right.closed {
       transform: translateX(260px);
+      margin-right: -260px;
     }
 
     .panel-tabs {
@@ -1892,7 +1893,7 @@
     </main>
 
     <!-- RIGHT PANEL -->
-    <aside class="sidebar-right">
+    <aside class="sidebar-right closed" id="rightSidebar">
       <div class="panel-tabs">
         <button class="panel-tab active" onclick="switchPanel('settings',this)">Settings</button>
         <button class="panel-tab" onclick="switchPanel('examples',this)">Examples</button>
@@ -2336,11 +2337,22 @@
     }
 
     function toggleRightSidebar() {
-      const sidebar = document.querySelector('.sidebar-right');
+      const sidebar = document.getElementById('rightSidebar');
       const btn = document.getElementById('toggleSettingsBtn');
       const isClosed = sidebar.classList.toggle('closed');
       btn.classList.toggle('active', !isClosed);
     }
+
+    // Close settings panel when clicking outside of it
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('rightSidebar');
+      const btn = document.getElementById('toggleSettingsBtn');
+      if (!sidebar || sidebar.classList.contains('closed')) return;
+      if (!sidebar.contains(e.target) && !btn.contains(e.target)) {
+        sidebar.classList.add('closed');
+        btn.classList.remove('active');
+      }
+    });
 
     // ── THEME & CUSTOM KEY HELPERS ────────────────────────────────
     function toggleTheme() {
