@@ -1,0 +1,4025 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zenspace — Messages</title>
+  <link rel="stylesheet" href="assets/zenspace.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/supabase.js"></script>
+  <style>
+    body {
+      background: var(--bg);
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ── */
+    .chat-nav {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .chat-nav .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .chat-nav .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--ink);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+    }
+
+    .chat-nav .brand-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: #fff;
+      fill: none;
+    }
+
+    .chat-nav .brand-name {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--ink);
+    }
+
+    .nav-back {
+      color: var(--ink-muted);
+      text-decoration: none;
+      font-size: .82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: var(--r-sm);
+      border: 1.5px solid var(--border);
+      transition: all var(--t);
+    }
+
+    .nav-back:hover {
+      color: var(--ink);
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .nav-spacer {
+      flex: 1;
+    }
+
+    .nav-avatar-sm {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--ink);
+      display: grid;
+      place-items: center;
+      font-size: .68rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    /* ── CHAT LAYOUT ── */
+    .chat-root {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .chat-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-top {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-top h2 {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .new-chat-btn {
+      width: 100%;
+      height: 36px;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--r-md);
+      background: transparent;
+      color: var(--ink-muted);
+      font-family: var(--font-sans);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--t);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .new-chat-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--surface-2);
+    }
+
+    .conv-search {
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .conv-search input {
+      width: 100%;
+      height: 34px;
+      padding: 0 12px 0 34px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: .8rem;
+      outline: none;
+      transition: border-color var(--t);
+    }
+
+    .conv-search input:focus {
+      border-color: var(--ink);
+    }
+
+    .conv-search svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      stroke: var(--ink-faint);
+      fill: none;
+      pointer-events: none;
+    }
+
+    .conv-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .conv-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-light);
+      transition: background var(--t);
+      position: relative;
+    }
+
+    .conv-item:hover {
+      background: var(--surface-2);
+    }
+
+    .conv-item.active {
+      background: var(--ink);
+    }
+
+    .conv-item.active .conv-name,
+    .conv-item.active .conv-preview,
+    .conv-item.active .conv-time {
+      color: #fff;
+    }
+
+    .conv-item.active .conv-preview {
+      color: rgba(255, 255, 255, .55);
+    }
+
+    .conv-item.active .conv-time {
+      color: rgba(255, 255, 255, .45);
+    }
+
+    .conv-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .conv-online-dot {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ok);
+      border: 2px solid var(--surface);
+    }
+
+    .conv-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .conv-name {
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conv-preview {
+      font-size: .72rem;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .conv-time {
+      font-size: .65rem;
+      color: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .conv-unread {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      font-size: .6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .conv-item.active .conv-unread {
+      background: #fff;
+      color: var(--ink);
+    }
+
+    /* ── MAIN CHAT AREA ── */
+    .chat-main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* Empty state */
+    .chat-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-faint);
+      gap: 14px;
+    }
+
+    .chat-empty svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--border-strong);
+      fill: none;
+      stroke-width: 1.2;
+    }
+
+    .chat-empty h3 {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      color: var(--ink-muted);
+    }
+
+    .chat-empty p {
+      font-size: .84rem;
+      max-width: 280px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Suggestions */
+    .chat-suggestions {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 340px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .chat-suggest-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .18s;
+      text-align: left;
+    }
+
+    .chat-suggest-card:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
+
+    .chat-suggest-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .chat-suggest-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-suggest-name {
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-suggest-sub {
+      font-size: .72rem;
+      color: var(--ink-faint);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-suggest-btn {
+      font-size: .72rem;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--ink-muted);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .15s;
+    }
+
+    .chat-suggest-card:hover .chat-suggest-btn {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* Chat header */
+    .chat-header {
+      height: 58px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-header-name {
+      font-size: .92rem;
+      font-weight: 600;
+      color: var(--ink);
+      font-family: var(--font-serif);
+    }
+
+    .chat-header-sub {
+      font-size: .7rem;
+      color: var(--ink-faint);
+      margin-top: 1px;
+    }
+
+    .chat-header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .hdr-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-sm);
+      background: none;
+      border: 1.5px solid var(--border);
+      color: var(--ink-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--t);
+    }
+
+    .hdr-btn:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+      border-color: var(--border-strong);
+    }
+
+    .hdr-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+    }
+
+    /* Messages area */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scroll-behavior: smooth;
+    }
+
+    .messages-area::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 2px;
+    }
+
+    /* Date divider */
+    .date-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 8px;
+    }
+
+    .date-divider::before,
+    .date-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .date-divider span {
+      font-size: .65rem;
+      color: var(--ink-faint);
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Message bubbles */
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin: 1px 0;
+    }
+
+    .msg-row.mine {
+      flex-direction: row-reverse;
+    }
+
+    .msg-row.mine .msg-avatar {
+      display: none;
+    }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .72rem;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+    }
+
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 68%;
+    }
+
+    .msg-row.mine .msg-group {
+      align-items: flex-end;
+    }
+
+    .msg-sender-name {
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--ink-faint);
+      letter-spacing: .04em;
+      margin-bottom: 3px;
+      padding-left: 2px;
+    }
+
+    .msg-bubble {
+      padding: 9px 13px;
+      border-radius: 16px;
+      font-size: .86rem;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      word-break: break-word;
+      position: relative;
+      cursor: default;
+    }
+
+    .msg-bubble.mine {
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-bubble:not(.mine) {
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-row.mine .msg-bubble {
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-bubble.deleted {
+      opacity: .45;
+      font-style: italic;
+      font-size: .8rem;
+    }
+
+    /* Tail shapes */
+    .msg-row:not(.mine) .msg-group .msg-bubble:first-child {
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-row:not(.mine) .msg-group .msg-bubble:not(:first-child) {
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-row.mine .msg-group .msg-bubble:first-child {
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-row.mine .msg-group .msg-bubble:not(:first-child) {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Message meta */
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+      padding: 0 2px;
+    }
+
+    .msg-time {
+      font-size: .62rem;
+      color: var(--ink-faint);
+    }
+
+    .msg-status {
+      font-size: .62rem;
+      color: var(--ink-faint);
+    }
+
+    /* Hover actions */
+    .msg-actions {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: none;
+      gap: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 3px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+      z-index: 10;
+    }
+
+    .msg-actions.visible {
+      display: flex;
+    }
+
+    .msg-row.mine .msg-actions {
+      right: calc(100% + 6px);
+      left: auto;
+    }
+
+    .msg-row:not(.mine) .msg-actions {
+      left: calc(100% + 6px);
+      right: auto;
+    }
+
+    .msg-act-btn {
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      color: var(--ink-muted);
+      transition: background var(--t), color var(--t);
+    }
+
+    .msg-act-btn:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    .msg-act-btn.danger:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    .msg-act-btn svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .unsend-popup {
+      position: fixed;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .14);
+      padding: 14px 16px;
+      z-index: 9999;
+      width: 210px;
+      animation: pop-in .12s ease;
+    }
+
+    .unsend-popup p {
+      font-size: .82rem;
+      color: var(--ink);
+      font-weight: 600;
+      margin: 0 0 12px;
+      line-height: 1.4;
+    }
+
+    .unsend-popup-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .unsend-cancel-btn {
+      flex: 1;
+      height: 32px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--ink-muted);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .unsend-ok-btn {
+      flex: 1;
+      height: 32px;
+      border-radius: 7px;
+      border: none;
+      background: #ef4444;
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .unsend-ok-btn:hover {
+      background: #dc2626;
+    }
+
+    @keyframes pop-in {
+      from {
+        opacity: 0;
+        transform: scale(.92);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Image messages */
+    .msg-image {
+      max-width: 240px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+
+    .msg-image img {
+      width: 100%;
+      display: block;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      padding: 6px 20px;
+      font-size: .75rem;
+      color: var(--ink-faint);
+      font-style: italic;
+      flex-shrink: 0;
+    }
+
+    .typing-indicator.visible {
+      display: block;
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 3px;
+      vertical-align: middle;
+    }
+
+    .typing-dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      animation: typingBounce .9s ease infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes typingBounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0)
+      }
+
+      30% {
+        transform: translateY(-4px)
+      }
+    }
+
+    /* Input area */
+    .chat-input-wrap {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .chat-input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 8px 8px 14px;
+      transition: border-color var(--t);
+    }
+
+    .chat-input-row:focus-within {
+      border-color: var(--ink);
+    }
+
+    .chat-textarea {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: .88rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      min-height: 22px;
+      overflow-y: auto;
+    }
+
+    .chat-textarea::placeholder {
+      color: var(--ink-faint);
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 4px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .inp-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--t);
+    }
+
+    .inp-btn:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    .inp-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+    }
+
+    .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: none;
+      background: var(--ink);
+      color: #fff;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--t);
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover {
+      background: #2A2A2A;
+      transform: scale(1.05);
+    }
+
+    .send-btn:disabled {
+      opacity: .4;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* Emoji picker */
+    .emoji-picker-wrap {
+      position: absolute;
+      bottom: 70px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: var(--shadow-md);
+      display: none;
+      z-index: 100;
+      width: 280px;
+    }
+
+    .emoji-picker-wrap.open {
+      display: block;
+      animation: slide-up .15s ease;
+    }
+
+    .emoji-picker-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .ep-emoji {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background var(--t);
+    }
+
+    .ep-emoji:hover {
+      background: var(--surface-2);
+    }
+
+    /* New conversation modal */
+    .new-conv-panel {
+      position: absolute;
+      top: 56px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--surface);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+    }
+
+    .new-conv-panel.open {
+      display: flex;
+      animation: fade-in .15s ease;
+    }
+
+    .ncp-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ncp-header h3 {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--ink);
+    }
+
+    .ncp-search {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .ncp-search input {
+      width: 100%;
+      height: 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px 0 38px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: .86rem;
+      outline: none;
+      transition: border-color var(--t);
+    }
+
+    .ncp-search input:focus {
+      border-color: var(--ink);
+    }
+
+    .ncp-search svg {
+      position: absolute;
+      left: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      stroke: var(--ink-faint);
+      fill: none;
+      pointer-events: none;
+    }
+
+    .ncp-results {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .ncp-user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-light);
+      transition: background var(--t);
+    }
+
+    .ncp-user-row:hover {
+      background: var(--surface-2);
+    }
+
+    .ncp-user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .ncp-user-info {
+      flex: 1;
+    }
+
+    .ncp-user-name {
+      font-size: .86rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .ncp-user-sub {
+      font-size: .72rem;
+      color: var(--ink-faint);
+      margin-top: 1px;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, .92);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+
+    .lightbox.open {
+      display: flex;
+      animation: fade-in .15s ease;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 88vh;
+      border-radius: 12px;
+    }
+
+    /* ── CALL OVERLAY ── */
+    .call-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background: #0a0a0a;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .call-overlay.open {
+      display: flex;
+      animation: fade-in .2s ease;
+    }
+
+    /* Video grid */
+    .call-video-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      background: #0a0a0a;
+      transition: grid-template-columns .3s ease;
+    }
+
+    .call-video-grid.both {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .call-video-slot {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+    }
+
+    .call-video-slot video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      /* mirror local video */
+    }
+
+    .call-video-slot.remote video {
+      transform: none;
+    }
+
+    /* Avatar fallback when camera off */
+    .call-avatar-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: #fff;
+    }
+
+    .call-avatar-circle {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      border: 2px solid #333;
+    }
+
+    .call-avatar-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, .7);
+    }
+
+    /* PiP local video (voice call) */
+    .call-pip {
+      position: absolute;
+      bottom: 110px;
+      right: 20px;
+      width: 140px;
+      height: 100px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, .15);
+      background: #1a1a1a;
+      z-index: 10;
+      display: none;
+    }
+
+    .call-pip.visible {
+      display: block;
+    }
+
+    .call-pip video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    /* Top HUD */
+    .call-hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, .6) 0%, transparent 100%);
+      z-index: 10;
+    }
+
+    .call-hud-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .call-hud-status {
+      font-size: .78rem;
+      color: rgba(255, 255, 255, .55);
+      margin-left: 8px;
+    }
+
+    .call-hud-timer {
+      font-size: .88rem;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255, 255, 255, .7);
+      margin-left: auto;
+    }
+
+    /* Controls bar */
+    .call-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: linear-gradient(to top, rgba(0, 0, 0, .65) 0%, transparent 100%);
+      z-index: 10;
+    }
+
+    .call-ctrl-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+      flex-shrink: 0;
+    }
+
+    .call-ctrl-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .call-ctrl-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .call-ctrl-btn.dark {
+      background: rgba(255, 255, 255, .14);
+      color: #fff;
+    }
+
+    .call-ctrl-btn.dark:hover {
+      background: rgba(255, 255, 255, .22);
+    }
+
+    .call-ctrl-btn.active-muted {
+      background: rgba(255, 255, 255, .14);
+      color: #e53e3e;
+    }
+
+    .call-ctrl-btn.end {
+      background: #e53e3e;
+      color: #fff;
+      width: 60px;
+      height: 60px;
+    }
+
+    .call-ctrl-btn.end:hover {
+      background: #c53030;
+    }
+
+    .ctrl-label {
+      font-size: .62rem;
+      color: rgba(255, 255, 255, .5);
+      text-align: center;
+      margin-top: 4px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    .call-ctrl-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Incoming call banner */
+    .call-incoming {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 4000;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+      padding: 18px 20px;
+      min-width: 280px;
+      max-width: 320px;
+      animation: slide-up .2s ease;
+    }
+
+    .call-incoming.open {
+      display: block;
+    }
+
+    .call-incoming-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .call-incoming-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .call-incoming-info h4 {
+      font-size: .92rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .call-incoming-info p {
+      font-size: .75rem;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .call-incoming-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .call-accept-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: #fff;
+      font-weight: 700;
+      font-size: .84rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+
+    .call-accept-btn:hover {
+      background: #16a34a;
+    }
+
+    .call-decline-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: #e53e3e;
+      color: #fff;
+      font-weight: 700;
+      font-size: .84rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+
+    .call-decline-btn:hover {
+      background: #c53030;
+    }
+
+    /* Ringtone pulse on avatar */
+    @keyframes callPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, .4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 14px rgba(34, 197, 94, 0)
+      }
+    }
+
+    .call-incoming-avatar.ringing {
+      animation: callPulse 1.2s ease infinite;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="chat-nav">
+    <a class="brand" href="index.html">
+      <span class="brand-icon"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg></span>
+      <span class="brand-name">Zenspace</span>
+    </a>
+    <a class="nav-back" href="dashboard.html">← Dashboard</a>
+    <span class="nav-spacer"></span>
+    <a href="profile.html" class="nav-back" style="border:none;padding:0 6px">👤 Profile</a>
+    <div class="nav-avatar-sm" id="navAvatar">?</div>
+  </nav>
+
+  <!-- CHAT ROOT -->
+  <div class="chat-root" style="position:relative">
+
+    <!-- SIDEBAR -->
+    <div class="chat-sidebar" id="chatSidebar">
+      <div class="sidebar-top">
+        <h2>Messages</h2>
+        <button class="new-chat-btn" onclick="openNewConv()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          New conversation
+        </button>
+        <div class="conv-search">
+          <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input type="text" id="convSearchInput" placeholder="Search conversations…" oninput="filterConvs()" />
+        </div>
+      </div>
+      <div class="conv-list" id="convList">
+        <div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">Loading…</div>
+      </div>
+    </div>
+
+    <!-- NEW CONV PANEL (slides over sidebar) -->
+    <div class="new-conv-panel" id="newConvPanel">
+      <div class="ncp-header">
+        <button onclick="closeNewConv()"
+          style="border:none;background:none;cursor:pointer;color:var(--ink-muted);font-size:1.2rem;line-height:1;padding:0 4px">←</button>
+        <h3>Start a conversation</h3>
+      </div>
+      <div class="ncp-search">
+        <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input type="text" id="newConvSearch" placeholder="Search friends by @username or name…"
+          oninput="searchFriends()" autofocus />
+      </div>
+      <div class="ncp-results" id="newConvResults">
+        <div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">Type to search your friends…
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CHAT -->
+    <div class="chat-main" id="chatMain">
+
+      <!-- Empty state -->
+      <div class="chat-empty" id="chatEmpty">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        <h3>Your messages</h3>
+        <p>Select a conversation on the left or start a new one to chat with your friends.</p>
+        <button class="btn btn-primary btn-sm" onclick="openNewConv()">+ Start chatting</button>
+        <div id="chatSuggestionsWrap" style="width:100%;max-width:340px;display:none;">
+          <div style="font-size:.72rem;font-weight:700;color:var(--ink-faint);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px;text-align:left;">People you can chat with</div>
+          <div class="chat-suggestions" id="chatSuggestions"></div>
+        </div>
+      </div>
+
+      <!-- Active conversation -->
+      <div id="chatActive" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+
+        <!-- Header -->
+        <div class="chat-header">
+          <div class="chat-header-avatar" id="chatHeaderAvatar"></div>
+          <div class="chat-header-info">
+            <div class="chat-header-name" id="chatHeaderName">—</div>
+            <div class="chat-header-sub" id="chatHeaderSub">@username</div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="hdr-btn" title="Voice call" id="voiceCallBtn" onclick="startCall('audio')"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                  d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.11 8.95a16 16 0 006.94 6.94l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+              </svg></button>
+            <button class="hdr-btn" title="Video call" id="videoCallBtn" onclick="startCall('video')"><svg
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" />
+              </svg></button>
+            <button class="hdr-btn" title="View profile" onclick="viewFriendProfile()" id="viewProfileBtn"><svg
+                viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+              </svg></button>
+            <button class="hdr-btn" title="Delete conversation" onclick="deleteConversation()"
+              style="color:var(--error,#e53e3e)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg></button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-area" id="messagesArea"></div>
+
+        <!-- Typing indicator -->
+        <div class="typing-indicator" id="typingIndicator">
+          <span id="typingName">Someone</span> is typing <span
+            class="typing-dots"><span></span><span></span><span></span></span>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-wrap" style="position:relative">
+          <!-- Emoji picker -->
+          <div class="emoji-picker-wrap" id="emojiPicker"></div>
+
+          <div class="chat-input-row">
+            <textarea class="chat-textarea" id="msgInput" placeholder="Type a message…" rows="1"
+              onkeydown="handleKeydown(event)" oninput="handleInput()" onpaste="handlePaste(event)"></textarea>
+            <div class="input-actions">
+              <button class="inp-btn" title="Emoji" onclick="toggleEmoji()"><svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg></button>
+              <label class="inp-btn" title="Send image" style="cursor:pointer"><svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg><input type="file" accept="image/*,video/*" style="display:none" onchange="openViewOnceModal(event)" /></label>
+              <label class="inp-btn" title="Send file" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.41 17.41a2 2 0 01-2.83-2.83l8.49-8.48" />
+                </svg><input type="file" accept="*/*" style="display:none" onchange="sendFile(event)" /></label>
+              <button class="inp-btn" id="voiceMsgBtn" title="Hold to record voice message"
+                onmousedown="startVoiceRecord(event)" ontouchstart="startVoiceRecord(event)" style="position:relative">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              </button>
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled><svg viewBox="0 0 24 24">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg></button>
+            </div>
+          </div>
+          <div
+            style="font-size:.65rem;color:var(--ink-faint);padding:4px 4px 0;display:flex;justify-content:space-between">
+            <span>Enter to send · Shift+Enter for new line</span>
+            <span id="charCount">0/4000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')"><img id="lightboxImg" src="" alt="" />
+  </div>
+
+  <!-- ═══ VIEW ONCE SEND MODAL ═══ -->
+  <div id="viewOnceSendModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <!-- Preview -->
+      <div style="border-radius:10px;overflow:hidden;margin-bottom:18px;max-height:220px;display:flex;align-items:center;justify-content:center;background:var(--surface-2)">
+        <img id="voPreviewImg" src="" style="max-width:100%;max-height:220px;display:block" />
+        <video id="voPreviewVid" src="" style="max-width:100%;max-height:220px;display:none" muted playsinline></video>
+      </div>
+
+      <!-- View Once toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="font-size:.88rem;font-weight:700;color:var(--ink)">👁 View Once</div>
+          <div style="font-size:.7rem;color:var(--ink-faint);margin-top:2px">Recipient can only view this once</div>
+        </div>
+        <label style="cursor:pointer;position:relative;display:inline-block;width:42px;height:24px">
+          <input type="checkbox" id="voToggle" onchange="voToggleChanged()" style="opacity:0;width:0;height:0;position:absolute" />
+          <span id="voToggleTrack" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:background .2s;cursor:pointer"></span>
+          <span id="voToggleThumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>
+        </label>
+      </div>
+
+      <!-- Duration selector (image only, hidden for video) -->
+      <div id="voDurationWrap" style="display:none;margin-bottom:18px">
+        <div style="font-size:.75rem;font-weight:600;color:var(--ink-faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Duration visible</div>
+        <div style="display:flex;gap:8px">
+          <button class="vo-dur-btn" data-dur="3"   onclick="voDurSelect(this)"  style="flex:1;padding:8px 0;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:.8rem;font-weight:600;cursor:pointer">3s</button>
+          <button class="vo-dur-btn" data-dur="10"  onclick="voDurSelect(this)"  style="flex:1;padding:8px 0;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:.8rem;font-weight:600;cursor:pointer">10s</button>
+          <button class="vo-dur-btn" data-dur="30"  onclick="voDurSelect(this)"  style="flex:1;padding:8px 0;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:.8rem;font-weight:600;cursor:pointer">30s</button>
+          <button class="vo-dur-btn active" data-dur="0" onclick="voDurSelect(this)" style="flex:1;padding:8px 0;border-radius:8px;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg);font-size:.8rem;font-weight:600;cursor:pointer">∞</button>
+        </div>
+        <div style="font-size:.67rem;color:var(--ink-faint);margin-top:6px">∞ = visible until recipient navigates away</div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px">
+        <button onclick="closeViewOnceModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--ink);font-size:.85rem;font-weight:600;cursor:pointer">Cancel</button>
+        <button onclick="confirmSendViewOnce()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-size:.85rem;font-weight:600;cursor:pointer">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ VIEW ONCE VIEWER ═══ -->
+  <div id="voViewer" style="display:none;position:fixed;inset:0;z-index:3100;background:#000;flex-direction:column;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none">
+    <!-- Countdown bar -->
+    <div id="voCountdownWrap" style="position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.15)">
+      <div id="voCountdownBar" style="height:100%;background:#fff;width:100%;transition:width linear"></div>
+    </div>
+    <!-- Timer label -->
+    <div id="voTimerLabel" style="position:absolute;top:14px;right:18px;font-size:.82rem;font-weight:700;color:rgba(255,255,255,.8);font-family:monospace"></div>
+    <!-- Close button -->
+    <button onclick="closeVoViewer()" style="position:absolute;top:10px;left:14px;background:rgba(255,255,255,.12);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    <!-- Media -->
+    <img id="voViewerImg" src="" style="max-width:100vw;max-height:100vh;object-fit:contain;pointer-events:none;-webkit-user-drag:none;display:block" oncontextmenu="return false" />
+    <video id="voViewerVid" src="" style="max-width:100vw;max-height:100vh;object-fit:contain;display:none" autoplay playsinline oncontextmenu="return false" controlsList="nodownload nofullscreen" disablePictureInPicture></video>
+    <!-- No-download overlay (blocks right-click save) -->
+    <div style="position:absolute;inset:0;pointer-events:none"></div>
+    <div style="position:absolute;bottom:24px;font-size:.75rem;color:rgba(255,255,255,.4)">👁 View Once · Screenshot not permitted</div>
+  </div>
+
+  <!-- ═══ CALL OVERLAY ═══ -->
+  <div class="call-overlay" id="callOverlay">
+    <!-- Video grid (remote full-screen, local pip) -->
+    <div class="call-video-grid" id="callVideoGrid">
+      <div class="call-video-slot remote" id="remoteSlot">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <!-- Dedicated audio element — ensures remote audio plays on voice calls
+           even when the video element is invisible or suspended by the browser -->
+        <audio id="remoteAudio" autoplay playsinline muted style="display:none"></audio>
+        <div class="call-avatar-fallback" id="remoteAvatarFallback">
+          <div class="call-avatar-circle" id="remoteAvatarCircle">👤</div>
+          <div class="call-avatar-name" id="remoteAvatarName">Connecting…</div>
+        </div>
+      </div>
+    </div>
+    <!-- Local PiP -->
+    <div class="call-pip" id="localPip">
+      <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+
+    <!-- HUD -->
+    <div class="call-hud">
+      <div class="call-hud-name" id="callHudName">—</div>
+      <span class="call-hud-status" id="callHudStatus">Calling…</span>
+      <div class="call-hud-timer" id="callTimer" style="display:none">0:00</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="call-controls">
+      <div class="call-ctrl-wrap">
+        <button class="call-ctrl-btn dark" id="btnMute" onclick="toggleMute()" title="Mute">
+          <svg id="muteIcon" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
+          </svg>
+        </button>
+        <span class="ctrl-label" id="muteLabel">Mute</span>
+      </div>
+      <div class="call-ctrl-wrap">
+        <button class="call-ctrl-btn dark" id="btnSpeaker" onclick="toggleSpeaker()" title="Speaker">
+          <svg viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path id="speakerWave" d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+        </button>
+        <span class="ctrl-label">Speaker</span>
+      </div>
+      <div class="call-ctrl-wrap" id="camCtrlWrap">
+        <button class="call-ctrl-btn dark" id="btnCamera" onclick="toggleCamera()" title="Camera">
+          <svg id="camIcon" viewBox="0 0 24 24">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" />
+          </svg>
+        </button>
+        <span class="ctrl-label" id="camLabel">Camera</span>
+      </div>
+      <div class="call-ctrl-wrap">
+        <button class="call-ctrl-btn end" onclick="endCall()" title="End call">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.95a16 16 0 006.94 6.94l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"
+              transform="rotate(135, 12, 12)" />
+          </svg>
+        </button>
+        <span class="ctrl-label" style="color:#e53e3e">End</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ INCOMING CALL BANNER ═══ -->
+  <div class="call-incoming" id="callIncoming">
+    <div class="call-incoming-top">
+      <div class="call-avatar-circle call-incoming-avatar ringing" id="incomingAvatar">👤</div>
+      <div class="call-incoming-info">
+        <h4 id="incomingName">Someone</h4>
+        <p id="incomingType">Incoming voice call…</p>
+      </div>
+    </div>
+    <div class="call-incoming-btns">
+      <button class="call-decline-btn" onclick="declineCall()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Decline
+      </button>
+      <button class="call-accept-btn" id="callAcceptBtn" onclick="acceptCall()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.95a16 16 0 006.94 6.94l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+        </svg>
+        Answer
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="assets/zenspace.js"></script>
+  <script>
+    /* ═══════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════ */
+    let myUserId = null;
+    let myProfile = null;
+    let activeConv = null;      // { id, friendProfile }
+    let conversations = [];
+    let realtimeChannel = null;
+    let typingChannel = null;
+    let typingTimer = null;
+    let msgCache = {};   // convId → [messages]
+    let friendCache = {};   // userId → profile
+
+    const CHAT_EMOJIS = ['😀', '😂', '😍', '🥰', '😎', '🤔', '😅', '😭', '🙏', '👍', '👎', '❤️', '', '', '💯', '', '❌', '👀', '😢', '🤣', '😊', '🤩', '💪', '', '', '', '', '⭐'];
+
+    /* ═══════════════════════════════════════════════
+       INIT
+    ═══════════════════════════════════════════════ */
+    (async () => {
+      await ZenAuth.initSupabase();
+      const session = await ZenAuth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      myUserId = session.user.id;
+
+      const client = ZenAuth.getSupabaseClient();
+      const { data: prof } = await client.from('profiles').select('*').eq('id', myUserId).single();
+      if (prof && prof.is_banned) {
+        alert('Your account has been banned by the administrator.');
+        await ZenAuth.signOutUser();
+        window.location.href = 'login.html';
+        return;
+      }
+      myProfile = prof || {};
+      document.getElementById('navAvatar').textContent = prof?.avatar_emoji || prof?.display_name?.[0]?.toUpperCase() || '?';
+
+      // ══ SESSION TRACKING ══
+      (async () => {
+        try {
+          let _chatSessionId = null;
+          const { data: _s } = await client
+            .from('user_sessions')
+            .insert({ user_id: myUserId, page: 'chat', started_at: new Date().toISOString(), heartbeat_at: new Date().toISOString() })
+            .select('id').single();
+          if (_s) _chatSessionId = _s.id;
+          setInterval(async () => {
+            if (!_chatSessionId) return;
+            await client.from('user_sessions').update({ heartbeat_at: new Date().toISOString() }).eq('id', _chatSessionId);
+          }, 60000);
+          const _end = async () => { if (_chatSessionId) { await client.from('user_sessions').update({ ended_at: new Date().toISOString() }).eq('id', _chatSessionId).catch(() => {}); } };
+          document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') _end(); });
+          window.addEventListener('beforeunload', _end);
+        } catch (_) {}
+      })();
+
+      buildEmojiPicker();
+      await loadConversations();
+      await loadChatSuggestions();
+
+      // Subscribe to a personal incoming-call channel so we receive calls
+      // regardless of which conversation is open (or if none is open).
+      _subscribeGlobalCallChannel();
+
+      // Check URL param for direct open
+      const params = new URLSearchParams(location.search);
+      if (params.get('with')) await openOrCreateConvWith(params.get('with'));
+
+      // ── Auto-accept a call redirected from another page ──────────────
+      // When the user taps "Answer" on dashboard/profile/servers,
+      // call-notify.js saves call state to sessionStorage and redirects
+      // here with ?autocall=1. We restore state and call acceptCall().
+      if (params.get('autocall') === '1') {
+        const raw = sessionStorage.getItem('pendingCall');
+        sessionStorage.removeItem('pendingCall');
+        if (raw) {
+          try {
+            const pc = JSON.parse(raw);
+            const age = Date.now() - (pc.timestamp || 0);
+            if (age < 60000 && pc.friendId) {
+              _cs.type       = pc.callType || 'audio';
+              _cs.friendId   = pc.friendId;
+              _cs.offer      = pc.offer || null;
+              _cs.pendingIce = pc.pendingIce || [];
+              if (!friendCache[pc.friendId]) {
+                const { data } = await client
+                  .from('profiles')
+                  .select('id, username, display_name, avatar_emoji, avatar_color')
+                  .eq('id', pc.friendId).single();
+                if (data) friendCache[pc.friendId] = data;
+              }
+              _cs.friendProfile = friendCache[pc.friendId] || { id: pc.friendId };
+              // Wait for offer if it hasn't arrived yet (redirect race)
+              if (!_cs.offer) {
+                await new Promise(resolve => {
+                  const deadline = setTimeout(resolve, 8000);
+                  const iv = setInterval(() => { if (_cs.offer) { clearTimeout(deadline); clearInterval(iv); resolve(); } }, 100);
+                });
+              }
+              if (_cs.offer) await acceptCall();
+            }
+          } catch (e) { console.warn('[Chat] auto-accept error:', e); }
+        }
+      }
+    })();
+
+    /* ═══════════════════════════════════════════════
+       CONVERSATIONS LIST
+    ═══════════════════════════════════════════════ */
+    async function loadConversations() {
+      const client = ZenAuth.getSupabaseClient();
+
+      // Step 1: Get all conversation IDs I'm in (only my rows — always works under RLS)
+      const { data: memberships, error: memErr } = await client
+        .from('conversation_members')
+        .select('conversation_id, last_read_at')
+        .eq('user_id', myUserId);
+
+      if (memErr) { console.error('loadConversations: memberships error', memErr); renderConvList([]); return; }
+      if (!memberships?.length) { renderConvList([]); return; }
+
+      const convIds = memberships.map(m => m.conversation_id);
+
+      // Step 2: Get conversations ordered by updated_at (no nested relations — avoids RLS issues)
+      const { data: convs, error: convsErr } = await client
+        .from('conversations')
+        .select('id, updated_at')
+        .in('id', convIds)
+        .order('updated_at', { ascending: false });
+
+      if (convsErr || !convs?.length) { renderConvList([]); return; }
+
+      // Step 3: Get ALL members of these conversations as a flat query
+      // The RPC function create_direct_conversation inserts both members,
+      // and the "See co-members" policy (or SECURITY DEFINER RPC) lets us read them.
+      // We query all rows for our convIds — we only need the friend's user_id per conv.
+      const { data: allMembers, error: allMembErr } = await client
+        .from('conversation_members')
+        .select('conversation_id, user_id')
+        .in('conversation_id', convIds);
+
+      if (allMembErr) { console.error('loadConversations: allMembers error', allMembErr); }
+
+      // Build a map: convId -> friendId
+      const convFriendMap = {};
+      (allMembers || []).forEach(m => {
+        if (m.user_id !== myUserId) convFriendMap[m.conversation_id] = m.user_id;
+      });
+
+      // Step 4: Fetch profiles for all friends we found
+      const friendIds = [...new Set(Object.values(convFriendMap))];
+      if (friendIds.length > 0) {
+        const { data: profiles } = await client
+          .from('profiles')
+          .select('id, username, display_name, avatar_emoji, avatar_color, course, university')
+          .in('id', friendIds);
+        (profiles || []).forEach(p => { friendCache[p.id] = p; });
+      }
+
+      // Step 5: Fetch latest messages per conversation (flat query, no nesting)
+      const { data: recentMsgs } = await client
+        .from('messages')
+        .select('id, conversation_id, body, msg_type, file_name, sender_id, created_at, is_deleted')
+        .in('conversation_id', convIds)
+        .order('created_at', { ascending: false })
+        .limit(convIds.length * 3);
+
+      // Build a map: convId -> latest message
+      const lastMsgMap = {};
+      (recentMsgs || []).forEach(m => {
+        if (!lastMsgMap[m.conversation_id]) lastMsgMap[m.conversation_id] = m;
+      });
+
+      // Step 6: Assemble conversation objects
+      conversations = convs.map(c => {
+        const friendId = convFriendMap[c.id];
+        const friend = friendId ? friendCache[friendId] : null;
+        if (!friend) return null; // skip if we truly can't find a friend (shouldn't happen)
+        const lastMsg = lastMsgMap[c.id] || null;
+        const myMembership = memberships.find(m => m.conversation_id === c.id);
+        return { id: c.id, friend, friendId, lastMsg, unread: 0, updatedAt: c.updated_at };
+      }).filter(Boolean);
+
+      renderConvList(conversations);
+    }
+
+    function renderConvList(list) {
+      const el = document.getElementById('convList');
+      const q = document.getElementById('convSearchInput').value.toLowerCase();
+      const filtered = q ? list.filter(c => (c.friend?.display_name || '').toLowerCase().includes(q) || (c.friend?.username || '').toLowerCase().includes(q)) : list;
+
+      if (!filtered.length) {
+        el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">' + (q ? 'No matches.' : 'No conversations yet.<br><br>Click <b>New conversation</b> to start chatting!') + '</div>';
+        return;
+      }
+
+      el.innerHTML = filtered.map(c => {
+        const f = c.friend;
+        const preview = c.lastMsg
+          ? (c.lastMsg.is_deleted ? null : c.lastMsg.msg_type === 'image' ? (c.lastMsg.view_once ? '👁 View Once Photo' : '📷 Image') : c.lastMsg.msg_type === 'video' ? (c.lastMsg.view_once ? '🎬 View Once Video' : '🎬 Video') : c.lastMsg.msg_type === 'file' ? '📎 ' + (c.lastMsg.file_name || 'File') : c.lastMsg.body.slice(0, 50))
+          : 'No messages yet';
+        const time = c.lastMsg ? timeAgo(c.lastMsg.created_at) : '';
+        const isActive = activeConv?.id === c.id;
+        return `<div class="conv-item ${isActive ? 'active' : ''}" onclick="openConv('${c.id}')">
+      <div class="conv-avatar" style="background:${f.avatar_color || '#1A1A1A'}">${f.avatar_emoji || ''}</div>
+      <div class="conv-info">
+        <div class="conv-name">${esc(f.display_name || f.username)}</div>
+        <div class="conv-preview">${esc(preview)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div class="conv-time">${time}</div>
+        ${c.unread > 0 ? `<div class="conv-unread">${c.unread}</div>` : ''}
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    function filterConvs() { renderConvList(conversations); }
+
+    async function loadChatSuggestions() {
+      const wrap = document.getElementById('chatSuggestionsWrap');
+      const container = document.getElementById('chatSuggestions');
+      if (!wrap || !container) return;
+      try {
+        const client = ZenAuth.getSupabaseClient();
+        // Fetch up to 8 recent profiles excluding self
+        const { data: profiles } = await client
+          .from('profiles')
+          .select('id, username, display_name, avatar_emoji, avatar_color, course, university')
+          .neq('id', myUserId)
+          .limit(8);
+
+        if (!profiles?.length) return;
+
+        // Filter out users we already have a conversation with
+        const existingFriendIds = new Set(conversations.map(c => c.friendId));
+        const suggestions = profiles.filter(p => !existingFriendIds.has(p.id));
+
+        if (!suggestions.length) return;
+
+        container.innerHTML = suggestions.map(p => `
+          <div class="chat-suggest-card" onclick="openOrCreateConvWith('${p.id}')">
+            <div class="chat-suggest-avatar" style="background:${p.avatar_color || '#1A1A1A'}">${p.avatar_emoji || p.display_name?.[0]?.toUpperCase() || '?'}</div>
+            <div class="chat-suggest-info">
+              <div class="chat-suggest-name">${esc(p.display_name || p.username)}</div>
+              <div class="chat-suggest-sub">@${esc(p.username)}${p.course ? ' · ' + esc(p.course) : ''}${p.university ? ' · ' + esc(p.university) : ''}</div>
+            </div>
+            <button class="chat-suggest-btn">Message</button>
+          </div>`).join('');
+
+        wrap.style.display = 'block';
+      } catch (e) { console.warn('[Chat] suggestions failed:', e); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       OPEN CONVERSATION
+    ═══════════════════════════════════════════════ */
+    async function openConv(convId) {
+      const conv = conversations.find(c => c.id === convId);
+      if (!conv) return;
+
+      activeConv = conv;
+      renderConvList(conversations); // highlight active
+
+      // Show chat area
+      document.getElementById('chatEmpty').style.display = 'none';
+      document.getElementById('chatActive').style.display = 'flex';
+
+      // Set header
+      const f = conv.friend;
+      document.getElementById('chatHeaderAvatar').textContent = f.avatar_emoji || '';
+      document.getElementById('chatHeaderAvatar').style.background = f.avatar_color || '#1A1A1A';
+      document.getElementById('chatHeaderName').textContent = f.display_name || f.username;
+      document.getElementById('chatHeaderSub').textContent = '@' + f.username + (f.university ? ' · ' + f.university : '');
+
+      // Load messages
+      await loadMessages(convId);
+
+      // Subscribe to realtime
+      subscribeToConv(convId);
+
+      // Mark as read
+      markRead(convId);
+
+      // Focus input
+      document.getElementById('msgInput').focus();
+
+      // Start listening for calls from this friend
+      if (f?.id) _listenForCallsFrom(f.id);
+    }
+
+    async function openOrCreateConvWith(friendId) {
+      const existing = conversations.find(c => c.friendId === friendId);
+      if (existing) { openConv(existing.id); return; }
+
+      const client = ZenAuth.getSupabaseClient();
+
+      try {
+        // Use RPC to create conversation + add both members in one atomic call
+        const { data: convId, error } = await client.rpc('create_direct_conversation', {
+          other_user_id: friendId
+        });
+
+        if (error || !convId) {
+          console.error('Conversation creation error:', error);
+          showToast('Could not start conversation: ' + (error?.message || 'Unknown error'), 'error');
+          return;
+        }
+
+        await loadConversations();
+        // Find by convId first, fallback to friendId
+        let newConv = conversations.find(c => c.id === convId);
+        if (!newConv) newConv = conversations.find(c => c.friendId === friendId);
+
+        if (newConv) {
+          openConv(newConv.id);
+        } else {
+          // Profile not cached yet — fetch it and open manually
+          const client2 = ZenAuth.getSupabaseClient();
+          const { data: friendProf } = await client2
+            .from('profiles')
+            .select('id, username, display_name, avatar_emoji, avatar_color, course, university')
+            .eq('id', friendId)
+            .single();
+          if (friendProf) {
+            friendCache[friendId] = friendProf;
+            const manualConv = { id: convId, friend: friendProf, friendId, lastMsg: null, unread: 0, updatedAt: new Date().toISOString() };
+            conversations.unshift(manualConv);
+            renderConvList(conversations);
+            openConv(convId);
+          }
+        }
+
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        showToast('Could not start conversation: ' + err.message, 'error');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       MESSAGES
+    ═══════════════════════════════════════════════ */
+    async function loadMessages(convId) {
+      const client = ZenAuth.getSupabaseClient();
+      const { data: msgs } = await client
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      msgCache[convId] = msgs || [];
+      renderMessages(convId);
+    }
+
+    function renderMessages(convId) {
+      const msgs = msgCache[convId] || [];
+      const area = document.getElementById('messagesArea');
+      if (!msgs.length) {
+        area.innerHTML = `<div style="text-align:center;color:var(--ink-faint);font-size:.82rem;padding:30px 0">No messages yet. Say hello! </div>`;
+        return;
+      }
+
+      let html = '';
+      let lastDate = '';
+      let lastSender = '';
+
+      msgs.filter(msg => !msg.is_deleted).forEach((msg, i) => {
+        const mine = msg.sender_id === myUserId;
+        const d = new Date(msg.created_at);
+        const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        const displayDate = dateStr === today ? 'Today' : dateStr === yesterday ? 'Yesterday' : dateStr;
+
+        if (dateStr !== lastDate) {
+          html += `<div class="date-divider"><span>${displayDate}</span></div>`;
+          lastDate = dateStr;
+          lastSender = '';
+        }
+
+        const senderChanged = msg.sender_id !== lastSender;
+        lastSender = msg.sender_id;
+
+        const sender = mine ? myProfile : activeConv?.friend;
+        const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        const avatarHtml = !mine && senderChanged
+          ? `<div class="msg-avatar" style="background:${sender?.avatar_color || '#1A1A1A'}">${sender?.avatar_emoji || ''}</div>`
+          : `<div style="width:28px;flex-shrink:0"></div>`;
+
+        let bodyHtml = '';
+        if (msg.msg_type === 'image' || msg.msg_type === 'video') {
+          const isVideo = msg.msg_type === 'video';
+          const isViewOnce = !!msg.view_once;
+          const viewed = isViewOnce && localStorage.getItem('vo-viewed-' + msg.id) === '1';
+
+          if (isViewOnce && !mine) {
+            if (viewed) {
+              bodyHtml = `<div class="msg-bubble" style="display:flex;align-items:center;gap:10px;padding:10px 14px;opacity:.55;min-width:160px">
+                <span style="font-size:1.3rem">${isVideo ? '🎬' : '📷'}</span>
+                <div><div style="font-size:.82rem;font-weight:600">View Once ${isVideo ? 'Video' : 'Photo'}</div>
+                <div style="font-size:.7rem;color:var(--ink-faint)">Already viewed</div></div>
+                <span style="margin-left:auto;font-size:.68rem;color:var(--ink-faint)">✓ Opened</span>
+              </div>`;
+            } else {
+              const dur = msg.view_once_duration || 0;
+              bodyHtml = `<div class="msg-bubble" onclick="openVoViewer('${msg.id}','${esc(msg.file_url)}','${isVideo ? 'video' : 'image'}',${dur})" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;min-width:160px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.12));border:1.5px solid rgba(99,102,241,.35)">
+                <span style="font-size:1.3rem">${isVideo ? '🎬' : '👁'}</span>
+                <div><div style="font-size:.82rem;font-weight:700">View Once ${isVideo ? 'Video' : 'Photo'}</div>
+                <div style="font-size:.7rem;color:var(--ink-faint)">${isVideo ? 'Tap to watch · disappears after' : dur > 0 ? 'Tap to view · visible for ' + dur + 's' : 'Tap to view · disappears when you leave'}</div></div>
+                <span style="margin-left:auto;font-size:1rem">▶</span>
+              </div>`;
+            }
+          } else if (isViewOnce && mine) {
+            const recipientViewed = localStorage.getItem('vo-viewed-' + msg.id) === '1';
+            bodyHtml = `<div class="msg-image-wrap" style="position:relative;display:inline-block">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:rgba(99,102,241,.15);border:1.5px solid rgba(99,102,241,.3);min-width:160px">
+                <span style="font-size:1.3rem">${isVideo ? '🎬' : '👁'}</span>
+                <div><div style="font-size:.82rem;font-weight:700">View Once ${isVideo ? 'Video' : 'Photo'}</div>
+                <div style="font-size:.7rem;color:var(--ink-faint)">${recipientViewed ? '✓ Viewed' : 'Waiting to be viewed…'}</div></div>
+              </div>
+              <div class="msg-actions">
+                <button class="msg-act-btn danger" onclick="unsendMsg(event,'${msg.id}')" title="Unsend"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+              </div>
+            </div>`;
+          } else if (isVideo) {
+            bodyHtml = `<div class="msg-image-wrap" style="position:relative;display:inline-block">
+              <div class="msg-image" style="max-width:260px">
+                <video src="${esc(msg.file_url)}" controls playsinline style="max-width:100%;border-radius:10px;display:block" controlsList="nodownload" disablePictureInPicture></video>
+              </div>
+              <div class="msg-actions">
+                ${mine ? '<button class="msg-act-btn danger" onclick="unsendMsg(event,\'' + msg.id + '\')" title="Unsend"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>' : ''}
+              </div>
+            </div>`;
+          } else {
+            bodyHtml = `<div class="msg-image-wrap" style="position:relative;display:inline-block">
+          <div class="msg-image" onclick="document.getElementById('lightboxImg').src='${esc(msg.file_url)}';document.getElementById('lightbox').classList.add('open')"><img src="${esc(msg.file_url)}" alt="image" loading="lazy" /></div>
+          <div class="msg-actions">
+            <a class="msg-act-btn" href="${esc(msg.file_url)}" download="${esc(msg.file_name || 'image.png')}" title="Download" style="display:grid;place-items:center;text-decoration:none"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+            ${mine ? '<button class="msg-act-btn danger" onclick="unsendMsg(event,\'' + msg.id + '\')" title="Unsend"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>' : ''}
+          </div>
+        </div>`;
+          }
+        } else if (msg.msg_type === 'file') {
+          const sizeLabel = msg.file_size ? formatFileSize(msg.file_size) : '';
+          bodyHtml = `<div class="msg-bubble ${mine ? 'mine' : ''}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;position:relative">
+        <div style="width:36px;height:36px;border-radius:8px;background:${mine ? 'rgba(255,255,255,.15)' : 'var(--surface-2)'};display:grid;place-items:center;flex-shrink:0">
+          ${fileIcon(msg.file_name)}
+        </div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(msg.file_name || 'File')}</div>
+          ${sizeLabel ? `<div style="font-size:.7rem;opacity:.7">${sizeLabel}</div>` : ''}
+        </div>
+        <a href="${esc(msg.file_url)}" download="${esc(msg.file_name || 'file')}" style="flex-shrink:0;width:30px;height:30px;border-radius:7px;background:${mine ? 'rgba(255,255,255,.2)' : 'var(--surface-2)'};display:grid;place-items:center;text-decoration:none" title="Download">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </a>
+        <div class="msg-actions">
+          <button class="msg-act-btn" onclick="copyMsg('${esc((msg.file_name || 'File').replace(/'/g, "\\'"))}')" title="Copy filename"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+          ${mine ? `<button class="msg-act-btn danger" onclick="unsendMsg(event,'${msg.id}')" title="Unsend"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>` : ''}
+        </div>
+      </div>`;
+        } else if (msg.msg_type === 'voice') {
+          const dur = msg.file_size || 0; // we store duration_seconds in file_size
+          const durLabel = dur ? `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, '0')}` : '0:00';
+          const playColor = mine ? 'rgba(255,255,255,.85)' : 'var(--ink)';
+          const trackBg = mine ? 'rgba(255,255,255,.25)' : 'var(--border)';
+          const fillColor = mine ? 'rgba(255,255,255,.9)' : 'var(--ink)';
+          bodyHtml = `<div class="msg-bubble ${mine ? 'mine' : ''}" style="padding:0;overflow:hidden;position:relative">
+        <div class="msg-voice-wrap">
+          <button class="vm-play-btn" style="background:${mine ? 'rgba(255,255,255,.2)' : 'var(--surface-2)'}"
+            onclick="playVoiceMsg(this,'${esc(msg.file_url)}','${msg.id}')" title="Play">
+            <svg id="vmIcon-${msg.id}" viewBox="0 0 24 24" width="15" height="15" fill="${playColor}" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <div class="vm-waveform" onclick="seekVoiceMsg(event,this,'${esc(msg.file_url)}','${msg.id}')">
+            <div id="vmTrack-${msg.id}" style="position:relative;height:4px;border-radius:2px;background:${trackBg};margin-top:12px">
+              <div id="vmFill-${msg.id}" style="height:100%;width:0%;border-radius:2px;background:${fillColor};transition:width .1s linear"></div>
+            </div>
+          </div>
+          <span class="vm-duration" id="vmDur-${msg.id}">${durLabel}</span>
+        </div>
+        <div class="msg-actions">
+          <a class="msg-act-btn" href="${esc(msg.file_url)}" download="voice_${msg.id}.mp3" title="Download" style="display:grid;place-items:center;text-decoration:none"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+          ${mine ? `<button class="msg-act-btn danger" onclick="deleteVoiceMsg(event,'${msg.id}')" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>` : ''}
+        </div>
+      </div>`;
+        } else {
+          const actionsHtml = `<div class="msg-actions">
+        <button class="msg-act-btn" onclick="copyMsg('${esc(msg.body.replace(/'/g, "\\'"))}')" title="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+        ${mine ? `<button class="msg-act-btn danger" onclick="unsendMsg(event,'${msg.id}')" title="Unsend"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>` : ''}
+      </div>`;
+          bodyHtml = `<div class="msg-bubble ${mine ? 'mine' : ''}" style="position:relative">${escHtml(msg.body)}${actionsHtml}</div>`;
+        }
+
+        const nameHtml = !mine && senderChanged ? `<div class="msg-sender-name">${esc(sender?.display_name || sender?.username || '')}</div>` : '';
+
+        html += `<div class="msg-row ${mine ? 'mine' : ''}">
+      ${mine ? '' : avatarHtml}
+      <div class="msg-group">
+        ${nameHtml}
+        ${bodyHtml}
+        <div class="msg-meta">
+          <span class="msg-time">${timeStr}</span>
+          ${mine && msg.edited_at ? '<span class="msg-status">edited</span>' : ''}
+        </div>
+      </div>
+      ${mine ? avatarHtml : ''}
+    </div>`;
+      });
+
+      area.innerHTML = html;
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function escHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/\n/g, '<br>');
+    }
+
+    function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    /* ═══════════════════════════════════════════════
+       SEND MESSAGE
+    ═══════════════════════════════════════════════ */
+    async function sendMessage() {
+      if (!activeConv) return;
+      const inp = document.getElementById('msgInput');
+      const body = inp.value.trim();
+      if (!body || body.length > 4000) return;
+
+      inp.value = '';
+      inp.style.height = 'auto';
+      document.getElementById('sendBtn').disabled = true;
+      document.getElementById('charCount').textContent = '0/4000';
+
+      const client = ZenAuth.getSupabaseClient();
+      const now = new Date().toISOString();
+
+      const { error } = await client.from('messages').insert({
+        conversation_id: activeConv.id,
+        sender_id: myUserId,
+        body,
+        msg_type: 'text'
+      });
+
+      if (error) { showToast('Failed to send message', 'error'); return; }
+
+      // Bump conversation updated_at so the sidebar re-orders and shows the preview
+      await client.from('conversations').update({ updated_at: now }).eq('id', activeConv.id);
+
+      // Optimistically refresh local conv list preview without waiting for realtime
+      const conv = conversations.find(c => c.id === activeConv.id);
+      if (conv) {
+        conv.lastMsg = { body, sender_id: myUserId, created_at: now, msg_type: 'text', is_deleted: false };
+        conv.updatedAt = now;
+        conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        renderConvList(conversations);
+      }
+
+      // Stop typing indicator
+      stopTyping();
+    }
+
+    // ══ VIEW ONCE SEND MODAL ══════════════════════════════════════════════
+    let _voFile = null;
+    let _voIsVideo = false;
+    let _voSelectedDuration = 0; // 0 = unlimited (until navigates away)
+
+    function openViewOnceModal(event) {
+      if (!activeConv) { showToast('Open a conversation first', 'error'); return; }
+      const file = event.target.files[0];
+      if (!file) return;
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) { showToast('Max file size is 10MB', 'error'); event.target.value = ''; return; }
+
+      _voFile = file;
+      _voIsVideo = file.type.startsWith('video/');
+
+      // Reset state
+      _voSelectedDuration = 0;
+      document.getElementById('voToggle').checked = false;
+      document.getElementById('voToggleTrack').style.background = 'var(--border)';
+      document.getElementById('voToggleThumb').style.transform = 'translateX(0)';
+      document.getElementById('voDurationWrap').style.display = 'none';
+      document.querySelectorAll('.vo-dur-btn').forEach(b => {
+        const isInf = b.dataset.dur === '0';
+        b.style.border = isInf ? '1.5px solid var(--ink)' : '1.5px solid var(--border)';
+        b.style.background = isInf ? 'var(--ink)' : 'var(--surface-2)';
+        b.style.color = isInf ? 'var(--bg)' : 'var(--ink)';
+      });
+
+      // Preview
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('voPreviewImg');
+        const vid = document.getElementById('voPreviewVid');
+        if (_voIsVideo) {
+          img.style.display = 'none';
+          vid.style.display = 'block';
+          vid.src = e.target.result;
+        } else {
+          vid.style.display = 'none';
+          img.style.display = 'block';
+          img.src = e.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+
+      const modal = document.getElementById('viewOnceSendModal');
+      modal.style.display = 'flex';
+      event.target.value = '';
+    }
+
+    function closeViewOnceModal() {
+      document.getElementById('viewOnceSendModal').style.display = 'none';
+      _voFile = null;
+    }
+
+    function voToggleChanged() {
+      const on = document.getElementById('voToggle').checked;
+      document.getElementById('voToggleTrack').style.background = on ? 'var(--ink)' : 'var(--border)';
+      document.getElementById('voToggleThumb').style.transform = on ? 'translateX(18px)' : 'translateX(0)';
+      // Duration selector only for images, not video
+      document.getElementById('voDurationWrap').style.display = (on && !_voIsVideo) ? 'block' : 'none';
+    }
+
+    function voDurSelect(btn) {
+      document.querySelectorAll('.vo-dur-btn').forEach(b => {
+        b.style.border = '1.5px solid var(--border)';
+        b.style.background = 'var(--surface-2)';
+        b.style.color = 'var(--ink)';
+      });
+      btn.style.border = '1.5px solid var(--ink)';
+      btn.style.background = 'var(--ink)';
+      btn.style.color = 'var(--bg)';
+      _voSelectedDuration = parseInt(btn.dataset.dur);
+    }
+
+    async function confirmSendViewOnce() {
+      if (!_voFile || !activeConv) return;
+      const viewOnce = document.getElementById('voToggle').checked;
+      closeViewOnceModal();
+
+      const isVideo = _voIsVideo;
+      showToast(isVideo ? 'Uploading video…' : 'Uploading image…');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        const client = ZenAuth.getSupabaseClient();
+        const msgType = isVideo ? 'video' : 'image';
+        const body = viewOnce ? (isVideo ? '🎬 View Once Video' : '👁 View Once Photo') : (isVideo ? '🎬 Video' : '📷 Image');
+        const insertObj = {
+          conversation_id: activeConv.id,
+          sender_id: myUserId,
+          body,
+          msg_type: msgType,
+          file_url: dataUrl,
+          file_name: _voFile.name,
+        };
+        if (viewOnce) {
+          insertObj.view_once = true;
+          if (!isVideo) insertObj.view_once_duration = _voSelectedDuration;
+        }
+        const { error } = await client.from('messages').insert(insertObj);
+        if (error) showToast('Failed to send', 'error');
+        else showToast(viewOnce ? '👁 View Once sent!' : (isVideo ? 'Video sent!' : 'Image sent!'), 'success');
+      };
+      reader.readAsDataURL(_voFile);
+      _voFile = null;
+    }
+
+    async function sendImage(event) {
+      // Legacy: if called directly (e.g. clipboard paste), just send normally
+      if (!activeConv) { showToast('Open a conversation first', 'error'); return; }
+      const file = event.target?.files?.[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { showToast('Max image size is 10MB', 'error'); return; }
+      showToast('Uploading image…');
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        const client = ZenAuth.getSupabaseClient();
+        const { error } = await client.from('messages').insert({
+          conversation_id: activeConv.id,
+          sender_id: myUserId,
+          body: '📷 Image',
+          msg_type: 'image',
+          file_url: dataUrl,
+          file_name: file.name
+        });
+        if (error) showToast('Failed to send image', 'error');
+        else showToast('Image sent!', 'success');
+      };
+      reader.readAsDataURL(file);
+      if (event.target) event.target.value = '';
+    }
+
+    // ══ VIEW ONCE VIEWER ═════════════════════════════════════════════════
+    let _voViewerTimer = null;
+    let _voViewerMsgId = null;
+
+    function openVoViewer(msgId, url, type, duration) {
+      // Mark as viewed immediately
+      localStorage.setItem('vo-viewed-' + msgId, '1');
+      _voViewerMsgId = msgId;
+
+      const viewer = document.getElementById('voViewer');
+      const img = document.getElementById('voViewerImg');
+      const vid = document.getElementById('voViewerVid');
+      const bar = document.getElementById('voCountdownBar');
+      const label = document.getElementById('voTimerLabel');
+      const countdownWrap = document.getElementById('voCountdownWrap');
+
+      // Set media
+      if (type === 'video') {
+        img.style.display = 'none';
+        vid.style.display = 'block';
+        vid.src = url;
+        vid.play().catch(() => {});
+        // Video: no countdown, close when video ends or user backs out
+        countdownWrap.style.display = 'none';
+        label.textContent = '';
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        vid.onended = () => closeVoViewer();
+      } else {
+        vid.style.display = 'none';
+        vid.src = '';
+        img.style.display = 'block';
+        img.src = url;
+        vid.onended = null;
+
+        if (duration > 0) {
+          // Timed: show countdown
+          countdownWrap.style.display = 'block';
+          label.textContent = duration + 's';
+          bar.style.transition = 'none';
+          bar.style.width = '100%';
+          // Force reflow then start shrinking
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              bar.style.transition = `width ${duration}s linear`;
+              bar.style.width = '0%';
+            });
+          });
+          let remaining = duration;
+          _voViewerTimer = setInterval(() => {
+            remaining--;
+            label.textContent = remaining > 0 ? remaining + 's' : '';
+            if (remaining <= 0) closeVoViewer();
+          }, 1000);
+        } else {
+          // Unlimited: no countdown, stays until back
+          countdownWrap.style.display = 'none';
+          label.textContent = '';
+          bar.style.transition = 'none';
+          bar.style.width = '100%';
+        }
+      }
+
+      viewer.style.display = 'flex';
+
+      // Re-render message row to show "already viewed"
+      if (activeConv) renderMessages(activeConv.id);
+    }
+
+    function closeVoViewer() {
+      if (_voViewerTimer) { clearInterval(_voViewerTimer); _voViewerTimer = null; }
+      const viewer = document.getElementById('voViewer');
+      const vid = document.getElementById('voViewerVid');
+      vid.pause();
+      vid.src = '';
+      document.getElementById('voViewerImg').src = '';
+      viewer.style.display = 'none';
+    }
+
+
+
+
+    async function sendFile(event) {
+      if (!activeConv) { showToast("Open a conversation first", "error"); return; }
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { showToast("Max file size is 10MB", "error"); event.target.value = ""; return; }
+      if (file.type.startsWith("image/")) { await sendImage(event); return; }
+      showToast("Uploading file…");
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        const client = ZenAuth.getSupabaseClient();
+        const now = new Date().toISOString();
+        const { error } = await client.from("messages").insert({
+          conversation_id: activeConv.id,
+          sender_id: myUserId,
+          body: "📎 " + file.name,
+          msg_type: "file",
+          file_url: dataUrl,
+          file_name: file.name,
+          file_size: file.size
+        });
+        if (error) { showToast("Failed to send file", "error"); return; }
+        showToast("File sent!", "success");
+        await client.from("conversations").update({ updated_at: now }).eq("id", activeConv.id);
+        const conv = conversations.find(c => c.id === activeConv.id);
+        if (conv) {
+          conv.lastMsg = { body: "📎 " + file.name, sender_id: myUserId, created_at: now, msg_type: "file", file_name: file.name, is_deleted: false };
+          conv.updatedAt = now;
+          conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+          renderConvList(conversations);
+        }
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    }
+
+    function fileIcon(name) {
+      const ext = (name || "").split(".").pop().toLowerCase();
+      const icons = {
+        pdf: "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/></svg>",
+        mp3: "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M9 18V5l12-2v13\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"16\" r=\"3\"/></svg>",
+        mp4: "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/></svg>",
+      };
+      return icons[ext] || "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/></svg>";
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes) return "";
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
+
+    // Active unsend popup tracker
+    let _unsendPopup = null;
+
+    function unsendMsg(event, msgId) {
+      event.stopPropagation();
+
+      // Remove any existing popup
+      if (_unsendPopup) { _unsendPopup.remove(); _unsendPopup = null; }
+
+      // Build popup
+      const popup = document.createElement('div');
+      popup.className = 'unsend-popup';
+      popup.innerHTML = `
+    <p>Unsend this message?<br><span style="font-size:.74rem;color:var(--ink-muted);font-weight:400">It will be removed for everyone.</span></p>
+    <div class="unsend-popup-btns">
+      <button class="unsend-cancel-btn">Cancel</button>
+      <button class="unsend-ok-btn">Unsend</button>
+    </div>`;
+
+      // Position near the button
+      const btn = event.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 8) + 'px';
+      popup.style.left = Math.max(8, rect.left - 90) + 'px';
+      document.body.appendChild(popup);
+      _unsendPopup = popup;
+
+      // Adjust if off-screen bottom
+      requestAnimationFrame(() => {
+        const pr = popup.getBoundingClientRect();
+        if (pr.bottom > window.innerHeight - 8) {
+          popup.style.top = (rect.top - pr.height - 8) + 'px';
+        }
+      });
+
+      popup.querySelector('.unsend-cancel-btn').onclick = () => { popup.remove(); _unsendPopup = null; };
+
+      popup.querySelector('.unsend-ok-btn').onclick = async () => {
+        popup.remove(); _unsendPopup = null;
+
+        // Optimistically update UI immediately
+        if (activeConv && msgCache[activeConv.id]) {
+          const msg = msgCache[activeConv.id].find(m => m.id === msgId);
+          if (msg) { msg.is_deleted = true; renderMessages(activeConv.id); }
+        }
+
+        // Persist to DB
+        const client = ZenAuth.getSupabaseClient();
+        const { error } = await client.from('messages').update({ is_deleted: true }).eq('id', msgId);
+        if (error) {
+          showToast('Could not unsend message', 'error');
+          // Revert optimistic update
+          if (activeConv && msgCache[activeConv.id]) {
+            const msg = msgCache[activeConv.id].find(m => m.id === msgId);
+            if (msg) { msg.is_deleted = false; renderMessages(activeConv.id); }
+          }
+        }
+      };
+
+      // Close on outside click
+      setTimeout(() => {
+        document.addEventListener('click', function handler(e) {
+          if (!popup.contains(e.target)) { popup.remove(); _unsendPopup = null; document.removeEventListener('click', handler); }
+        });
+      }, 10);
+    }
+
+    function copyMsg(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success'));
+    }
+
+    function clearChatView() {
+      if (!activeConv) return;
+      if (!confirm('Clear this chat view? (Messages are not deleted from the server)')) return;
+      msgCache[activeConv.id] = [];
+      renderMessages(activeConv.id);
+    }
+
+    /* ═══════════════════════════════════════════════
+       REALTIME SUBSCRIPTION
+    ═══════════════════════════════════════════════ */
+    function subscribeToConv(convId) {
+      const client = ZenAuth.getSupabaseClient();
+
+      // Unsubscribe from previous
+      if (realtimeChannel) { client.removeChannel(realtimeChannel); }
+      if (typingChannel) { client.removeChannel(typingChannel); }
+
+      // Subscribe to new messages
+      realtimeChannel = client.channel(`messages:${convId}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${convId}`
+        }, async (payload) => {
+          const msg = payload.new;
+          if (!msgCache[convId]) msgCache[convId] = [];
+          msgCache[convId].push(msg);
+          renderMessages(convId);
+          // Update conv list locally so preview and order update instantly
+          const conv = conversations.find(c => c.id === convId);
+          if (conv) {
+            conv.lastMsg = msg;
+            conv.updatedAt = msg.created_at;
+            if (msg.sender_id !== myUserId) conv.unread = (conv.unread || 0) + 1;
+            conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            renderConvList(conversations);
+          } else {
+            loadConversations(); // fallback: unknown conv, do full reload
+          }
+          if (msg.sender_id !== myUserId) markRead(convId);
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${convId}`
+        }, (payload) => {
+          if (!msgCache[convId]) return;
+          const idx = msgCache[convId].findIndex(m => m.id === payload.new.id);
+          if (idx !== -1) { msgCache[convId][idx] = payload.new; renderMessages(convId); }
+        })
+        .subscribe();
+
+      // Typing indicator via broadcast
+      typingChannel = client.channel(`typing:${convId}`)
+        .on('broadcast', { event: 'typing' }, ({ payload }) => {
+          if (payload.userId === myUserId) return;
+          const name = payload.name || 'Someone';
+          document.getElementById('typingName').textContent = name;
+          document.getElementById('typingIndicator').classList.add('visible');
+          clearTimeout(window._typingHideTimer);
+          window._typingHideTimer = setTimeout(() => {
+            document.getElementById('typingIndicator').classList.remove('visible');
+          }, 2500);
+        })
+        .subscribe();
+    }
+
+    /* ═══════════════════════════════════════════════
+       TYPING INDICATOR
+    ═══════════════════════════════════════════════ */
+    function broadcastTyping() {
+      if (!typingChannel || !activeConv) return;
+      typingChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: myUserId, name: myProfile?.display_name || myProfile?.username || 'Someone' } });
+    }
+
+    function stopTyping() {
+      clearTimeout(typingTimer);
+      typingTimer = null;
+    }
+
+    /* ═══════════════════════════════════════════════
+       INPUT HANDLING
+    ═══════════════════════════════════════════════ */
+    function handleKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function handleInput() {
+      const ta = document.getElementById('msgInput');
+      const val = ta.value;
+      // Auto-resize
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+      // Char count
+      document.getElementById('charCount').textContent = `${val.length}/4000`;
+      // Send button
+      document.getElementById('sendBtn').disabled = !val.trim() || val.length > 4000;
+      // Typing broadcast
+      clearTimeout(typingTimer);
+      if (val.trim()) {
+        broadcastTyping();
+        typingTimer = setTimeout(stopTyping, 2000);
+      }
+    }
+
+    async function handlePaste(e) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            const fakeEvent = { target: { files: [file], value: '' } };
+            await sendImage(fakeEvent);
+          }
+        }
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       EMOJI PICKER
+    ═══════════════════════════════════════════════ */
+    function buildEmojiPicker() {
+      const picker = document.getElementById('emojiPicker');
+      picker.innerHTML = `<div class="emoji-picker-grid">${CHAT_EMOJIS.map(e => `<button class="ep-emoji" onclick="insertEmoji('${e}')">${e}</button>`).join('')}</div>`;
+    }
+
+    function toggleEmoji() {
+      document.getElementById('emojiPicker').classList.toggle('open');
+    }
+
+    function insertEmoji(e) {
+      const ta = document.getElementById('msgInput');
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + e + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = s + e.length;
+      ta.focus();
+      document.getElementById('emojiPicker').classList.remove('open');
+      handleInput();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#emojiPicker') && !e.target.closest('.inp-btn')) {
+        document.getElementById('emojiPicker').classList.remove('open');
+      }
+    });
+
+    /* ═══════════════════════════════════════════════
+       MESSAGE ACTIONS — JS HOVER (fixes the gap between bubble and actions panel)
+       CSS hover fails because .msg-actions is positioned 6px outside the bubble.
+       We use mouseover/mouseout with a 200ms hide-delay so moving the cursor
+       across the gap doesn't dismiss the toolbar.
+    ═══════════════════════════════════════════════ */
+    (function initMsgActionHover() {
+      let hideTimer = null;
+      let currentActions = null;
+
+      function showActions(actionsEl) {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        if (currentActions && currentActions !== actionsEl) {
+          currentActions.classList.remove('visible');
+        }
+        currentActions = actionsEl;
+        actionsEl.classList.add('visible');
+      }
+
+      function scheduleHide() {
+        hideTimer = setTimeout(() => {
+          if (currentActions) { currentActions.classList.remove('visible'); currentActions = null; }
+        }, 200);
+      }
+
+      document.addEventListener('mouseover', (e) => {
+        const actions = e.target.closest('.msg-actions');
+        if (actions) {
+          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+          return;
+        }
+        const bubble = e.target.closest('.msg-bubble, .msg-image-wrap');
+        if (bubble) {
+          const actionsEl = bubble.querySelector('.msg-actions');
+          if (actionsEl) showActions(actionsEl);
+        }
+      });
+
+      document.addEventListener('mouseout', (e) => {
+        const leavingBubble = e.target.closest('.msg-bubble, .msg-image-wrap');
+        const leavingActions = e.target.closest('.msg-actions');
+        if (leavingBubble || leavingActions) {
+          const goingTo = e.relatedTarget;
+          const goingToBubble = goingTo && goingTo.closest('.msg-bubble, .msg-image-wrap');
+          const goingToActions = goingTo && goingTo.closest('.msg-actions');
+          if (!goingToBubble && !goingToActions) scheduleHide();
+        }
+      });
+    })();
+
+    /* ═══════════════════════════════════════════════
+       NEW CONVERSATION
+    ═══════════════════════════════════════════════ */
+    function openNewConv() {
+      document.getElementById('newConvPanel').classList.add('open');
+      document.getElementById('newConvSearch').value = '';
+      document.getElementById('newConvResults').innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">Type to search your friends…</div>';
+      setTimeout(() => document.getElementById('newConvSearch').focus(), 100);
+    }
+
+    function closeNewConv() {
+      document.getElementById('newConvPanel').classList.remove('open');
+    }
+
+    let friendSearchTimer = null;
+    async function searchFriends() {
+      const q = document.getElementById('newConvSearch').value.trim();
+      const el = document.getElementById('newConvResults');
+      if (q.length < 1) { el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">Type to search your friends…</div>'; return; }
+
+      clearTimeout(friendSearchTimer);
+      friendSearchTimer = setTimeout(async () => {
+        const client = ZenAuth.getSupabaseClient();
+
+        // Get my accepted friends
+        const { data: reqs } = await client
+          .from('friend_requests')
+          .select('sender_id, receiver_id')
+          .or(`sender_id.eq.${myUserId},receiver_id.eq.${myUserId}`)
+          .eq('status', 'accepted');
+
+        const friendIds = (reqs || []).map(r => r.sender_id === myUserId ? r.receiver_id : r.sender_id);
+        if (!friendIds.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">No friends yet. <a href="profile.html">Add some friends first!</a></div>'; return; }
+
+        const { data: profiles } = await client
+          .from('profiles')
+          .select('id, username, display_name, avatar_emoji, avatar_color, university')
+          .in('id', friendIds)
+          .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+          .limit(10);
+
+        if (!profiles?.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:.82rem">No friends match your search.</div>'; return; }
+
+        el.innerHTML = profiles.map(p => `
+      <div class="ncp-user-row" onclick="startConvWith('${p.id}')">
+        <div class="ncp-user-avatar" style="background:${p.avatar_color || '#1A1A1A'}">${p.avatar_emoji || ''}</div>
+        <div class="ncp-user-info">
+          <div class="ncp-user-name">${esc(p.display_name || p.username)}</div>
+          <div class="ncp-user-sub">@${esc(p.username)}${p.university ? ' · ' + esc(p.university) : ''}</div>
+        </div>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`).join('');
+      }, 300);
+    }
+
+    async function startConvWith(friendId) {
+      closeNewConv();
+      await openOrCreateConvWith(friendId);
+    }
+
+    /* ═══════════════════════════════════════════════
+       MARK READ
+    ═══════════════════════════════════════════════ */
+    async function markRead(convId) {
+      const client = ZenAuth.getSupabaseClient();
+      await client.from('conversation_members')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', convId)
+        .eq('user_id', myUserId);
+
+      // Reset unread in local state
+      const conv = conversations.find(c => c.id === convId);
+      if (conv) { conv.unread = 0; renderConvList(conversations); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       MISC
+    ═══════════════════════════════════════════════ */
+    function viewFriendProfile() {
+      if (!activeConv?.friend) return;
+      // Could open a mini profile modal or navigate
+      showToast(`@${activeConv.friend.username}`);
+    }
+
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'now';
+      if (mins < 60) return `${mins}m`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h`;
+      const days = Math.floor(hrs / 24);
+      if (days < 7) return `${days}d`;
+      return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    /* ═══════════════════════════════════════════════
+       VOICE MESSAGES
+    ═══════════════════════════════════════════════ */
+    let voiceRecorder = null;
+    let voiceChunks = [];
+    let voiceTimer = null;
+    let voiceSeconds = 0;
+    let voiceStream = null;
+    const voiceAudios = {}; // msgId -> HTMLAudioElement
+
+    async function startVoiceRecord(e) {
+      e.preventDefault();
+      if (voiceRecorder) return; // already recording
+      if (!activeConv) { showToast('Open a conversation first', 'error'); return; }
+
+      try {
+        voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        if (err.name === 'NotAllowedError') showToast('Microphone access denied', 'error');
+        else showToast('Cannot access microphone: ' + err.message, 'error');
+        return;
+      }
+
+      // Pick best supported format
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
+        .find(t => MediaRecorder.isTypeSupported(t)) || '';
+
+      voiceChunks = [];
+      voiceSeconds = 0;
+      voiceRecorder = new MediaRecorder(voiceStream, mimeType ? { mimeType, audioBitsPerSecond: 32000 } : { audioBitsPerSecond: 32000 });
+      voiceRecorder.ondataavailable = e => { if (e.data.size > 0) voiceChunks.push(e.data); };
+      voiceRecorder.start(100); // collect chunks every 100ms
+
+      // Show overlay
+      const overlay = document.getElementById('voiceRecordOverlay');
+      overlay.style.display = 'flex';
+      document.getElementById('voiceMsgBtn').classList.add('recording');
+      document.getElementById('voiceRecordTime').textContent = '0:00';
+
+      voiceTimer = setInterval(() => {
+        voiceSeconds++;
+        const m = Math.floor(voiceSeconds / 60);
+        const s = voiceSeconds % 60;
+        document.getElementById('voiceRecordTime').textContent = `${m}:${String(s).padStart(2, '0')}`;
+        if (voiceSeconds >= 120) stopAndSendVoice(); // 2 min max
+      }, 1000);
+    }
+
+    function cancelVoiceRecord() {
+      if (!voiceRecorder) return;
+      voiceRecorder.stop();
+      voiceRecorder = null;
+      voiceChunks = [];
+      clearInterval(voiceTimer);
+      voiceTimer = null;
+      if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+      document.getElementById('voiceRecordOverlay').style.display = 'none';
+      document.getElementById('voiceMsgBtn').classList.remove('recording');
+    }
+
+    async function stopAndSendVoice() {
+      if (!voiceRecorder || voiceRecorder.state === 'inactive') return;
+
+      const duration = voiceSeconds;
+
+      await new Promise(resolve => {
+        voiceRecorder.onstop = resolve;
+        voiceRecorder.stop();
+      });
+
+      // Clean up mic
+      if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+      clearInterval(voiceTimer);
+      voiceTimer = null;
+      document.getElementById('voiceRecordOverlay').style.display = 'none';
+      document.getElementById('voiceMsgBtn').classList.remove('recording');
+
+      if (voiceChunks.length === 0 || duration < 1) {
+        showToast('Recording too short', 'error');
+        voiceRecorder = null;
+        return;
+      }
+
+      const mimeType = voiceRecorder.mimeType || 'audio/webm';
+      voiceRecorder = null;
+
+      const blob = new Blob(voiceChunks, { type: mimeType });
+      voiceChunks = [];
+
+      // Convert to base64 data URL
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const dataUrl = ev.target.result;
+        const client = ZenAuth.getSupabaseClient();
+        const now = new Date().toISOString();
+
+        const { error } = await client.from('messages').insert({
+          conversation_id: activeConv.id,
+          sender_id: myUserId,
+          body: '🎤 Voice message',
+          msg_type: 'voice',
+          file_url: dataUrl,
+          file_name: `voice-${Date.now()}.webm`,
+          file_size: duration   // repurpose file_size to store duration in seconds
+        });
+
+        if (error) { console.error('[Voice] Send error:', error.message, error); showToast('Error: ' + error.message, 'error'); return; }
+
+        await client.from('conversations').update({ updated_at: now }).eq('id', activeConv.id);
+
+        const conv = conversations.find(c => c.id === activeConv.id);
+        if (conv) {
+          conv.lastMsg = { body: '🎤 Voice message', sender_id: myUserId, created_at: now, msg_type: 'voice', is_deleted: false };
+          conv.updatedAt = now;
+          conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+          renderConvList(conversations);
+        }
+
+        showToast('Voice message sent!', 'success');
+      };
+      reader.readAsDataURL(blob);
+    }
+
+    // ── Voice message playback ───────────────────────────────
+    function playVoiceMsg(btn, url, msgId) {
+      // If another audio is playing, stop it
+      Object.entries(voiceAudios).forEach(([id, a]) => {
+        if (id !== msgId && !a.paused) {
+          a.pause();
+          a.currentTime = 0;
+          const icon = document.getElementById('vmIcon-' + id);
+          const fill = document.getElementById('vmFill-' + id);
+          if (icon) icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+          if (fill) fill.style.width = '0%';
+        }
+      });
+
+      if (!voiceAudios[msgId]) {
+        const audio = new Audio(url);
+        voiceAudios[msgId] = audio;
+
+        audio.ontimeupdate = () => {
+          if (!audio.duration) return;
+          const pct = (audio.currentTime / audio.duration) * 100;
+          const fill = document.getElementById('vmFill-' + msgId);
+          const durEl = document.getElementById('vmDur-' + msgId);
+          if (fill) fill.style.width = pct + '%';
+          if (durEl) {
+            const rem = audio.duration - audio.currentTime;
+            durEl.textContent = `${Math.floor(rem / 60)}:${String(Math.floor(rem % 60)).padStart(2, '0')}`;
+          }
+        };
+
+        audio.onended = () => {
+          const icon = document.getElementById('vmIcon-' + msgId);
+          const fill = document.getElementById('vmFill-' + msgId);
+          const total = Math.round(audio.duration) || 0;
+          const durEl = document.getElementById('vmDur-' + msgId);
+          if (icon) icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+          if (fill) fill.style.width = '0%';
+          if (durEl) durEl.textContent = `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+        };
+      }
+
+      const audio = voiceAudios[msgId];
+      const icon = document.getElementById('vmIcon-' + msgId);
+
+      if (audio.paused) {
+        audio.play().catch(() => showToast('Cannot play audio', 'error'));
+        if (icon) icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      } else {
+        audio.pause();
+        if (icon) icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      }
+    }
+
+    function seekVoiceMsg(e, trackEl, url, msgId) {
+      if (!voiceAudios[msgId]) { playVoiceMsg(null, url, msgId); return; }
+      const audio = voiceAudios[msgId];
+      if (!audio.duration) return;
+      const rect = trackEl.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      audio.currentTime = pct * audio.duration;
+    }
+
+
+    /* ─── Delete voice message (hard delete — removes the row entirely) ─── */
+    function deleteVoiceMsg(event, msgId) {
+      event.stopPropagation();
+
+      if (_unsendPopup) { _unsendPopup.remove(); _unsendPopup = null; }
+
+      const popup = document.createElement('div');
+      popup.className = 'unsend-popup';
+      popup.innerHTML = `
+    <p>Delete this voice message?<br><span style="font-size:.74rem;color:var(--ink-muted);font-weight:400">It will be removed for everyone.</span></p>
+    <div class="unsend-popup-btns">
+      <button class="unsend-cancel-btn">Cancel</button>
+      <button class="unsend-ok-btn">Delete</button>
+    </div>`;
+
+      const btn = event.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 8) + 'px';
+      popup.style.left = Math.max(8, rect.left - 90) + 'px';
+      document.body.appendChild(popup);
+      _unsendPopup = popup;
+
+      requestAnimationFrame(() => {
+        const pr = popup.getBoundingClientRect();
+        if (pr.bottom > window.innerHeight - 8) popup.style.top = (rect.top - pr.height - 8) + 'px';
+      });
+
+      popup.querySelector('.unsend-cancel-btn').onclick = () => { popup.remove(); _unsendPopup = null; };
+
+      popup.querySelector('.unsend-ok-btn').onclick = async () => {
+        popup.remove(); _unsendPopup = null;
+
+        // Stop playback if playing
+        if (voiceAudios[msgId]) { voiceAudios[msgId].pause(); delete voiceAudios[msgId]; }
+
+        // Optimistic remove from cache
+        if (activeConv && msgCache[activeConv.id]) {
+          msgCache[activeConv.id] = msgCache[activeConv.id].filter(m => m.id !== msgId);
+          renderMessages(activeConv.id);
+        }
+
+        const client = ZenAuth.getSupabaseClient();
+        const { error } = await client.from('messages').delete().eq('id', msgId);
+        if (error) {
+          showToast('Could not delete voice message', 'error');
+          // Reload messages to restore
+          if (activeConv) { delete msgCache[activeConv.id]; loadMessages(activeConv.id); }
+        } else {
+          showToast('Voice message deleted', 'success');
+        }
+      };
+
+      setTimeout(() => {
+        document.addEventListener('click', function handler(e) {
+          if (!popup.contains(e.target)) { popup.remove(); _unsendPopup = null; document.removeEventListener('click', handler); }
+        });
+      }, 10);
+    }
+
+    /* ─── Delete entire conversation ─────────────────────────────────── */
+    function deleteConversation() {
+      if (!activeConv) return;
+
+      if (_unsendPopup) { _unsendPopup.remove(); _unsendPopup = null; }
+
+      const friendName = activeConv.friend?.display_name || activeConv.friend?.username || 'this person';
+
+      const popup = document.createElement('div');
+      popup.className = 'unsend-popup';
+      popup.style.minWidth = '240px';
+      popup.innerHTML = `
+    <p>Delete conversation with <strong>${friendName}</strong>?<br>
+    <span style="font-size:.74rem;color:var(--ink-muted);font-weight:400">All messages will be permanently removed for both of you.</span></p>
+    <div class="unsend-popup-btns">
+      <button class="unsend-cancel-btn">Cancel</button>
+      <button class="unsend-ok-btn">Delete</button>
+    </div>`;
+
+      // Center the popup
+      popup.style.position = 'fixed';
+      popup.style.top = '50%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+      document.body.appendChild(popup);
+      _unsendPopup = popup;
+
+      popup.querySelector('.unsend-cancel-btn').onclick = () => { popup.remove(); _unsendPopup = null; };
+
+      popup.querySelector('.unsend-ok-btn').onclick = async () => {
+        popup.remove(); _unsendPopup = null;
+
+        const convId = activeConv.id;
+        const client = ZenAuth.getSupabaseClient();
+
+        // Optimistically clear UI
+        conversations = conversations.filter(c => c.id !== convId);
+        delete msgCache[convId];
+        activeConv = null;
+        renderConvList(conversations);
+        document.getElementById('chatEmpty').style.display = 'flex';
+        document.getElementById('chatActive').style.display = 'none';
+
+        // Delete all messages first (CASCADE may handle this, but be explicit)
+        await client.from('messages').delete().eq('conversation_id', convId);
+        // Delete conversation members
+        await client.from('conversation_members').delete().eq('conversation_id', convId);
+        // Delete the conversation
+        const { error } = await client.from('conversations').delete().eq('id', convId);
+
+        if (error) {
+          showToast('Could not delete conversation: ' + error.message, 'error');
+          // Reload to restore state
+          loadConversations();
+        } else {
+          showToast('Conversation deleted', 'success');
+        }
+      };
+
+      setTimeout(() => {
+        document.addEventListener('click', function handler(e) {
+          if (!popup.contains(e.target)) { popup.remove(); _unsendPopup = null; document.removeEventListener('click', handler); }
+        });
+      }, 10);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       WEBRTC CALL ENGINE — clean rewrite
+       ─────────────────────────────────────────────────────
+       Signaling via Supabase Realtime Broadcast.
+       Two channels per call:
+         • inbox:<calleeId>  — callee's personal channel, always open.
+                               Caller sends ring+offer here so callee
+                               receives even if no conversation is open.
+         • call:<id1>:<id2>  — shared bidirectional channel for ICE,
+                               answer, end, decline signals.
+    ═══════════════════════════════════════════════════════ */
+
+    // ── ICE servers (STUN + TURN relay for NAT traversal) ──
+    const ICE_SERVERS = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'turn:openrelay.metered.ca:80',                username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:80?transport=tcp',  username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443',               username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turns:openrelay.metered.ca:443',              username: 'openrelayproject', credential: 'openrelayproject' },
+    ];
+
+    // ── Call state ──
+    let _cs = {
+      active: false,
+      isCaller: false,
+      type: null,   // 'audio' | 'video'
+      friendId: null,
+      friendProfile: null,
+      pc: null,   // RTCPeerConnection
+      localStream: null,
+      remoteStream: null,
+      sharedCh: null,   // Supabase channel: call:<id>:<id>
+      inboxCh: null,   // Supabase channel: inbox:<myId> (always open)
+      offer: null,   // stored incoming SDP offer
+      pendingIce: [],     // ICE candidates queued before setRemoteDescription
+      timerInterval: null,
+      timerSeconds: 0,
+      noAnswerTimer: null,
+      muted: false,
+      cameraOff: false,
+    };
+
+    function _sb() { return ZenAuth.getSupabaseClient(); }
+    function _chName(a, b) { return 'call:' + [a, b].sort().join(':'); }
+
+    // ── Send a signal on the shared channel ──
+    async function _sig(type, extra = {}) {
+      if (!_cs.sharedCh) { console.warn('[Call] _sig: no sharedCh for', type); return; }
+      await _cs.sharedCh.send({
+        type: 'broadcast', event: 'signal',
+        payload: { type, from: myUserId, callType: _cs.type, ...extra },
+      });
+    }
+
+    // ── Subscribe to the shared bidirectional channel ──
+    async function _joinShared(friendId) {
+      if (_cs.sharedCh) { try { await _cs.sharedCh.unsubscribe(); } catch (_) { } _cs.sharedCh = null; }
+      const ch = _sb().channel(_chName(myUserId, friendId), {
+        config: { broadcast: { self: false, ack: false } }
+      });
+      ch.on('broadcast', { event: 'signal' }, ({ payload }) => _onSignal(payload));
+      // Wait for SUBSCRIBED status before resolving — ensures channel is ready for send()
+      await new Promise((resolve) => {
+        const t = setTimeout(() => { console.warn('[Call] sharedCh timeout'); resolve(); }, 8000);
+        ch.subscribe((status) => {
+          if (status === 'SUBSCRIBED') { clearTimeout(t); resolve(); }
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { clearTimeout(t); resolve(); }
+        });
+      });
+      _cs.sharedCh = ch;
+    }
+
+    // ── Subscribe to personal inbox (done once at page load) ──
+    async function _subscribeGlobalCallChannel() {
+      if (_cs.inboxCh) return;
+      const ch = _sb().channel(`inbox:${myUserId}`, { config: { broadcast: { self: false } } });
+      ch.on('broadcast', { event: 'signal' }, ({ payload }) => _onSignal(payload));
+      await new Promise((resolve) => {
+        const t = setTimeout(resolve, 8000);
+        ch.subscribe((status) => {
+          if (status === 'SUBSCRIBED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            clearTimeout(t); resolve();
+          }
+        });
+      });
+      _cs.inboxCh = ch;
+    }
+
+    // ── Boost video bitrate after connection ──
+    async function _boostVideoBitrate(pc) {
+      try {
+        const senders = pc.getSenders();
+        for (const sender of senders) {
+          if (!sender.track) continue;
+          const params = sender.getParameters();
+          if (!params.encodings || params.encodings.length === 0) {
+            params.encodings = [{}];
+          }
+          if (sender.track.kind === 'video') {
+            // Target 2.5 Mbps for video — significant quality boost over default ~500kbps
+            params.encodings[0].maxBitrate    = 2_500_000;
+            params.encodings[0].maxFramerate  = 30;
+            params.encodings[0].scaleResolutionDownBy = 1.0; // no downscaling
+          } else if (sender.track.kind === 'audio') {
+            params.encodings[0].maxBitrate = 128_000; // 128kbps audio
+          }
+          await sender.setParameters(params);
+        }
+      } catch (e) {
+        console.warn('[Call] Could not set bitrate params:', e);
+      }
+    }
+
+    // ── Create RTCPeerConnection ──
+    function _makePC() {
+      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+      pc.onicecandidate = async ({ candidate }) => {
+        if (candidate) await _sig('ice', { candidate: candidate.toJSON() });
+      };
+
+      pc.ontrack = ({ track, streams }) => {
+        console.log('[Call] ontrack:', track.kind, streams?.length, 'streams');
+
+        // Build or reuse a MediaStream for remote media
+        if (!_cs.remoteStream) _cs.remoteStream = new MediaStream();
+        // Add track if not already present
+        if (!_cs.remoteStream.getTracks().find(t => t.id === track.id)) {
+          _cs.remoteStream.addTrack(track);
+        }
+
+        if (track.kind === 'audio') {
+          const el = document.getElementById('remoteAudio');
+          if (el.srcObject !== _cs.remoteStream) el.srcObject = _cs.remoteStream;
+          // iOS: play while muted then unmute — satisfies autoplay policy
+          el.play().then(() => { el.muted = false; }).catch(() => {
+            // Show tap-to-unmute button if autoplay blocked
+            if (!document.getElementById('callUnmuteBtn')) {
+              const btn = document.createElement('button');
+              btn.id = 'callUnmuteBtn'; btn.textContent = '▶ Tap to hear call';
+              btn.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;padding:14px 28px;border-radius:12px;background:#6366f1;color:#fff;border:none;font-weight:700;font-size:1rem;cursor:pointer';
+              btn.onclick = () => { el.muted = false; el.play().catch(()=>{}); btn.remove(); };
+              document.body.appendChild(btn);
+            }
+          });
+        }
+
+        if (track.kind === 'video') {
+          const el = document.getElementById('remoteVideo');
+          if (el.srcObject !== _cs.remoteStream) el.srcObject = _cs.remoteStream;
+          el.style.display = 'block';
+          // Force play — needed on some browsers
+          el.play().catch(e => {
+            console.warn('[Call] remoteVideo play blocked:', e.name);
+            // Show unmute button if autoplay blocked
+            if (!document.getElementById('callUnmuteBtn')) {
+              const btn = document.createElement('button');
+              btn.id = 'callUnmuteBtn';
+              btn.textContent = '▶ Tap to see video';
+              btn.className = 'btn btn-primary';
+              btn.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999';
+              btn.onclick = () => { el.play(); btn.remove(); };
+              document.getElementById('remoteSlot')?.appendChild(btn);
+            }
+          });
+          document.getElementById('remoteAvatarFallback').style.opacity = '0';
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        const s = pc.connectionState;
+        console.log('[Call] connectionState:', s);
+        if (s === 'connected') {
+          _updateHUD('Connected');
+          _startTimer();
+          if (_cs.type === 'video') _boostVideoBitrate(pc);
+        }
+        if (s === 'failed') { showToast('Call connection failed', 'error'); endCall(); }
+        if (s === 'disconnected' && _cs.active) endCall();
+      };
+
+      // iOS Safari fires iceconnectionstatechange more reliably than connectionstatechange
+      pc.oniceconnectionstatechange = () => {
+        const s = pc.iceConnectionState;
+        console.log('[Call] iceConnectionState:', s);
+        if ((s === 'connected' || s === 'completed') && !_cs.timerInterval) {
+          _updateHUD('Connected'); _startTimer();
+          if (_cs.type === 'video') _boostVideoBitrate(pc);
+          const a = document.getElementById('remoteAudio');
+          if (a && a.srcObject) { a.muted = false; a.play().catch(() => {}); }
+        }
+        if (s === 'failed') { showToast('Call connection failed', 'error'); endCall(); }
+      };
+      pc.onicegatheringstatechange = () => console.log('[Call] iceGathering:', pc.iceGatheringState);
+      pc.onsignalingstatechange = () => console.log('[Call] signalingState:', pc.signalingState);
+
+      return pc;
+    }
+
+    // ── Get user media with layered fallbacks ──
+    async function _getLocalMedia(callType) {
+      if (!navigator.mediaDevices?.getUserMedia)
+        throw new Error('Media capture not supported. Use HTTPS or localhost.');
+
+      // High-quality audio constraints with echo/noise suppression
+      const audioConstraints = {
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl:  { ideal: true },
+        sampleRate:       { ideal: 48000 },
+        channelCount:     { ideal: 1 },
+      };
+
+      // High-quality video constraints — try 1080p, fall back gracefully
+      const videoConstraintsHD = {
+        width:     { ideal: 1920, min: 640 },
+        height:    { ideal: 1080, min: 480 },
+        frameRate: { ideal: 30,   min: 15  },
+        facingMode: 'user',
+      };
+      const videoConstraintsFallback = {
+        width:     { ideal: 1280, min: 640 },
+        height:    { ideal: 720,  min: 480 },
+        frameRate: { ideal: 30,   min: 15  },
+        facingMode: 'user',
+      };
+
+      const isVideo = callType === 'video';
+
+      if (isVideo) {
+        for (const constraints of [
+          { audio: audioConstraints, video: videoConstraintsHD },
+          { audio: audioConstraints, video: videoConstraintsFallback },
+          { audio: audioConstraints, video: true },
+          { audio: false,            video: videoConstraintsFallback },
+          { audio: audioConstraints, video: false },
+        ]) {
+          try {
+            const s = await navigator.mediaDevices.getUserMedia(constraints);
+            if (!constraints.video) { showToast('No camera — audio only', 'default', 4000); _cs.cameraOff = true; document.getElementById('camCtrlWrap').style.display = 'none'; }
+            return s;
+          } catch (e) { console.warn('[Call] media attempt failed:', e.name); }
+        }
+      } else {
+        for (const constraints of [
+          { audio: audioConstraints, video: false },
+          { audio: true,             video: false },
+        ]) {
+          try { return await navigator.mediaDevices.getUserMedia(constraints); } catch (e) { console.warn('[Call] audio attempt failed:', e.name); }
+        }
+      }
+      throw new Error('Could not access microphone or camera. Check permissions and try again.');
+    }
+
+    // ── CALLER: start a call ──
+    async function startCall(callType) {
+      if (!activeConv?.friend) return;
+      if (_cs.active) { showToast('Already in a call', 'error'); return; }
+
+      const friend = activeConv.friend;
+      try {
+        // 1. Set state
+        _cs.active = true; _cs.isCaller = true; _cs.type = callType;
+        _cs.friendId = friend.id; _cs.friendProfile = friend;
+
+        // 2. Join shared channel FIRST so we receive answer + ICE
+        await _joinShared(friend.id);
+
+        // 3. Show UI
+        _showCallOverlay(callType);
+        _updateHUD('Calling…');
+
+        // 4. Get local media
+        const stream = await _getLocalMedia(callType);
+        _cs.localStream = stream;
+        document.getElementById('localVideo').srcObject = stream;
+        if (callType === 'video') document.getElementById('localPip').classList.add('visible');
+
+        // 5. Create PC and add tracks
+        //    Use addTransceiver for video on the OFFERER side only to force sendrecv.
+        //    The answerer uses addTrack (transceivers are created by setRemoteDescription).
+        const pc = _makePC();
+        _cs.pc = pc;
+        // addTrack only — addTransceiver breaks SDP negotiation on iOS Safari
+        stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+        // 6. Create offer and set local description
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        // 7. Ring + offer callee on their personal inbox
+        //    Subscribe to inbox channel and wait for it to be ready
+        const inboxCh = _sb().channel(`inbox:${friend.id}`, { config: { broadcast: { self: false, ack: false } } });
+        await new Promise((resolve) => {
+          const t = setTimeout(resolve, 5000); // fallback timeout
+          inboxCh.subscribe((status) => { if (status === 'SUBSCRIBED') { clearTimeout(t); resolve(); } });
+        });
+        // Small delay so callee's subscription is stable before ring arrives
+        await new Promise(r => setTimeout(r, 300));
+        await inboxCh.send({ type: 'broadcast', event: 'signal', payload: { type: 'ring', from: myUserId, callType } });
+        // Wait for ring to be processed before sending offer
+        await new Promise(r => setTimeout(r, 200));
+        await inboxCh.send({ type: 'broadcast', event: 'signal', payload: { type: 'offer', from: myUserId, callType, sdp: offer } });
+        setTimeout(() => { try { inboxCh.unsubscribe(); } catch (_) { } }, 10000);
+
+        // 8. No-answer timeout
+        _cs.noAnswerTimer = setTimeout(() => {
+          if (_cs.active && !_cs.timerInterval) { showToast('No answer', 'error'); endCall(); }
+        }, 45000);
+
+      } catch (err) {
+        console.error('[Call] startCall error:', err);
+        showToast(err.message || 'Could not start call', 'error', 6000);
+        _teardown();
+      }
+    }
+
+    // ── CALLEE: accept a call ──
+    async function acceptCall() {
+      _hideIncoming();
+      if (!_cs.offer || !_cs.friendId) { console.error('[Call] acceptCall: no offer or friendId'); return; }
+
+      const callType = _cs.type;
+      try {
+        _cs.active = true; _cs.isCaller = false;
+
+        // Always re-join sharedCh — on autocall redirect the old channel is dead
+        await _joinShared(_cs.friendId);
+
+        // 2. Show UI
+        _showCallOverlay(callType);
+        _updateHUD('Connecting…');
+
+        // 3. Get local media
+        const stream = await _getLocalMedia(callType);
+        _cs.localStream = stream;
+        document.getElementById('localVideo').srcObject = stream;
+        if (callType === 'video') document.getElementById('localPip').classList.add('visible');
+
+        // 4. Create PC — answerer side: addTrack only (no addTransceiver).
+        //    setRemoteDescription creates transceivers from the offer.
+        const pc = _makePC();
+        _cs.pc = pc;
+        stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+        // 5. Set remote description from the stored offer
+        await pc.setRemoteDescription(new RTCSessionDescription(_cs.offer));
+
+        // 6. Flush any ICE candidates that arrived before setRemoteDescription
+        for (const c of _cs.pendingIce) {
+          try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) { }
+        }
+        _cs.pendingIce = [];
+
+        // 7. Create answer and send — sharedCh is already subscribed so no delay needed
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await _sig('answer', { sdp: answer });
+
+      } catch (err) {
+        console.error('[Call] acceptCall error:', err);
+        showToast(err.message || 'Could not join call', 'error', 6000);
+        _teardown();
+      }
+    }
+
+    async function declineCall() {
+      _hideIncoming();
+      // sharedCh is now joined on ring, so _sig works.
+      // Belt-and-suspenders: also send via caller's inbox in case sharedCh isn't ready.
+      if (_cs.sharedCh) {
+        await _sig('decline');
+      } else if (_cs.friendId) {
+        try {
+          const inboxCh = _sb().channel(`inbox:${_cs.friendId}`, { config: { broadcast: { self: false, ack: false } } });
+          await new Promise(r => { const t = setTimeout(r, 3000); inboxCh.subscribe(s => { if (s === 'SUBSCRIBED') { clearTimeout(t); r(); } }); });
+          await inboxCh.send({ type: 'broadcast', event: 'signal', payload: { type: 'decline', from: myUserId } });
+          setTimeout(() => { try { inboxCh.unsubscribe(); } catch (_) { } }, 3000);
+        } catch (e) { console.warn('[Call] declineCall fallback failed', e); }
+      }
+      _resetState();
+    }
+
+    async function endCall() {
+      if (!_cs.active && !_cs.sharedCh) { _resetState(); return; }
+      await _sig('end');
+      _teardown();
+    }
+
+    function _teardown() {
+      _stopTimer();
+      clearTimeout(_cs.noAnswerTimer);
+      if (_cs.pc) { _cs.pc.close(); _cs.pc = null; }
+      if (_cs.localStream) { _cs.localStream.getTracks().forEach(t => t.stop()); _cs.localStream = null; }
+      _cs.remoteStream = null;
+      ['remoteVideo', 'remoteAudio', 'localVideo'].forEach(id => { const el = document.getElementById(id); if (el) el.srcObject = null; });
+      document.getElementById('localPip').classList.remove('visible');
+      document.getElementById('remoteAvatarFallback').style.opacity = '1';
+      _hideCallOverlay();
+      _hideIncoming();
+      _resetState();
+    }
+
+    function _resetState() {
+      if (_cs.sharedCh) { _cs.sharedCh.unsubscribe(); _cs.sharedCh = null; }
+      // Note: inboxCh stays open — it's the always-on receive channel
+      Object.assign(_cs, {
+        active: false, isCaller: false, type: null,
+        friendId: null, friendProfile: null,
+        pc: null, localStream: null, remoteStream: null, sharedCh: null,
+        offer: null, pendingIce: [],
+        timerInterval: null, timerSeconds: 0, noAnswerTimer: null,
+        muted: false, cameraOff: false,
+      });
+    }
+
+    // ── Signal handler (called from both inbox and shared channels) ──
+    async function _onSignal(payload) {
+      const { type, from, callType, sdp, candidate } = payload;
+      if (from === myUserId) return; // ignore own echoes
+      console.log('[Call] signal:', type, 'from:', from?.slice(0, 8));
+
+      if (type === 'ring') {
+        if (_cs.active) { /* busy — ignore, caller will timeout */ return; }
+        _cs.type = callType;
+        _cs.friendId = from;
+        _cs.offer = null;
+        _cs.pendingIce = [];
+
+        // ── KEY FIX: join sharedCh NOW so ICE candidates from the caller
+        //    that arrive before acceptCall() are captured and queued.
+        //    declineCall() also needs sharedCh to signal the caller.
+        try { await _joinShared(from); } catch (e) { console.warn('[Call] ring: _joinShared failed', e); }
+
+        const client = _sb();
+        let prof = friendCache[from];
+        if (!prof) {
+          const { data } = await client.from('profiles').select('id,username,display_name,avatar_emoji,avatar_color').eq('id', from).single();
+          prof = data || { id: from };
+          friendCache[from] = prof;
+        }
+        _cs.friendProfile = prof;
+        _showIncoming(prof, callType);
+        return;
+      }
+
+      if (type === 'offer') {
+        // Store offer — acceptCall() will use it.
+        _cs.offer = sdp;
+        return;
+      }
+
+      if (type === 'answer') {
+        if (_cs.pc && _cs.pc.signalingState === 'have-local-offer') {
+          await _cs.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+          _updateHUD('Connecting…'); // answer received — no longer "Calling…"
+          // Flush ICE candidates that arrived before answer
+          for (const c of _cs.pendingIce) {
+            try { await _cs.pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) { }
+          }
+          _cs.pendingIce = [];
+        }
+        return;
+      }
+
+      if (type === 'ice') {
+        if (!candidate) return;
+        if (_cs.pc?.remoteDescription?.type) {
+          try { await _cs.pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (_) { }
+        } else {
+          // Queue until setRemoteDescription is called
+          _cs.pendingIce.push(candidate);
+        }
+        return;
+      }
+
+      if (type === 'decline') {
+        clearTimeout(_cs.noAnswerTimer);
+        showToast('Call declined', 'error');
+        _teardown();
+        return;
+      }
+
+      if (type === 'end') {
+        _teardown();
+        return;
+      }
+    }
+
+    // ── Controls ──
+    function toggleMute() {
+      if (!_cs.localStream) return;
+      _cs.muted = !_cs.muted;
+      _cs.localStream.getAudioTracks().forEach(t => { t.enabled = !_cs.muted; });
+      const btn = document.getElementById('btnMute');
+      const lbl = document.getElementById('muteLabel');
+      if (_cs.muted) {
+        btn.classList.add('active-muted'); lbl.textContent = 'Unmute';
+        document.getElementById('muteIcon').innerHTML = '<line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>';
+      } else {
+        btn.classList.remove('active-muted'); lbl.textContent = 'Mute';
+        document.getElementById('muteIcon').innerHTML = '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>';
+      }
+    }
+
+    function toggleCamera() {
+      if (!_cs.localStream) return;
+      _cs.cameraOff = !_cs.cameraOff;
+      _cs.localStream.getVideoTracks().forEach(t => { t.enabled = !_cs.cameraOff; });
+      const btn = document.getElementById('btnCamera');
+      const lbl = document.getElementById('camLabel');
+      btn.classList.toggle('active-muted', _cs.cameraOff);
+      lbl.textContent = _cs.cameraOff ? 'Show cam' : 'Camera';
+    }
+
+    function toggleSpeaker() {
+      document.getElementById('btnSpeaker').classList.toggle('active-muted');
+    }
+
+    // ── UI helpers ──
+    function _showCallOverlay(callType) {
+      document.getElementById('callOverlay').classList.add('open');
+      document.getElementById('camCtrlWrap').style.display = callType === 'video' ? 'flex' : 'none';
+    }
+    function _hideCallOverlay() { document.getElementById('callOverlay').classList.remove('open'); }
+
+    function _showIncoming(profile, callType) {
+      document.getElementById('incomingAvatar').textContent = profile?.avatar_emoji || profile?.display_name?.[0]?.toUpperCase() || '👤';
+      document.getElementById('incomingName').textContent = profile?.display_name || profile?.username || 'Someone';
+      document.getElementById('incomingType').textContent = callType === 'video' ? 'Incoming video call…' : 'Incoming voice call…';
+      document.getElementById('callIncoming').classList.add('open');
+    }
+    function _hideIncoming() { document.getElementById('callIncoming').classList.remove('open'); }
+
+    function _updateHUD(status) {
+      const f = _cs.friendProfile;
+      document.getElementById('callHudName').textContent = f?.display_name || f?.username || '…';
+      document.getElementById('remoteAvatarName').textContent = f?.display_name || f?.username || 'Connecting…';
+      document.getElementById('remoteAvatarCircle').textContent = f?.avatar_emoji || f?.display_name?.[0]?.toUpperCase() || '👤';
+      document.getElementById('callHudStatus').textContent = status;
+    }
+
+    function _startTimer() {
+      _cs.timerSeconds = 0;
+      const el = document.getElementById('callTimer');
+      el.style.display = 'block';
+      document.getElementById('callHudStatus').style.display = 'none';
+      _cs.timerInterval = setInterval(() => {
+        _cs.timerSeconds++;
+        const m = Math.floor(_cs.timerSeconds / 60);
+        const s = String(_cs.timerSeconds % 60).padStart(2, '0');
+        el.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function _stopTimer() {
+      clearInterval(_cs.timerInterval);
+      _cs.timerInterval = null;
+      const el = document.getElementById('callTimer');
+      if (el) { el.style.display = 'none'; }
+      const hs = document.getElementById('callHudStatus');
+      if (hs) hs.style.display = '';
+    }
+
+    // ── Called from openConv — no-op now that global inbox handles incoming ──
+    async function _listenForCallsFrom(friendId) {
+      // Global inbox channel handles all incoming calls.
+      // Nothing to do here — keeping the call for backward compatibility.
+    }
+  </script>
+
+  <!-- Voice message recording overlay -->
+  <div id="voiceRecordOverlay"
+    style="display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--surface-1);border:1.5px solid var(--border);border-radius:20px;padding:14px 22px;box-shadow:0 8px 32px rgba(0,0,0,.18);display:none;align-items:center;gap:14px;min-width:280px">
+    <div id="voiceRecordDot"
+      style="width:12px;height:12px;border-radius:50%;background:#e53e3e;flex-shrink:0;animation:vmPulse 1s ease-in-out infinite">
+    </div>
+    <div style="flex:1">
+      <div style="font-size:.78rem;font-weight:700;color:var(--ink)">Recording…</div>
+      <div id="voiceRecordTime" style="font-size:.72rem;color:var(--ink-muted);font-variant-numeric:tabular-nums">0:00
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="cancelVoiceRecord()" title="Cancel"
+        style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface-2);cursor:pointer;display:grid;place-items:center;color:var(--ink-muted)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <button onclick="stopAndSendVoice()" title="Send"
+        style="width:34px;height:34px;border-radius:50%;border:none;background:var(--ink);cursor:pointer;display:grid;place-items:center;color:var(--surface-1)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <style>
+    @keyframes vmPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.8)
+      }
+    }
+
+    #voiceMsgBtn.recording {
+      color: #e53e3e;
+    }
+
+    #voiceMsgBtn.recording svg {
+      stroke: #e53e3e;
+    }
+
+    .msg-voice-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      min-width: 200px;
+      max-width: 280px;
+    }
+
+    .vm-play-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: opacity .15s;
+    }
+
+    .vm-play-btn:hover {
+      opacity: .8;
+    }
+
+    .vm-waveform {
+      flex: 1;
+      height: 28px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .vm-waveform canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .vm-duration {
+      font-size: .7rem;
+      font-variant-numeric: tabular-nums;
+      opacity: .7;
+      flex-shrink: 0;
+      min-width: 28px;
+      text-align: right;
+    }
+  </style>
+
+</body>
+
+</html>
