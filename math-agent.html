@@ -1564,32 +1564,92 @@
         top: 0;
         height: 100%;
         z-index: 100;
+        /* on tablet/phone, reset margin animation since it overlays */
+        transition: transform .25s var(--ease);
       }
 
       .sidebar-right.closed {
         transform: translateX(100%);
+        margin-right: 0;
       }
     }
 
     @media (max-width: 600px) {
       .nav {
-        padding: 0 16px;
+        padding: 0 12px;
       }
 
+      /* Compact topbar */
+      .chat-topbar {
+        padding: 10px 14px;
+        gap: 8px;
+      }
+
+      .topbar-info h3 {
+        font-size: .9rem;
+      }
+
+      #agentStatus {
+        display: none;
+      }
+
+      /* Mode bar: scrollable row so all modes fit */
       .mode-bar {
         padding: 8px 12px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
       }
 
+      .mode-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .mode-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      /* Chat messages area */
       #chatMessages {
-        padding: 14px 14px 8px;
+        padding: 12px 12px 8px;
       }
 
+      /* Input area — larger tap targets */
       .input-area {
-        padding: 10px 12px 14px;
+        padding: 8px 12px 16px;
       }
 
+      .input-box {
+        border-radius: 14px;
+      }
+
+      #mathInput {
+        font-size: .92rem;
+        min-height: 44px;
+      }
+
+      .send-btn {
+        width: 44px;
+        height: 44px;
+      }
+
+      /* Subject/keyboard bar hidden on small screens */
       .subject-bar {
         display: none;
+      }
+
+      /* Bubbles */
+      .user-bubble,
+      .bot-bubble {
+        max-width: 92%;
+      }
+
+      /* Tighten icon buttons in topbar */
+      .icon-btn {
+        width: 30px;
+        height: 30px;
       }
     }
 
@@ -2344,7 +2404,7 @@
     }
 
     // Close settings panel when clicking outside of it
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       const sidebar = document.getElementById('rightSidebar');
       const btn = document.getElementById('toggleSettingsBtn');
       if (!sidebar || sidebar.classList.contains('closed')) return;
