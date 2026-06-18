@@ -37,15 +37,32 @@
       z-index: 10;
     }
 
-    /* Overlay behind sidebar — hidden always (no slide mechanic) */
+    /* Overlay behind sidebar */
     #sidebarOverlay {
-      display: none !important;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 199;
     }
+    #sidebarOverlay.open { display: block; }
 
-    /* Hamburger toggle button — hidden (sidebar is always visible) */
+    /* Hamburger toggle button */
     .sidebar-toggle {
-      display: none !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--ink);
+      border-radius: var(--r-sm);
+      transition: background var(--t);
     }
+    .sidebar-toggle:hover { background: var(--surface-2); }
+    .sidebar-toggle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
     .sidebar-label {
       font-size: .65rem;
@@ -2870,13 +2887,30 @@
         grid-template-columns: 1fr;
       }
 
+      /* Sidebar becomes a slide-in drawer on mobile */
       .sidebar {
-        width: 220px;
-        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100dvh;
+        width: 260px;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform .28s cubic-bezier(.4,0,.2,1);
+        padding-top: 72px;
+        box-shadow: 4px 0 24px rgba(0,0,0,.18);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      /* Show hamburger button */
+      .sidebar-toggle {
+        display: flex !important;
       }
 
       .main {
-        padding: 18px 16px;
+        padding: 18px 16px 80px;
       }
 
       .stats-grid {
@@ -2886,6 +2920,61 @@
       .fin-stats {
         grid-template-columns: 1fr;
       }
+
+      /* Bottom navigation bar for mobile */
+      .mobile-bottom-nav {
+        display: flex !important;
+      }
+
+      /* Hide top nav links on mobile (rely on sidebar + bottom nav) */
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* Mobile bottom navigation bar */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 150;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+    }
+    .mob-nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-faint);
+      font-family: var(--font-sans);
+      font-size: .58rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: var(--r-sm);
+      transition: color var(--t), background var(--t);
+      letter-spacing: .03em;
+    }
+    .mob-nav-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .mob-nav-btn:hover, .mob-nav-btn.active {
+      color: var(--ink);
     }
 
     button,
@@ -7821,9 +7910,24 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     document.addEventListener('click', () => document.getElementById('profDrop').classList.remove('open'));
 
 
-    /* ── SIDEBAR TOGGLE — no-op (sidebar is now static) ──────────────────── */
-    function toggleSidebar() { /* sidebar is always visible */ }
-    function closeSidebar() { /* sidebar is always visible */ }
+    /* ── SIDEBAR TOGGLE — slide-in drawer on mobile ──────────────────── */
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen = sidebar.classList.toggle('open');
+      overlay.classList.toggle('open', isOpen);
+    }
+    function closeSidebar() {
+      document.querySelector('.sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+
+    // Close sidebar when a sidebar-link is clicked on mobile
+    document.querySelectorAll('.sidebar-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.innerWidth <= 720) closeSidebar();
+      });
+    });
 
     /* ══ ROUTING ══ */
     /* ══ SUBSCRIPTION GATE ══ */
@@ -11163,7 +11267,6 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         <button class="btn btn-ghost btn-sm" onclick="closeModal('srvJoinModal')">Cancel</button>
         <button class="btn btn-primary btn-sm" onclick="srvJoinServer()">Join</button>
       </div>
-    </div>
   </div>
 
   <!-- Image Preview Modal -->
@@ -11176,3 +11279,27 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         style="width:100%; height:100%; max-height:85vh; object-fit:contain; border-radius:10px;" />
     </div>
   </div>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile navigation">
+    <button class="mob-nav-btn" onclick="goTo('overviewSec')" title="Overview">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </button>
+    <button class="mob-nav-btn" onclick="goTo('todoSec')" title="To-Do">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tasks
+    </button>
+    <button class="mob-nav-btn" onclick="goTo('notesSec')" title="Notes">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Notes
+    </button>
+    <button class="mob-nav-btn" onclick="goTo('focusSec')" title="Focus">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Focus
+    </button>
+    <button class="mob-nav-btn" onclick="toggleSidebar()" title="More">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      More
+    </button>
+  </nav>
