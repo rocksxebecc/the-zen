@@ -2405,8 +2405,8 @@
       if (!activeConv) { showToast('Open a conversation first', 'error'); return; }
       const file = event.target.files[0];
       if (!file) return;
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) { showToast('Max file size is 10MB', 'error'); event.target.value = ''; return; }
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) { showToast('Max file size is 50MB', 'error'); event.target.value = ''; return; }
 
       _voFile = file;
       _voIsVideo = file.type.startsWith('video/');
@@ -2473,6 +2473,7 @@
 
     async function confirmSendViewOnce() {
       if (!_voFile || !activeConv) return;
+      const fileToSend = _voFile;
       const viewOnce = document.getElementById('voToggle').checked;
       closeViewOnceModal();
 
@@ -2491,7 +2492,7 @@
           body,
           msg_type: msgType,
           file_url: dataUrl,
-          file_name: _voFile.name,
+          file_name: fileToSend.name,
         };
         if (viewOnce) {
           insertObj.view_once = true;
@@ -2504,8 +2505,7 @@
         }
         else showToast(viewOnce ? '👁 View Once sent!' : (isVideo ? 'Video sent!' : 'Image sent!'), 'success');
       };
-      reader.readAsDataURL(_voFile);
-      _voFile = null;
+      reader.readAsDataURL(fileToSend);
     }
 
     async function sendImage(event) {
