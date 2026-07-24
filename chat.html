@@ -2498,7 +2498,10 @@
           if (!isVideo) insertObj.view_once_duration = _voSelectedDuration;
         }
         const { error } = await client.from('messages').insert(insertObj);
-        if (error) showToast('Failed to send', 'error');
+        if (error) {
+          console.error('[Zenspace] Failed to send media:', error);
+          showToast('Failed to send: ' + (error.message || 'database error'), 'error');
+        }
         else showToast(viewOnce ? '👁 View Once sent!' : (isVideo ? 'Video sent!' : 'Image sent!'), 'success');
       };
       reader.readAsDataURL(_voFile);
@@ -2524,7 +2527,10 @@
           file_url: dataUrl,
           file_name: file.name
         });
-        if (error) showToast('Failed to send image', 'error');
+        if (error) {
+          console.error('[Zenspace] Failed to send image:', error);
+          showToast('Failed to send image: ' + (error.message || 'database error'), 'error');
+        }
         else showToast('Image sent!', 'success');
       };
       reader.readAsDataURL(file);
