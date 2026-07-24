@@ -1712,6 +1712,23 @@
       font-weight: 600;
     }
 
+    .subj-log-item .log-date-input {
+      font-family: var(--font-sans);
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--ink);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .subj-log-item .log-date-input:focus {
+      border-color: var(--ink);
+    }
+
     .subj-log-item .log-status {
       font-weight: 700;
       font-size: .68rem;
@@ -7463,7 +7480,30 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     </div>
   </div>
 
-  <!-- CGPA MODAL -->
+  <!-- EDIT SUBJECT MODAL -->
+  <div class="modal-overlay" id="editSubjectModal" aria-hidden="true">
+    <div class="modal-box">
+      <h3>Edit Subject</h3>
+      <input type="hidden" id="sEditId" />
+      <div class="m2">
+        <div class="mf"><label>Subject name</label><input type="text" id="sEditName" placeholder="e.g. Data Structures" /></div>
+        <div class="mf"><label>Subject code</label><input type="text" id="sEditCode" placeholder="e.g. CS301" /></div>
+      </div>
+      <div class="mf"><label>Min required attendance %</label><input type="number" id="sEditMinPct" placeholder="75" min="0" max="100" /></div>
+      <div class="mf"><label>Color</label><select id="sEditColor">
+          <option value="#1A1A1A">Black</option>
+          <option value="#555555">Graphite</option>
+          <option value="#006633">Forest</option>
+          <option value="#003399">Navy</option>
+          <option value="#990033">Crimson</option>
+          <option value="#664400">Walnut</option>
+        </select></div>
+      <div class="m-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('editSubjectModal')">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditSubject()">Save changes</button>
+      </div>
+    </div>
+  </div>
   <div class="modal-overlay" id="cgpaModal" aria-hidden="true">
     <div class="modal-box" style="max-width: 600px;">
       <h3>CGPA Calculator</h3>
@@ -8737,7 +8777,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
 
-    /* ══ STORAGE ══ */
+    /* ═ ═  STORAGE ═ ═  */
     const K = k => `zs-${user ? user.email : 'anon'}-${k}`;
     function ld(k, def) { try { const v = localStorage.getItem(K(k)); return v ? JSON.parse(v) : def; } catch { return def; } }
     function sv(k, v) { try { localStorage.setItem(K(k), JSON.stringify(v)); } catch (e) { showToast('Storage full', 'error'); } }
@@ -8748,7 +8788,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     const fmtMoney = v => '₹' + Math.abs(v).toLocaleString('en-IN');
     const dateOff = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0]; };
 
-    /* ══ SUBJECTS — CUSTOMIZABLE ATTENDANCE ══ */
+    /* ═ ═  SUBJECTS — CUSTOMIZABLE ATTENDANCE ═ ═  */
     let subjects = ld('subjects', []);
 
     async function syncSubjects() {
@@ -8756,6 +8796,66 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (window.ZenAuth && window.ZenAuth.upsertUserState) {
         await window.ZenAuth.upsertUserState('subjects', subjects);
       }
+    }
+
+    function openEditSubjectModal(id) {
+      const s = subjects.find(x => x.id === id); if (!s) return;
+      document.getElementById('sEditId').value = s.id;
+      document.getElementById('sEditName').value = s.name || '';
+      document.getElementById('sEditCode').value = s.code || '';
+      document.getElementById('sEditMinPct').value = s.minPct || 75;
+      document.getElementById('sEditColor').value = s.color || '#1A1A1A';
+      openModal('editSubjectModal');
+    }
+
+    function saveEditSubject() {
+      const id = parseInt(document.getElementById('sEditId').value);
+      const s = subjects.find(x => x.id === id); if (!s) return;
+      const name = document.getElementById('sEditName').value.trim();
+      const code = document.getElementById('sEditCode').value.trim();
+      const minPct = parseInt(document.getElementById('sEditMinPct').value) || 75;
+      const color = document.getElementById('sEditColor').value;
+      if (!name) { showToast('Subject name cannot be empty', 'error'); return; }
+      s.name = name; s.code = code; s.minPct = minPct; s.color = color;
+      syncSubjects(); closeModal('editSubjectModal'); renderSubjects(); updateOvStats();
+      showToast('Subject updated!', 'success');
+    }
+
+    function updateLogDate(subjId, logIdx, newDate) {
+      const s = subjects.find(x => x.id === subjId);
+      if (!s || !s.log || !s.log[logIdx] || !newDate) return;
+      s.log[logIdx].date = newDate;
+      syncSubjects(); renderSubjects();
+      showToast('Log date updated!', 'success');
+    }
+
+    function toggleLogStatus(subjId, logIdx) {
+      const s = subjects.find(x => x.id === subjId);
+      if (!s || !s.log || !s.log[logIdx]) return;
+      const entry = s.log[logIdx];
+      if (entry.status === 'P') {
+        entry.status = 'A';
+        s.attended = Math.max(0, s.attended - 1);
+      } else {
+        entry.status = 'P';
+        s.attended = Math.min(s.total, s.attended + 1);
+      }
+      syncSubjects(); renderSubjects(); updateOvStats();
+      showToast(entry.status === 'P' ? 'Status: ✓ Present' : 'Status: ✗ Absent', 'default');
+    }
+
+    function addPastLogEntry(subjId) {
+      const s = subjects.find(x => x.id === subjId); if (!s) return;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const d = prompt("Enter date for lecture (YYYY-MM-DD):", todayStr);
+      if (!d) return;
+      const isPresent = confirm(`Mark PRESENT for ${d}?\n(Click OK for Present, Cancel for Absent)`);
+      s.total += 1;
+      if (isPresent) s.attended += 1;
+      if (!s.log) s.log = [];
+      s.log.push({ date: d, status: isPresent ? 'P' : 'A' });
+      syncSubjects(); renderSubjects(); updateOvStats();
+      showToast('Past entry added!', 'success');
     }
 
     function addSubject() {
@@ -8791,7 +8891,6 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     function deleteLogEntry(subjId, logIdx) {
       const s = subjects.find(x => x.id === subjId); if (!s || !s.log) return;
       const entry = s.log[logIdx];
-      // Revert the count
       s.total = Math.max(0, s.total - 1);
       if (entry.status === 'P') s.attended = Math.max(0, s.attended - 1);
       s.log.splice(logIdx, 1);
@@ -8846,7 +8945,13 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         return `<div class="subj-card">
       <div class="subj-top">
         <div class="subj-icon" style="background:${esc(s.color)}">${s.name.charAt(0).toUpperCase()}</div>
-        <div class="subj-info"><div class="subj-name">${esc(s.name)}</div><div class="subj-code">${esc(s.code)} · min ${s.minPct}%</div></div>
+        <div class="subj-info" onclick="openEditSubjectModal(${s.id})" style="cursor:pointer" title="Click to edit subject name & details">
+          <div class="subj-name" style="display:flex;align-items:center;gap:5px">
+            <span>${esc(s.name)}</span>
+            <span style="font-size:0.75rem;opacity:0.5;">✏️</span>
+          </div>
+          <div class="subj-code">${esc(s.code)} · min ${s.minPct}%</div>
+        </div>
         <div class="subj-pct-ring">
           <svg viewBox="0 0 40 40"><circle class="subj-ring-bg" cx="20" cy="20" r="${r}"/><circle class="subj-ring-fill" cx="20" cy="20" r="${r}" stroke="${rc}" stroke-dasharray="${dash} ${(circ - dash).toFixed(1)}" stroke-dashoffset="0"/></svg>
           <div class="subj-ring-text">${pct}%</div>
@@ -8876,6 +8981,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         <button class="subj-btn present" onclick="markAttendance(${s.id},true)">+ Present</button>
         <button class="subj-btn absent" onclick="markAttendance(${s.id},false)">− Absent</button>
         <button class="subj-btn minus-total" onclick="minusTotal(${s.id})">− Total</button>
+        <button class="subj-btn minus-total" onclick="openEditSubjectModal(${s.id})" title="Edit subject details">✏ Edit</button>
         <button class="del-btn" onclick="deleteSubject(${s.id})">✕</button>
       </div>
       <div class="subj-warning ${wc}">${wm}</div>
@@ -8896,25 +9002,26 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             const logRows = log.length
               ? log.map((e, i) => {
                 const realIdx = (s.log || []).length - 1 - i;
-                const d = new Date(e.date + 'T00:00:00');
-                const label = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
                 return `<div class="subj-log-item">
-                <span class="log-date">${label}</span>
-                <span class="log-status ${e.status === 'P' ? 'p' : 'a'}">${e.status === 'P' ? '✓ Present' : '✗ Absent'}</span>
+                <input type="date" class="log-date-input" value="${e.date}" onchange="updateLogDate(${s.id}, ${realIdx}, this.value)" title="Click to edit date" />
+                <span class="log-status ${e.status === 'P' ? 'p' : 'a'}" onclick="toggleLogStatus(${s.id}, ${realIdx})" title="Click to toggle Present/Absent" style="cursor:pointer;user-select:none;">${e.status === 'P' ? '✓ Present' : '✗ Absent'}</span>
                 <button class="log-del" onclick="deleteLogEntry(${s.id},${realIdx})" title="Remove entry">✕</button>
               </div>`;
               }).join('')
               : '<div class="subj-log-empty">No attendance marked yet.</div>';
-            return `<button class="subj-log-toggle" onclick="toggleLog(${s.id})">
-          📋 Attendance log (${(s.log || []).length} entries)
-          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
+            return `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:4px;">
+          <button class="subj-log-toggle" onclick="toggleLog(${s.id})">
+            📋 Attendance log (${(s.log || []).length} entries)
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button onclick="addPastLogEntry(${s.id})" style="font-size:.65rem;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--ink-muted);cursor:pointer;font-weight:600;" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">+ Past Date</button>
+        </div>
         <div class="subj-log-wrap" id="log-wrap-${s.id}">
           <div class="subj-log-list">${logRows}</div>
         </div>`;
           })()}
 
-      <div style="font-size:.68rem;color:var(--ink-faint);margin-top:4px;padding-left:2px">âœ Click Attended or Total to edit directly</div>
+      <div style="font-size:.68rem;color:var(--ink-faint);margin-top:4px;padding-left:2px">✎ Click Subject Name to edit details · Click dates & status in history log to edit</div>
     </div>`;
       }).join('');
     }
@@ -8925,7 +9032,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'attendance.csv'; a.click();
     }
 
-    /* ═ ═  CGPA CALCULATOR ═ ═  */
+    
+
+/* ═ ═  CGPA CALCULATOR ═ ═  */
     let cgpaMode = 'grades';
 
     function setCgpaMode(mode) {
