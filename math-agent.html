@@ -2781,9 +2781,9 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
         removeTyping(typingId);
         let msg = err.message;
         if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-          msg = 'Network error — make sure the Zenspace server is running (Start Zenspace.bat) and you are accessing via http://localhost:3000.';
+          msg = 'Network error — make sure the Zenspace server is running (Start Zenspace.bat) and you are accessing via http://localhost:3000, or click Settings (⚙️) on the top right to enter your own free Groq API key.';
         } else if (msg.includes('401') || msg.includes('403') || msg.toLowerCase().includes('api key')) {
-          msg = 'Server API key error — add your Groq API key to GROQ_API_KEY in the .env file, then restart the server.';
+          msg = 'Server API key error (401) — The Groq API key in .env is invalid or expired. Add a free Groq API key to .env (from console.groq.com/keys), OR click the Settings (⚙️) icon on the top right to enter your key directly in the browser.';
         } else if (msg.includes('405')) {
           msg = 'Model error (405) — the vision model may be temporarily unavailable. Try again in a moment, or enter your own Groq API key in Settings.';
         } else if (msg.includes('429')) {
