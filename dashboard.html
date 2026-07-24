@@ -3505,6 +3505,8 @@
       <a class="nav-link" href="#" data-sec="notesSec">Notes</a>
       <a class="nav-link" href="#" data-sec="serversSec">Servers</a>
       <a class="nav-link" href="#" data-sec="mathSec" style="display:flex;align-items:center;gap:5px">∑ ZenLab</a>
+      <a class="nav-link" href="#" data-sec="aiImageSec" style="display:flex;align-items:center;gap:5px">✨ AI Images</a>
+      <a class="nav-link" href="#" data-sec="zenAiSec" style="display:flex;align-items:center;gap:5px">🤖 ZenAI</a>
       <a class="nav-link" href="chat.html" style="display:flex;align-items:center;gap:5px" id="chatNavLink"> Messages
         <span id="chatBadge"
           style="display:none;background:var(--error);color:#fff;border-radius:10px;font-size:.58rem;font-weight:700;padding:1px 5px;min-width:15px;text-align:center">0</span></a>
@@ -3597,6 +3599,15 @@
           <path d="M2 17l10 5 10-5"/>
           <path d="M2 12l10 5 10-5"/>
         </svg>ZenLab</button>
+      <button class="sidebar-link" data-sec="aiImageSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>AI Images</button>
+      <button class="sidebar-link" data-sec="zenAiSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/>
+          <path d="M6 20v-2a6 6 0 0112 0v2"/>
+        </svg>ZenAI Chat</button>
       <span class="sidebar-label" style="margin-top:4px">Community</span>
       <button class="sidebar-link" data-sec="serversSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round">
@@ -7051,6 +7062,1160 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       </div>
 
 
+      <!-- ══ ZENAI CHAT ASSISTANT ══ -->
+      <div id="zenAiSec" class="content-section">
+        <style>
+          #zenAiSec { display:none; flex-direction:column; height:100%; overflow:hidden; }
+          #zenAiSec.active { display:flex; }
+
+          .zai-topbar {
+            padding:12px 20px; border-bottom:1px solid var(--border-light);
+            display:flex; align-items:center; gap:12px; flex-shrink:0;
+            background:var(--surface);
+          }
+          .zai-topbar-logo {
+            width:36px; height:36px; border-radius:10px; flex-shrink:0;
+            background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
+            display:grid; place-items:center;
+          }
+          .zai-topbar-logo svg { width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round; }
+          .zai-topbar-info { flex:1; min-width:0; }
+          .zai-topbar-title { font-weight:700; font-size:.95rem; }
+          .zai-topbar-sub { font-size:.72rem; color:var(--ink-faint); margin-top:1px; }
+
+          .zai-model-pill {
+            background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.25);
+            border-radius:20px; padding:4px 12px;
+            font-size:.75rem; font-weight:600; color:#818cf8;
+            cursor:pointer; white-space:nowrap; transition:all .2s;
+          }
+          .zai-model-pill:hover { background:rgba(99,102,241,.2); }
+
+          .zai-topbar-actions { display:flex; gap:6px; }
+          .zai-icon-btn {
+            width:32px; height:32px; border-radius:8px; border:1px solid var(--border-light);
+            background:rgba(255,255,255,.06); color:var(--ink-faint);
+            display:grid; place-items:center; cursor:pointer; transition:all .15s;
+          }
+          .zai-icon-btn:hover { color:var(--ink); border-color:var(--ink-muted); }
+          .zai-icon-btn svg { width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round; }
+
+          /* Chat layout */
+          .zai-body { display:flex; flex:1; overflow:hidden; }
+
+          /* Sidebar: history + system prompt */
+          .zai-sidebar {
+            width:240px; min-width:200px; flex-shrink:0;
+            border-right:1px solid var(--border-light);
+            display:flex; flex-direction:column; overflow:hidden;
+            background:var(--surface);
+          }
+
+          .zai-sidebar-header {
+            padding:12px 14px 8px; font-size:.66rem; font-weight:700;
+            letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint);
+            display:flex; align-items:center; justify-content:space-between;
+          }
+
+          .zai-new-chat-btn {
+            padding:5px 10px; border-radius:7px; font-size:.72rem; font-weight:600;
+            border:1px solid var(--border-light); background:rgba(255,255,255,.06);
+            color:var(--ink); cursor:pointer; transition:all .15s;
+          }
+          .zai-new-chat-btn:hover { border-color:#6366f1; color:#818cf8; }
+
+          .zai-history { flex:1; overflow-y:auto; padding:0 8px 8px; }
+
+          .zai-history-item {
+            padding:8px 10px; border-radius:8px; font-size:.8rem; color:var(--ink-muted);
+            cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            transition:background .15s; display:flex; align-items:center; gap:6px;
+            position:relative;
+          }
+          .zai-history-item:hover { background:rgba(255,255,255,.06); }
+          .zai-history-item.active { background:rgba(99,102,241,.12); color:#818cf8; }
+          .zai-history-item .zai-del-conv {
+            display:none; margin-left:auto; flex-shrink:0;
+            background:none; border:none; color:var(--ink-faint); cursor:pointer;
+            font-size:.75rem; padding:0 2px;
+          }
+          .zai-history-item:hover .zai-del-conv { display:block; }
+
+          .zai-sys-section {
+            border-top:1px solid var(--border-light); padding:10px 12px;
+          }
+          .zai-sys-label {
+            font-size:.64rem; font-weight:700; letter-spacing:.07em;
+            text-transform:uppercase; color:var(--ink-faint); margin-bottom:5px;
+          }
+          .zai-sys-prompt {
+            width:100%; box-sizing:border-box; background:rgba(255,255,255,.04);
+            border:1px solid var(--border-light); border-radius:8px;
+            color:var(--ink); font-size:.76rem; font-family:var(--font-sans);
+            padding:7px 9px; resize:none; outline:none; line-height:1.5; min-height:72px;
+          }
+          .zai-sys-prompt:focus { border-color:#6366f1; }
+
+          /* Main chat area */
+          .zai-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+          .zai-messages {
+            flex:1; overflow-y:auto; padding:24px 32px; display:flex;
+            flex-direction:column; gap:20px;
+          }
+
+          .zai-msg { display:flex; gap:12px; max-width:760px; }
+          .zai-msg.user { align-self:flex-end; flex-direction:row-reverse; }
+          .zai-msg.assistant { align-self:flex-start; }
+
+          .zai-avatar {
+            width:32px; height:32px; border-radius:10px; flex-shrink:0;
+            display:grid; place-items:center; font-size:.85rem;
+          }
+          .zai-avatar.user-av { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:.7rem; font-weight:700; }
+          .zai-avatar.ai-av { background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid var(--border-light); }
+          .zai-avatar.ai-av svg { width:16px;height:16px;stroke:#818cf8;fill:none;stroke-width:2;stroke-linecap:round; }
+
+          .zai-bubble {
+            padding:12px 16px; border-radius:14px; font-size:.88rem;
+            line-height:1.7; max-width:640px;
+          }
+          .zai-msg.user .zai-bubble {
+            background:linear-gradient(135deg,#6366f1,#4f46e5);
+            color:#fff; border-bottom-right-radius:4px;
+          }
+          .zai-msg.assistant .zai-bubble {
+            background:rgba(255,255,255,.06); border:1px solid var(--border-light);
+            color:var(--ink); border-bottom-left-radius:4px;
+          }
+
+          /* Markdown styles inside bubbles */
+          .zai-bubble code {
+            background:rgba(0,0,0,.3); padding:1px 5px; border-radius:4px;
+            font-family:monospace; font-size:.82em;
+          }
+          .zai-bubble pre {
+            background:rgba(0,0,0,.35); border-radius:10px; padding:12px 14px;
+            overflow-x:auto; margin:10px 0; border:1px solid rgba(255,255,255,.06);
+          }
+          .zai-bubble pre code { background:none; padding:0; font-size:.83em; }
+          .zai-bubble p { margin:0 0 8px; }
+          .zai-bubble p:last-child { margin:0; }
+          .zai-bubble ul,
+          .zai-bubble ol { padding-left:18px; margin:6px 0; }
+          .zai-bubble li { margin:3px 0; }
+          .zai-bubble h1,.zai-bubble h2,.zai-bubble h3 {
+            margin:12px 0 6px; font-weight:700; line-height:1.3;
+          }
+          .zai-bubble blockquote {
+            border-left:3px solid #6366f1; padding-left:12px;
+            color:var(--ink-muted); margin:8px 0;
+          }
+          .zai-bubble table {
+            border-collapse:collapse; width:100%; margin:10px 0; font-size:.82em;
+          }
+          .zai-bubble th,.zai-bubble td {
+            border:1px solid var(--border-light); padding:5px 9px; text-align:left;
+          }
+          .zai-bubble th { background:rgba(255,255,255,.07); font-weight:700; }
+
+          /* Msg actions */
+          .zai-msg-actions {
+            display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity .15s;
+          }
+          .zai-msg:hover .zai-msg-actions { opacity:1; }
+          .zai-msg-act {
+            padding:3px 8px; border-radius:6px; font-size:.7rem;
+            border:1px solid var(--border-light); background:rgba(255,255,255,.06);
+            color:var(--ink-faint); cursor:pointer; transition:all .15s;
+          }
+          .zai-msg-act:hover { color:var(--ink); border-color:var(--ink-muted); }
+
+          /* Typing indicator */
+          .zai-typing { display:flex; gap:5px; padding:10px 0; align-items:center; }
+          .zai-typing span {
+            width:7px; height:7px; border-radius:50%;
+            background:#818cf8; animation:zai-bounce .9s ease-in-out infinite;
+          }
+          .zai-typing span:nth-child(2) { animation-delay:.15s; }
+          .zai-typing span:nth-child(3) { animation-delay:.3s; }
+          @keyframes zai-bounce {
+            0%,60%,100% { transform:translateY(0); }
+            30% { transform:translateY(-6px); }
+          }
+
+          /* Welcome screen */
+          .zai-welcome {
+            flex:1; display:flex; flex-direction:column; align-items:center;
+            justify-content:center; gap:20px; padding:40px 20px; text-align:center;
+          }
+          .zai-welcome-logo {
+            width:72px; height:72px; border-radius:20px;
+            background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
+            display:grid; place-items:center; margin:0 auto;
+          }
+          .zai-welcome-logo svg { width:34px;height:34px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round; }
+          .zai-welcome h2 { font-size:1.4rem; font-weight:800; margin:0; }
+          .zai-welcome p { font-size:.88rem; color:var(--ink-faint); max-width:400px; line-height:1.6; margin:0; }
+          .zai-suggestions { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:560px; }
+          .zai-suggest-btn {
+            padding:8px 16px; border-radius:20px; border:1px solid var(--border-light);
+            background:rgba(255,255,255,.05); color:var(--ink-muted);
+            font-size:.8rem; cursor:pointer; transition:all .18s;
+          }
+          .zai-suggest-btn:hover { border-color:#6366f1; color:#818cf8; background:rgba(99,102,241,.08); }
+
+          /* Input bar */
+          .zai-input-bar {
+            padding:14px 20px 16px; border-top:1px solid var(--border-light);
+            background:var(--surface); flex-shrink:0;
+          }
+          .zai-input-wrap {
+            display:flex; gap:10px; align-items:flex-end;
+            background:rgba(255,255,255,.05); border:1.5px solid var(--border-light);
+            border-radius:14px; padding:10px 14px; transition:border-color .2s;
+          }
+          .zai-input-wrap:focus-within { border-color:#6366f1; }
+          .zai-input {
+            flex:1; background:none; border:none; outline:none;
+            color:var(--ink); font-family:var(--font-sans); font-size:.9rem;
+            resize:none; line-height:1.5; max-height:160px; overflow-y:auto;
+            min-height:24px;
+          }
+          .zai-input::placeholder { color:var(--ink-faint); }
+          .zai-send-btn {
+            width:36px; height:36px; border-radius:10px; border:none; flex-shrink:0;
+            background:linear-gradient(135deg,#6366f1,#4f46e5);
+            color:#fff; display:grid; place-items:center; cursor:pointer;
+            transition:opacity .2s, transform .1s;
+          }
+          .zai-send-btn:hover { opacity:.85; }
+          .zai-send-btn:active { transform:scale(.95); }
+          .zai-send-btn:disabled { opacity:.35; cursor:not-allowed; }
+          .zai-send-btn svg { width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round; }
+
+          .zai-input-meta {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-top:8px; font-size:.7rem; color:var(--ink-faint);
+          }
+          .zai-tokens-used { font-variant-numeric:tabular-nums; }
+
+          /* Model selector popup */
+          .zai-model-popup {
+            position:fixed; z-index:900; background:var(--surface);
+            border:1px solid var(--border); border-radius:14px;
+            padding:8px; box-shadow:0 12px 40px rgba(0,0,0,.25);
+            display:none; flex-direction:column; gap:2px; min-width:260px;
+          }
+          .zai-model-popup.open { display:flex; }
+          .zai-model-option {
+            padding:8px 12px; border-radius:8px; cursor:pointer;
+            transition:background .15s; display:flex; flex-direction:column; gap:2px;
+          }
+          .zai-model-option:hover { background:rgba(255,255,255,.07); }
+          .zai-model-option.selected { background:rgba(99,102,241,.12); }
+          .zai-model-option-name { font-size:.85rem; font-weight:600; }
+          .zai-model-option-desc { font-size:.71rem; color:var(--ink-faint); }
+
+          .zai-stop-btn {
+            padding:6px 14px; border-radius:8px; border:1px solid rgba(239,68,68,.3);
+            background:rgba(239,68,68,.07); color:#f87171;
+            font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s;
+          }
+          .zai-stop-btn:hover { background:rgba(239,68,68,.15); }
+        </style>
+
+        <!-- Top bar -->
+        <div class="zai-topbar">
+          <div class="zai-topbar-logo">
+            <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 007 4.5v15A2.5 2.5 0 009.5 22h5a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0014.5 2h-5z"/><path d="M12 6v4M10 14h4"/></svg>
+          </div>
+          <div class="zai-topbar-info">
+            <div class="zai-topbar-title">ZenAI Assistant</div>
+            <div class="zai-topbar-sub">Powered by Groq · Ultra-fast inference</div>
+          </div>
+          <div id="zaiModelPill" class="zai-model-pill" onclick="zaiToggleModelPicker()">
+            🧠 Llama 3.3 70B ▾
+          </div>
+          <div class="zai-topbar-actions">
+            <button class="zai-icon-btn" title="Export chat" onclick="zaiExport()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </button>
+            <button class="zai-icon-btn" title="Clear chat" onclick="zaiClearChat()">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="zai-body">
+          <!-- Sidebar -->
+          <div class="zai-sidebar">
+            <div class="zai-sidebar-header">
+              Conversations
+              <button class="zai-new-chat-btn" onclick="zaiNewChat()">＋ New</button>
+            </div>
+            <div class="zai-history" id="zaiHistory"></div>
+            <div class="zai-sys-section">
+              <div class="zai-sys-label">System Prompt</div>
+              <textarea class="zai-sys-prompt" id="zaiSysPrompt" placeholder="You are a helpful AI assistant…" rows="4">You are ZenAI, a highly capable AI assistant integrated into Zenspace — a student productivity platform. You help with studying, writing, coding, math, analysis, creative tasks, and general questions. Be concise, clear, and friendly.</textarea>
+            </div>
+          </div>
+
+          <!-- Main chat -->
+          <div class="zai-main">
+            <!-- Welcome screen -->
+            <div class="zai-welcome" id="zaiWelcome">
+              <div class="zai-welcome-logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <h2>How can I help you?</h2>
+              <p>Ask me anything — studying, coding, writing, math, research, creative ideas, or just a conversation.</p>
+              <div class="zai-suggestions">
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Explain quantum entanglement in simple terms')">⚛️ Explain quantum entanglement</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Write a Python function to sort a list of dicts by a key')">💻 Python sorting function</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Give me 5 tips to study more effectively for exams')">📚 Study tips for exams</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Write a short creative story about a time traveler')">✍️ Creative story idea</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('What are the best productivity techniques for students?')">🎯 Productivity techniques</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Summarize the main causes of World War I')">🌍 WW1 causes summary</button>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="zai-messages" id="zaiMessages" style="display:none;"></div>
+
+            <!-- Input bar -->
+            <div class="zai-input-bar">
+              <div class="zai-input-wrap">
+                <textarea class="zai-input" id="zaiInput" placeholder="Message ZenAI… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+                <button class="zai-send-btn" id="zaiSendBtn" onclick="zaiSend()">
+                  <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+              <div class="zai-input-meta">
+                <span class="zai-tokens-used" id="zaiTokensUsed">Ready</span>
+                <span id="zaiStopWrap" style="display:none;"><button class="zai-stop-btn" onclick="zaiStop()">⏹ Stop</button></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model picker popup -->
+        <div class="zai-model-popup" id="zaiModelPopup">
+          <div style="padding:6px 12px 4px;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);">Select Model</div>
+          <div class="zai-model-option selected" data-model="llama-3.3-70b-versatile" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">🧠 Llama 3.3 70B</div>
+            <div class="zai-model-option-desc">Best quality · General purpose · Recommended</div>
+          </div>
+          <div class="zai-model-option" data-model="llama-3.1-8b-instant" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">⚡ Llama 3.1 8B</div>
+            <div class="zai-model-option-desc">Fastest · Great for quick questions</div>
+          </div>
+          <div class="zai-model-option" data-model="mixtral-8x7b-32768" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">🔀 Mixtral 8×7B</div>
+            <div class="zai-model-option-desc">32K context · Great for long documents</div>
+          </div>
+          <div class="zai-model-option" data-model="gemma2-9b-it" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">💎 Gemma 2 9B</div>
+            <div class="zai-model-option-desc">Google's model · Precise &amp; factual</div>
+          </div>
+          <div class="zai-model-option" data-model="llama3-70b-8192" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">🦙 Llama 3 70B</div>
+            <div class="zai-model-option-desc">High quality · 8K context window</div>
+          </div>
+          <div class="zai-model-option" data-model="deepseek-r1-distill-llama-70b" onclick="zaiSelectModel(this)">
+            <div class="zai-model-option-name">🔬 DeepSeek R1 70B</div>
+            <div class="zai-model-option-desc">Reasoning specialist · Math &amp; logic</div>
+          </div>
+        </div>
+
+        <script>
+          // ═══════════════════════════════════════════════
+          //  ZenAI Chat Assistant
+          // ═══════════════════════════════════════════════
+          let _zaiModel = 'llama-3.3-70b-versatile';
+          let _zaiConvos = JSON.parse(localStorage.getItem('zs-zenai-convos') || '[]');
+          let _zaiActiveId = null;
+          let _zaiMessages = []; // current convo messages
+          let _zaiAbort = null;  // AbortController for cancellation
+          let _zaiTotalTokens = 0;
+
+          // ── Markdown renderer (minimal, no deps) ────────────────
+          function zaiMd(text) {
+            return text
+              .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+                `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`)
+              .replace(/`([^`]+)`/g,'<code>$1</code>')
+              .replace(/^#{3} (.+)$/gm,'<h3>$1</h3>')
+              .replace(/^#{2} (.+)$/gm,'<h2>$1</h2>')
+              .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+              .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+              .replace(/\*(.+?)\*/g,'<em>$1</em>')
+              .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+              .replace(/^- (.+)$/gm,'<li>$1</li>')
+              .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+              .replace(/\n\n/g,'</p><p>')
+              .replace(/^(?!<[hupblo]|<pre)(.+)$/gm, (l) => l ? l : '')
+              .replace(/^(<(?!pre|ul|ol|h[1-6]|blockquote))/, '<p>$1');
+          }
+
+          // ── Model picker ─────────────────────────────────────────
+          function zaiToggleModelPicker() {
+            const popup = document.getElementById('zaiModelPopup');
+            const pill = document.getElementById('zaiModelPill');
+            if (popup.classList.toggle('open')) {
+              const rect = pill.getBoundingClientRect();
+              popup.style.top = (rect.bottom + 6) + 'px';
+              popup.style.right = (window.innerWidth - rect.right) + 'px';
+            }
+          }
+          document.addEventListener('click', e => {
+            if (!e.target.closest('#zaiModelPopup') && !e.target.closest('#zaiModelPill'))
+              document.getElementById('zaiModelPopup').classList.remove('open');
+          });
+          function zaiSelectModel(el) {
+            _zaiModel = el.dataset.model;
+            document.querySelectorAll('.zai-model-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('zaiModelPill').textContent = '🧠 ' + el.querySelector('.zai-model-option-name').textContent.replace(/^.+? /,'') + ' ▾';
+            document.getElementById('zaiModelPopup').classList.remove('open');
+          }
+
+          // ── Conversation history ─────────────────────────────────
+          function zaiSaveConvos() {
+            localStorage.setItem('zs-zenai-convos', JSON.stringify(_zaiConvos));
+          }
+          function zaiRenderHistory() {
+            const hist = document.getElementById('zaiHistory');
+            if (!_zaiConvos.length) {
+              hist.innerHTML = '<div style="padding:10px 10px;font-size:.75rem;color:var(--ink-faint);">No conversations yet.</div>';
+              return;
+            }
+            hist.innerHTML = _zaiConvos.map((c, i) => `
+              <div class="zai-history-item ${c.id === _zaiActiveId ? 'active' : ''}" onclick="zaiLoadConvo(${i})">
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${c.title || 'New chat'}</span>
+                <button class="zai-del-conv" onclick="event.stopPropagation();zaiDeleteConvo(${i})" title="Delete">✕</button>
+              </div>
+            `).join('');
+          }
+          function zaiDeleteConvo(idx) {
+            const id = _zaiConvos[idx]?.id;
+            _zaiConvos.splice(idx, 1);
+            zaiSaveConvos();
+            if (_zaiActiveId === id) zaiNewChat();
+            else zaiRenderHistory();
+          }
+          function zaiNewChat() {
+            _zaiActiveId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+            _zaiMessages = [];
+            _zaiTotalTokens = 0;
+            document.getElementById('zaiMessages').innerHTML = '';
+            document.getElementById('zaiMessages').style.display = 'none';
+            document.getElementById('zaiWelcome').style.display = 'flex';
+            document.getElementById('zaiTokensUsed').textContent = 'Ready';
+            zaiRenderHistory();
+          }
+          function zaiLoadConvo(idx) {
+            const c = _zaiConvos[idx]; if (!c) return;
+            _zaiActiveId = c.id;
+            _zaiMessages = JSON.parse(JSON.stringify(c.messages));
+            _zaiTotalTokens = c.tokens || 0;
+            document.getElementById('zaiWelcome').style.display = 'none';
+            document.getElementById('zaiMessages').style.display = 'flex';
+            const msgEl = document.getElementById('zaiMessages');
+            msgEl.innerHTML = '';
+            _zaiMessages.forEach(m => zaiAppendBubble(m.role, m.content, false));
+            msgEl.scrollTop = msgEl.scrollHeight;
+            document.getElementById('zaiTokensUsed').textContent = `~${_zaiTotalTokens.toLocaleString()} tokens used`;
+            zaiRenderHistory();
+          }
+
+          // ── Render chat bubble ───────────────────────────────────
+          function zaiAppendBubble(role, content, scroll = true) {
+            const container = document.getElementById('zaiMessages');
+            container.style.display = 'flex';
+            document.getElementById('zaiWelcome').style.display = 'none';
+            const id = 'zai-msg-' + Date.now() + Math.random().toString(36).slice(2);
+            const isUser = role === 'user';
+            const html = `
+              <div class="zai-msg ${role}" id="${id}">
+                <div class="zai-avatar ${isUser ? 'user-av' : 'ai-av'}">
+                  ${isUser ? 'You' : '<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'}
+                </div>
+                <div>
+                  <div class="zai-bubble" id="${id}-bubble">
+                    ${isUser ? content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : zaiMd(content)}
+                  </div>
+                  <div class="zai-msg-actions">
+                    <button class="zai-msg-act" onclick="navigator.clipboard.writeText(document.getElementById('${id}-raw')?.dataset.raw||'').then(()=>showToast('Copied!','success'))">📋 Copy</button>
+                    ${!isUser ? `<button class="zai-msg-act" onclick="zaiRegenerate()">↺ Retry</button>` : ''}
+                  </div>
+                  <div id="${id}-raw" data-raw="${(content||'').replace(/"/g,'&quot;')}" style="display:none;"></div>
+                </div>
+              </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            if (scroll) container.scrollTop = container.scrollHeight;
+            return id;
+          }
+
+          // ── Typing indicator ─────────────────────────────────────
+          function zaiShowTyping() {
+            const container = document.getElementById('zaiMessages');
+            container.style.display = 'flex';
+            document.getElementById('zaiWelcome').style.display = 'none';
+            const id = 'zai-typing-' + Date.now();
+            container.insertAdjacentHTML('beforeend', `
+              <div class="zai-msg assistant" id="${id}">
+                <div class="zai-avatar ai-av"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#818cf8" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+                <div class="zai-bubble" style="padding:10px 16px;">
+                  <div class="zai-typing"><span></span><span></span><span></span></div>
+                </div>
+              </div>`);
+            container.scrollTop = container.scrollHeight;
+            return id;
+          }
+
+          // ── Send message ─────────────────────────────────────────
+          function zaiSuggest(text) {
+            document.getElementById('zaiInput').value = text;
+            zaiSend();
+          }
+
+          async function zaiSend() {
+            const input = document.getElementById('zaiInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = ''; input.style.height = '';
+
+            zaiAppendBubble('user', text);
+            _zaiMessages.push({ role: 'user', content: text });
+
+            const sysPrompt = document.getElementById('zaiSysPrompt').value.trim();
+            const messages = sysPrompt
+              ? [{ role: 'system', content: sysPrompt }, ..._zaiMessages]
+              : _zaiMessages;
+
+            const btn = document.getElementById('zaiSendBtn');
+            btn.disabled = true;
+            document.getElementById('zaiStopWrap').style.display = 'inline';
+            const typingId = zaiShowTyping();
+
+            _zaiAbort = new AbortController();
+
+            try {
+              const resp = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: _zaiAbort.signal,
+                body: JSON.stringify({ model: _zaiModel, messages, temperature: 0.75, max_tokens: 8192 })
+              });
+              const data = await resp.json();
+              document.getElementById(typingId)?.remove();
+
+              if (data.error) {
+                const errMsg = data.error.message || 'API error';
+                zaiAppendBubble('assistant', `⚠️ Error: ${errMsg}`);
+              } else {
+                const reply = data.choices?.[0]?.message?.content || '';
+                _zaiMessages.push({ role: 'assistant', content: reply });
+                zaiAppendBubble('assistant', reply);
+                _zaiTotalTokens += (data.usage?.total_tokens || 0);
+                document.getElementById('zaiTokensUsed').textContent = `~${_zaiTotalTokens.toLocaleString()} tokens · ${_zaiModel}`;
+                zaiPersistConvo(text);
+              }
+            } catch (e) {
+              document.getElementById(typingId)?.remove();
+              if (e.name !== 'AbortError') {
+                zaiAppendBubble('assistant', '⚠️ Could not reach the server. Make sure your local server is running (`node server.js`).');
+              }
+            } finally {
+              btn.disabled = false;
+              document.getElementById('zaiStopWrap').style.display = 'none';
+              _zaiAbort = null;
+            }
+          }
+
+          function zaiStop() {
+            if (_zaiAbort) { _zaiAbort.abort(); _zaiAbort = null; }
+          }
+
+          function zaiRegenerate() {
+            // Remove last assistant message and re-send
+            while (_zaiMessages.length && _zaiMessages[_zaiMessages.length-1].role === 'assistant')
+              _zaiMessages.pop();
+            const last = _zaiMessages[_zaiMessages.length-1];
+            if (!last) return;
+            const container = document.getElementById('zaiMessages');
+            // Remove last two bubbles (user + assistant)
+            const bubbles = container.querySelectorAll('.zai-msg');
+            [bubbles[bubbles.length-1]]?.forEach(b => b?.remove());
+            zaiSend();
+          }
+
+          // ── Persist conversation ─────────────────────────────────
+          function zaiPersistConvo(firstUserMsg) {
+            const title = firstUserMsg.slice(0, 48) + (firstUserMsg.length > 48 ? '…' : '');
+            const existing = _zaiConvos.findIndex(c => c.id === _zaiActiveId);
+            const convo = { id: _zaiActiveId, title, messages: JSON.parse(JSON.stringify(_zaiMessages)), tokens: _zaiTotalTokens, ts: Date.now() };
+            if (existing >= 0) _zaiConvos[existing] = convo;
+            else _zaiConvos.unshift(convo);
+            if (_zaiConvos.length > 30) _zaiConvos = _zaiConvos.slice(0, 30);
+            zaiSaveConvos();
+            zaiRenderHistory();
+          }
+
+          // ── Clear / Export ───────────────────────────────────────
+          function zaiClearChat() {
+            if (!_zaiMessages.length) return;
+            if (!confirm('Clear this conversation?')) return;
+            zaiNewChat();
+          }
+          function zaiExport() {
+            if (!_zaiMessages.length) { showToast('Nothing to export', 'error'); return; }
+            const text = _zaiMessages.map(m => `[${m.role.toUpperCase()}]\n${m.content}`).join('\n\n---\n\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'zenai-chat-' + new Date().toISOString().slice(0,10) + '.txt';
+            a.click();
+            showToast('Chat exported!', 'success');
+          }
+
+          // ── Keyboard shortcut ────────────────────────────────────
+          document.getElementById('zaiInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); zaiSend(); }
+          });
+          // Auto-resize textarea
+          document.getElementById('zaiInput').addEventListener('input', function() {
+            this.style.height = '';
+            this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+          });
+
+          // ── Init ─────────────────────────────────────────────────
+          zaiNewChat();
+          zaiRenderHistory();
+        </script>
+      </div>
+
+      <!-- ══ AI IMAGE GENERATOR ══ -->
+      <div id="aiImageSec" class="content-section">
+        <style>
+          #aiImageSec { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+          #aiImageSec.active { display: flex; }
+
+          .aig-layout { display: flex; height: 100%; overflow: hidden; gap: 0; }
+
+          .aig-panel {
+            width: 320px; min-width: 280px; flex-shrink: 0;
+            border-right: 1px solid var(--border-light);
+            display: flex; flex-direction: column;
+            padding: 20px 18px; gap: 16px; overflow-y: auto;
+            background: var(--surface);
+          }
+
+          .aig-canvas-area {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            padding: 24px; overflow-y: auto; gap: 20px;
+            background: var(--bg);
+          }
+
+          .aig-header { display: flex; align-items: center; gap: 10px; }
+
+          .aig-header-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            display: grid; place-items: center; flex-shrink: 0;
+          }
+          .aig-header-icon svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+
+          .aig-title { font-size: 1.05rem; font-weight: 700; }
+          .aig-subtitle { font-size: .74rem; color: var(--ink-faint); margin-top: 2px; }
+
+          .aig-label {
+            font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+            text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
+          }
+
+          .aig-prompt {
+            width: 100%; box-sizing: border-box;
+            background: rgba(255,255,255,.05);
+            border: 1.5px solid var(--border-light);
+            border-radius: 12px; padding: 12px 14px;
+            color: var(--ink); font-family: var(--font-sans); font-size: .88rem;
+            line-height: 1.5; resize: vertical; min-height: 100px;
+            outline: none; transition: border-color .2s;
+          }
+          .aig-prompt:focus { border-color: #7c3aed; }
+
+          .aig-select {
+            width: 100%; box-sizing: border-box;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border-light); color: var(--ink);
+            border-radius: 8px; padding: 7px 10px; font-size: .83rem;
+            font-family: var(--font-sans); outline: none; cursor: pointer;
+          }
+
+          .aig-row { display: flex; gap: 10px; }
+          .aig-row .aig-select { flex: 1; }
+
+          .aig-generate-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff; font-family: var(--font-sans); font-size: .92rem;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            transition: opacity .2s, transform .1s;
+          }
+          .aig-generate-btn:hover { opacity: .88; }
+          .aig-generate-btn:active { transform: scale(.98); }
+          .aig-generate-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+          .aig-surprise-btn {
+            width: 100%; padding: 9px; border: 1px solid var(--border-light);
+            border-radius: 10px; background: rgba(255,255,255,.06);
+            color: var(--ink-faint); font-family: var(--font-sans); font-size: .82rem;
+            cursor: pointer; transition: all .18s;
+          }
+          .aig-surprise-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+
+          .aig-divider {
+            height: 1px; background: var(--border-light); margin: 2px 0;
+          }
+
+          /* Result area */
+          .aig-result-wrap {
+            width: 100%; max-width: 640px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid var(--border-light); border-radius: 16px;
+            overflow: hidden; position: relative;
+          }
+
+          .aig-result-img {
+            width: 100%; display: block; border-radius: 14px;
+            cursor: zoom-in; transition: transform .2s;
+          }
+          .aig-result-img:hover { transform: scale(1.01); }
+
+          .aig-result-actions {
+            display: flex; gap: 8px; padding: 12px 14px;
+            border-top: 1px solid var(--border-light); flex-wrap: wrap;
+          }
+
+          .aig-act-btn {
+            padding: 7px 14px; border-radius: 8px; font-size: .8rem;
+            font-family: var(--font-sans); font-weight: 600; cursor: pointer;
+            border: 1px solid var(--border-light); background: rgba(255,255,255,.06);
+            color: var(--ink); transition: all .15s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 5px;
+          }
+          .aig-act-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+          .aig-act-btn.primary { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+          .aig-act-btn.primary:hover { opacity: .85; }
+
+          .aig-prompt-echo {
+            font-size: .75rem; color: var(--ink-faint);
+            padding: 10px 14px 0; font-style: italic; line-height: 1.4;
+          }
+
+          /* Gallery */
+          .aig-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px; width: 100%; max-width: 640px;
+          }
+
+          .aig-gallery-item {
+            border-radius: 10px; overflow: hidden; cursor: pointer;
+            aspect-ratio: 1; position: relative;
+            background: rgba(255,255,255,.04); border: 1px solid var(--border-light);
+            transition: transform .2s;
+          }
+          .aig-gallery-item:hover { transform: scale(1.03); }
+          .aig-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+          .aig-gallery-item .aig-thumb-del {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(0,0,0,.6); color: #fff; border: none;
+            border-radius: 50%; width: 22px; height: 22px; font-size: .65rem;
+            cursor: pointer; display: none; place-items: center;
+          }
+          .aig-gallery-item:hover .aig-thumb-del { display: grid; }
+
+          /* Loading spinner */
+          .aig-spinner {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(124,58,237,.2);
+            border-top-color: #7c3aed;
+            border-radius: 50%; animation: aig-spin .8s linear infinite;
+          }
+          @keyframes aig-spin { to { transform: rotate(360deg); } }
+
+          .aig-loading-wrap {
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; gap: 16px; padding: 60px 20px;
+          }
+          .aig-loading-wrap.show { display: flex; }
+          .aig-loading-txt { font-size: .85rem; color: var(--ink-faint); text-align: center; }
+
+          .aig-empty {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 14px; padding: 80px 20px;
+            color: var(--ink-faint); text-align: center;
+          }
+          .aig-empty-icon { font-size: 3.5rem; }
+          .aig-empty-txt { font-size: .9rem; line-height: 1.6; max-width: 300px; }
+
+          /* Settings row */
+          .aig-settings-row {
+            display: flex; flex-direction: column; gap: 10px;
+          }
+          .aig-seed-row { display: flex; gap: 8px; align-items: center; }
+          .aig-seed-inp {
+            flex: 1; background: rgba(255,255,255,.06);
+            border: 1px solid var(--border-light); border-radius: 8px;
+            padding: 6px 10px; font-size: .82rem; color: var(--ink);
+            font-family: var(--font-sans); outline: none;
+          }
+
+          /* Negative prompt toggle */
+          .aig-neg-toggle {
+            font-size: .76rem; color: var(--ink-faint); cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            background: none; border: none; padding: 0; font-family: var(--font-sans);
+          }
+          .aig-neg-prompt {
+            display: none; width: 100%; box-sizing: border-box;
+            background: rgba(255,255,255,.04);
+            border: 1px solid var(--border-light);
+            border-radius: 10px; padding: 8px 12px;
+            color: var(--ink-faint); font-family: var(--font-sans); font-size: .8rem;
+            resize: vertical; min-height: 60px; outline: none;
+          }
+        </style>
+
+        <div style="padding:16px 22px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <div style="font-weight:700;font-size:1.05rem;">✨ AI Image Generator</div>
+          <div style="font-size:.78rem;color:var(--ink-faint);">Powered by Pollinations AI · Flux · Free, no API key needed</div>
+        </div>
+
+        <div class="aig-layout">
+          <!-- LEFT: Controls panel -->
+          <div class="aig-panel">
+
+            <div class="aig-header">
+              <div class="aig-header-icon">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+              </div>
+              <div>
+                <div class="aig-title">Generate Image</div>
+                <div class="aig-subtitle">Describe what you want to see</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="aig-label">Prompt</div>
+              <textarea class="aig-prompt" id="aigPrompt" placeholder="A cinematic photo of a glowing city at night, neon reflections on wet streets, ultra detailed, 8K…" rows="5"></textarea>
+            </div>
+
+            <button class="aig-surprise-btn" onclick="aigSurprise()">🎲 Surprise me!</button>
+
+            <div class="aig-divider"></div>
+
+            <div>
+              <div class="aig-label">Model</div>
+              <select class="aig-select" id="aigModel">
+                <option value="flux">Flux (Best quality)</option>
+                <option value="flux-realism">Flux Realism</option>
+                <option value="flux-cablyai">Flux Cablyai</option>
+                <option value="flux-anime">Flux Anime</option>
+                <option value="flux-3d">Flux 3D</option>
+                <option value="any-dark">Any Dark (dramatic)</option>
+                <option value="turbo">Turbo (fastest)</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="aig-label">Aspect Ratio / Size</div>
+              <select class="aig-select" id="aigSize" onchange="aigSizeChange()">
+                <option value="1024x1024">Square (1:1) — 1024×1024</option>
+                <option value="1280x720">Landscape (16:9) — 1280×720</option>
+                <option value="720x1280">Portrait (9:16) — 720×1280</option>
+                <option value="1024x576">Widescreen (16:9) — 1024×576</option>
+                <option value="1216x832">Photo (3:2) — 1216×832</option>
+                <option value="832x1216">Portrait (2:3) — 832×1216</option>
+                <option value="custom">Custom…</option>
+              </select>
+            </div>
+
+            <div id="aigCustomSize" style="display:none;flex-direction:row;gap:8px;align-items:center;">
+              <input type="number" id="aigW" placeholder="Width" value="1024" min="256" max="2048" step="64" class="aig-seed-inp" style="width:80px;">
+              <span style="color:var(--ink-faint);font-size:.85rem;">×</span>
+              <input type="number" id="aigH" placeholder="Height" value="1024" min="256" max="2048" step="64" class="aig-seed-inp" style="width:80px;">
+            </div>
+
+            <div>
+              <div class="aig-label">Style Preset</div>
+              <select class="aig-select" id="aigStyle">
+                <option value="">None</option>
+                <option value=", photorealistic, 8K, DSLR">Photorealistic</option>
+                <option value=", digital art, artstation trending, concept art">Digital Art</option>
+                <option value=", anime style, Studio Ghibli, vibrant colors">Anime</option>
+                <option value=", oil painting, impressionist, textured brush strokes">Oil Painting</option>
+                <option value=", pencil sketch, hand-drawn, detailed linework">Pencil Sketch</option>
+                <option value=", cinematic, dramatic lighting, film grain, anamorphic lens">Cinematic</option>
+                <option value=", watercolor painting, soft edges, flowing colors">Watercolor</option>
+                <option value=", neon synthwave, retrowave, 80s aesthetic, glowing">Synthwave</option>
+                <option value=", isometric 3D, low poly, clean render">Isometric 3D</option>
+                <option value=", flat design illustration, minimalist, vector art">Flat Illustration</option>
+              </select>
+            </div>
+
+            <div class="aig-settings-row">
+              <div class="aig-label">Seed (leave blank for random)</div>
+              <div class="aig-seed-row">
+                <input type="number" class="aig-seed-inp" id="aigSeed" placeholder="Random" min="0" max="4294967295">
+                <button onclick="aigRandomSeed()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-light);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;font-size:.78rem;" title="Roll random seed">🎲</button>
+              </div>
+            </div>
+
+            <div>
+              <button class="aig-neg-toggle" onclick="aigToggleNeg()" id="aigNegBtn">＋ Negative prompt</button>
+              <textarea class="aig-neg-prompt" id="aigNegPrompt" placeholder="blurry, low quality, deformed, watermark, text, bad anatomy…"></textarea>
+            </div>
+
+            <div class="aig-divider"></div>
+
+            <button class="aig-generate-btn" id="aigGenBtn" onclick="aigGenerate()">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Generate Image
+            </button>
+
+          </div>
+
+          <!-- RIGHT: Canvas / gallery area -->
+          <div class="aig-canvas-area" id="aigCanvasArea">
+
+            <!-- Loading state -->
+            <div class="aig-loading-wrap" id="aigLoading">
+              <div class="aig-spinner"></div>
+              <div class="aig-loading-txt" id="aigLoadingTxt">Creating your image…<br><span style="font-size:.74rem;opacity:.7">This takes 5–20 seconds</span></div>
+            </div>
+
+            <!-- Main result -->
+            <div class="aig-result-wrap" id="aigResultWrap" style="display:none;">
+              <div class="aig-prompt-echo" id="aigResultPromptEcho"></div>
+              <img id="aigResultImg" class="aig-result-img" alt="Generated image" onclick="aigOpenLightbox()" />
+              <div class="aig-result-actions">
+                <a id="aigDownloadBtn" class="aig-act-btn primary" download="zenspace-ai-image.png">⬇ Download</a>
+                <button class="aig-act-btn" onclick="aigCopyPrompt()">📋 Copy Prompt</button>
+                <button class="aig-act-btn" onclick="aigVary()">🔀 Variation</button>
+                <button class="aig-act-btn" onclick="aigSaveToGallery()">⭐ Save</button>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div class="aig-empty" id="aigEmpty">
+              <div class="aig-empty-icon">🎨</div>
+              <div class="aig-empty-txt">Enter a prompt and hit <strong>Generate</strong> to create your first AI image. Uses the Flux model — completely free, no sign-up needed.</div>
+            </div>
+
+            <!-- Gallery section -->
+            <div id="aigGalleryWrap" style="width:100%;max-width:640px;display:none;">
+              <div style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px;">Saved Gallery</div>
+              <div class="aig-gallery-grid" id="aigGallery"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Lightbox -->
+        <div id="aigLightbox" onclick="aigCloseLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;place-items:center;cursor:zoom-out;">
+          <img id="aigLightboxImg" style="max-width:96vw;max-height:96vh;border-radius:10px;box-shadow:0 24px 80px rgba(0,0,0,.6);" />
+        </div>
+
+        <script>
+          // ═══════════════════════════════════════════════
+          //  AI Image Generator — Pollinations AI (Free)
+          // ═══════════════════════════════════════════════
+          let _aigCurrentUrl = '';
+          let _aigCurrentPrompt = '';
+          let _aigGallery = JSON.parse(localStorage.getItem('zs-aig-gallery') || '[]');
+
+          const AIG_PROMPTS = [
+            'A majestic dragon soaring over a glowing fantasy city at sunset, ultra detailed, 8K',
+            'An astronaut sitting on the moon playing guitar, Earth visible in background, cinematic',
+            'A cozy Japanese ramen shop on a rainy night, neon signs, steam rising, photorealistic',
+            'A futuristic cyberpunk marketplace in Tokyo 2099, holographic signs, crowded, neon',
+            'A beautiful woman with flowing silver hair in a magical forest, ethereal light, fantasy art',
+            'An ancient Greek temple on a cliff overlooking the sea at golden hour, dramatic clouds',
+            'A tiny cottage in a magical mushroom forest, glowing windows, fairy lights, whimsical',
+            'A lone samurai walking through a cherry blossom storm at dawn, ink painting style',
+            'A surreal clock melting over a desert landscape, Salvador Dalí inspired, dreamlike',
+            'Deep underwater city with bioluminescent creatures, dramatic lighting, hyperrealistic',
+          ];
+
+          function aigSurprise() {
+            const p = AIG_PROMPTS[Math.floor(Math.random() * AIG_PROMPTS.length)];
+            document.getElementById('aigPrompt').value = p;
+            document.getElementById('aigPrompt').focus();
+          }
+
+          function aigRandomSeed() {
+            document.getElementById('aigSeed').value = Math.floor(Math.random() * 4294967295);
+          }
+
+          function aigSizeChange() {
+            const v = document.getElementById('aigSize').value;
+            const cw = document.getElementById('aigCustomSize');
+            cw.style.display = v === 'custom' ? 'flex' : 'none';
+          }
+
+          function aigToggleNeg() {
+            const el = document.getElementById('aigNegPrompt');
+            const btn = document.getElementById('aigNegBtn');
+            const visible = el.style.display === 'block';
+            el.style.display = visible ? 'none' : 'block';
+            btn.textContent = visible ? '＋ Negative prompt' : '－ Negative prompt';
+          }
+
+          async function aigGenerate(overridePrompt) {
+            const promptEl = document.getElementById('aigPrompt');
+            let prompt = overridePrompt || (promptEl.value.trim() + (document.getElementById('aigStyle').value || ''));
+            if (!prompt) { showToast('Please enter a prompt', 'error'); promptEl.focus(); return; }
+
+            const model = document.getElementById('aigModel').value;
+            const seedVal = document.getElementById('aigSeed').value;
+            const seed = seedVal ? parseInt(seedVal) : Math.floor(Math.random() * 999999999);
+            const neg = document.getElementById('aigNegPrompt').value.trim();
+
+            let w = 1024, h = 1024;
+            const sizeVal = document.getElementById('aigSize').value;
+            if (sizeVal === 'custom') {
+              w = parseInt(document.getElementById('aigW').value) || 1024;
+              h = parseInt(document.getElementById('aigH').value) || 1024;
+            } else {
+              [w, h] = sizeVal.split('x').map(Number);
+            }
+
+            // Build Pollinations URL
+            const encoded = encodeURIComponent(prompt);
+            let url = `https://image.pollinations.ai/prompt/${encoded}?model=${model}&width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=false`;
+            if (neg) url += `&negative=${encodeURIComponent(neg)}`;
+
+            _aigCurrentPrompt = prompt;
+            _aigCurrentUrl = url;
+
+            // Update UI
+            const btn = document.getElementById('aigGenBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:aig-spin .8s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Generating…';
+
+            document.getElementById('aigEmpty').style.display = 'none';
+            document.getElementById('aigResultWrap').style.display = 'none';
+            document.getElementById('aigLoading').classList.add('show');
+
+            // Load image via Image object to detect errors
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              document.getElementById('aigLoading').classList.remove('show');
+              const resultImg = document.getElementById('aigResultImg');
+              resultImg.src = url;
+              document.getElementById('aigResultPromptEcho').textContent = `"${prompt.slice(0, 120)}${prompt.length > 120 ? '…' : ''}"`;
+              const dlBtn = document.getElementById('aigDownloadBtn');
+              dlBtn.href = url;
+              dlBtn.download = `zenspace-${model}-${seed}.png`;
+              document.getElementById('aigResultWrap').style.display = 'block';
+              btn.disabled = false;
+              btn.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generate Image';
+              document.getElementById('aigSeed').value = seed;
+              showToast('✨ Image generated!', 'success');
+            };
+            img.onerror = () => {
+              document.getElementById('aigLoading').classList.remove('show');
+              document.getElementById('aigEmpty').style.display = 'flex';
+              btn.disabled = false;
+              btn.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generate Image';
+              showToast('Generation failed. Try a different prompt or model.', 'error');
+            };
+            img.src = url;
+          }
+
+          function aigCopyPrompt() {
+            if (!_aigCurrentPrompt) return;
+            navigator.clipboard.writeText(_aigCurrentPrompt).then(() => showToast('Prompt copied!', 'success'));
+          }
+
+          function aigVary() {
+            // Same prompt, new random seed
+            const seed = Math.floor(Math.random() * 999999999);
+            document.getElementById('aigSeed').value = seed;
+            aigGenerate(_aigCurrentPrompt);
+          }
+
+          function aigSaveToGallery() {
+            if (!_aigCurrentUrl) return;
+            _aigGallery.unshift({ url: _aigCurrentUrl, prompt: _aigCurrentPrompt, ts: Date.now() });
+            if (_aigGallery.length > 40) _aigGallery = _aigGallery.slice(0, 40);
+            localStorage.setItem('zs-aig-gallery', JSON.stringify(_aigGallery));
+            aigRenderGallery();
+            showToast('⭐ Saved to gallery!', 'success');
+          }
+
+          function aigDeleteFromGallery(idx) {
+            _aigGallery.splice(idx, 1);
+            localStorage.setItem('zs-aig-gallery', JSON.stringify(_aigGallery));
+            aigRenderGallery();
+          }
+
+          function aigRenderGallery() {
+            const wrap = document.getElementById('aigGalleryWrap');
+            const grid = document.getElementById('aigGallery');
+            if (!_aigGallery.length) { wrap.style.display = 'none'; return; }
+            wrap.style.display = 'block';
+            grid.innerHTML = _aigGallery.map((item, i) => `
+              <div class="aig-gallery-item" title="${item.prompt.slice(0, 80)}">
+                <img src="${item.url}" alt="saved image" loading="lazy" onclick="aigViewSaved(${i})" />
+                <button class="aig-thumb-del" onclick="event.stopPropagation();aigDeleteFromGallery(${i})">✕</button>
+              </div>
+            `).join('');
+          }
+
+          function aigViewSaved(idx) {
+            const item = _aigGallery[idx];
+            if (!item) return;
+            _aigCurrentUrl = item.url;
+            _aigCurrentPrompt = item.prompt;
+            const resultImg = document.getElementById('aigResultImg');
+            resultImg.src = item.url;
+            document.getElementById('aigResultPromptEcho').textContent = `"${item.prompt.slice(0, 120)}"`;
+            document.getElementById('aigDownloadBtn').href = item.url;
+            document.getElementById('aigEmpty').style.display = 'none';
+            document.getElementById('aigResultWrap').style.display = 'block';
+            document.getElementById('aigPrompt').value = item.prompt;
+            window.scrollTo({ top: 0 });
+          }
+
+          function aigOpenLightbox() {
+            const lb = document.getElementById('aigLightbox');
+            document.getElementById('aigLightboxImg').src = document.getElementById('aigResultImg').src;
+            lb.style.display = 'grid';
+          }
+          function aigCloseLightbox() {
+            document.getElementById('aigLightbox').style.display = 'none';
+          }
+
+          // Allow Ctrl+Enter to generate
+          document.getElementById('aigPrompt').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) aigGenerate();
+          });
+
+          // Render saved gallery on load
+          aigRenderGallery();
+        </script>
+      </div>
+
       <!-- ══ SERVERS ══ -->
       <div id="serversSec" class="content-section">
         <style>
@@ -8744,7 +9909,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       let initialSec = 'overviewSec';
       const hash = window.location.hash.substring(1);
       const savedSec = localStorage.getItem('zs-active-sec');
-      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'mathSec', 'serversSec'];
+      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'mathSec', 'serversSec', 'aiImageSec', 'zenAiSec'];
       if (hash && validSections.includes(hash)) {
         initialSec = hash;
       } else if (savedSec && validSections.includes(savedSec)) {
