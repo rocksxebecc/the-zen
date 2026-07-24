@@ -7828,16 +7828,23 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
       // Fetch cloud subjects & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
-        const cloudSubj = await window.ZenAuth.fetchUserState('subjects');
-        if (cloudSubj !== null && Array.isArray(cloudSubj)) {
-          if (cloudSubj.length > 0 || subjects.length === 0) {
-            subjects = cloudSubj;
-            sv('subjects', subjects); // update local
-          } else if (subjects.length > 0 && cloudSubj.length === 0) {
+        try {
+          const cloudSubj = await window.ZenAuth.fetchUserState('subjects');
+          if (Array.isArray(cloudSubj)) {
+            if (cloudSubj.length > 0) {
+              subjects = cloudSubj;
+              sv('subjects', subjects); // update local storage for this user
+              renderSubjects();
+              updateOvStats();
+            } else if (subjects && subjects.length > 0) {
+              // Local has subjects but cloud is empty -> push local to cloud
+              await window.ZenAuth.upsertUserState('subjects', subjects);
+            }
+          } else if (subjects && subjects.length > 0) {
             await window.ZenAuth.upsertUserState('subjects', subjects);
           }
-        } else if (subjects.length > 0) {
-          await window.ZenAuth.upsertUserState('subjects', subjects);
+        } catch (err) {
+          console.error('[Zenspace] Error syncing cloud subjects:', err);
         }
       }
       if (window.ZenAuth && window.ZenAuth.getSupabaseClient && user) {
