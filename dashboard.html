@@ -7826,32 +7826,48 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         }
       })();
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
-      // Fetch cloud subjects & subscribe to realtime cross-device updates
+      // Fetch cloud subjects & finance & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
         try {
-          const cloudSubj = await window.ZenAuth.fetchUserState('subjects');
+          const [cloudSubj, cloudTxns] = await Promise.all([
+            window.ZenAuth.fetchUserState('subjects'),
+            window.ZenAuth.fetchUserState('finance')
+          ]);
           if (Array.isArray(cloudSubj)) {
             if (cloudSubj.length > 0) {
               subjects = cloudSubj;
-              sv('subjects', subjects); // update local storage for this user
+              sv('subjects', subjects);
               renderSubjects();
               updateOvStats();
             } else if (subjects && subjects.length > 0) {
-              // Local has subjects but cloud is empty -> push local to cloud
               await window.ZenAuth.upsertUserState('subjects', subjects);
             }
           } else if (subjects && subjects.length > 0) {
             await window.ZenAuth.upsertUserState('subjects', subjects);
           }
+
+          if (Array.isArray(cloudTxns)) {
+            if (cloudTxns.length > 0) {
+              txns = cloudTxns;
+              sv('finance', txns);
+              renderFinance();
+              renderAnalytics();
+              updateOvStats();
+            } else if (txns && txns.length > 0) {
+              await window.ZenAuth.upsertUserState('finance', txns);
+            }
+          } else if (txns && txns.length > 0) {
+            await window.ZenAuth.upsertUserState('finance', txns);
+          }
         } catch (err) {
-          console.error('[Zenspace] Error syncing cloud subjects:', err);
+          console.error('[Zenspace] Error syncing cloud user state:', err);
         }
       }
       if (window.ZenAuth && window.ZenAuth.getSupabaseClient && user) {
         const client = ZenAuth.getSupabaseClient();
         if (client) {
           client
-            .channel('user_state_subjects')
+            .channel('user_state_changes')
             .on('postgres_changes', {
               event: '*',
               schema: 'public',
@@ -7862,6 +7878,13 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
                 subjects = payload.new.value || [];
                 sv('subjects', subjects);
                 renderSubjects();
+                updateOvStats();
+              }
+              if (payload.new && payload.new.key === 'finance') {
+                txns = payload.new.value || [];
+                sv('finance', txns);
+                renderFinance();
+                renderAnalytics();
                 updateOvStats();
               }
             })
