@@ -99,6 +99,52 @@ function proxyMath(req, res) {
   });
 }
 
+// ── /api/chat proxy (ZenAI Assistant) ──────────────────────────
+function proxyChat(req, res) {
+  const GROQ_KEY = process.env.GROQ_API_KEY || '';
+  if (!GROQ_KEY) {
+    res.writeHead(503, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { message: 'GROQ_API_KEY not set in .env file. Restart the server after adding it.' } }));
+    return;
+  }
+
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    const https = require('https');
+    // Parse incoming body so we can inject model/stream defaults
+    let parsed;
+    try { parsed = JSON.parse(body); } catch { parsed = {}; }
+
+    // Default to llama-3.3-70b-versatile if caller doesn't specify
+    if (!parsed.model) parsed.model = 'llama-3.3-70b-versatile';
+    // Enable streaming if not set
+    if (parsed.stream === undefined) parsed.stream = false;
+
+    const payload = Buffer.from(JSON.stringify(parsed));
+    const options = {
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`,
+        'Content-Length': payload.length,
+      },
+    };
+    const proxy = https.request(options, (groqRes) => {
+      res.writeHead(groqRes.statusCode, { 'Content-Type': 'application/json' });
+      groqRes.pipe(res);
+    });
+    proxy.on('error', (e) => {
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: { message: 'Proxy error: ' + e.message } }));
+    });
+    proxy.write(payload);
+    proxy.end();
+  });
+}
+
 // ── Main server ────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
   // CORS for local dev
@@ -110,6 +156,12 @@ const server = http.createServer((req, res) => {
   // Math agent API proxy
   if (req.url === '/api/math' && req.method === 'POST') {
     proxyMath(req, res);
+    return;
+  }
+
+  // ZenAI chat proxy
+  if (req.url === '/api/chat' && req.method === 'POST') {
+    proxyChat(req, res);
     return;
   }
 
