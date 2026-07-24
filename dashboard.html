@@ -7786,6 +7786,41 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         }
       })();
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
+      // Fetch cloud subjects & subscribe to realtime cross-device updates
+      if (window.ZenAuth && window.ZenAuth.fetchUserState) {
+        const cloudSubj = await window.ZenAuth.fetchUserState('subjects');
+        if (cloudSubj !== null && Array.isArray(cloudSubj)) {
+          if (cloudSubj.length > 0 || subjects.length === 0) {
+            subjects = cloudSubj;
+            sv('subjects', subjects); // update local
+          } else if (subjects.length > 0 && cloudSubj.length === 0) {
+            await window.ZenAuth.upsertUserState('subjects', subjects);
+          }
+        } else if (subjects.length > 0) {
+          await window.ZenAuth.upsertUserState('subjects', subjects);
+        }
+      }
+      if (window.ZenAuth && window.ZenAuth.getSupabaseClient && user) {
+        const client = ZenAuth.getSupabaseClient();
+        if (client) {
+          client
+            .channel('user_state_subjects')
+            .on('postgres_changes', {
+              event: '*',
+              schema: 'public',
+              table: 'user_state',
+              filter: `user_id=eq.${user.id}`
+            }, payload => {
+              if (payload.new && payload.new.key === 'subjects') {
+                subjects = payload.new.value || [];
+                sv('subjects', subjects);
+                renderSubjects();
+                updateOvStats();
+              }
+            })
+            .subscribe();
+        }
+      }
       notes = await ZenAuth.fetchNotes();
       notes.forEach(n => { n.tags = ld('ntags-' + n.id, []); n.color = ld('ncolor-' + n.id, '#1A1A1A'); n.images = ld('nimgs-' + n.id, []); });
       renderOverview(); syncDisplays(); renderSubjects();
@@ -8716,6 +8751,13 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     /* ══ SUBJECTS — CUSTOMIZABLE ATTENDANCE ══ */
     let subjects = ld('subjects', []);
 
+    async function syncSubjects() {
+      sv('subjects', subjects);
+      if (window.ZenAuth && window.ZenAuth.upsertUserState) {
+        await window.ZenAuth.upsertUserState('subjects', subjects);
+      }
+    }
+
     function addSubject() {
       const name = document.getElementById('sName').value.trim(), code = document.getElementById('sCode').value.trim();
       const total = parseInt(document.getElementById('sTotal').value) || 0, attended = parseInt(document.getElementById('sAttended').value) || 0;
@@ -8723,7 +8765,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (!name || total < 0) { showToast('Enter valid name and total lectures', 'error'); return; }
       if (attended > total) { showToast('Attended cannot exceed total', 'error'); return; }
       subjects.push({ id: Date.now(), name, code, total, attended, minPct, color });
-      sv('subjects', subjects); closeModal('subjectModal');
+      syncSubjects(); closeModal('subjectModal');
       ['sName', 'sCode', 'sTotal', 'sAttended'].forEach(i => document.getElementById(i).value = '');
       renderSubjects(); updateOvStats(); showToast('Subject added!', 'success');
     }
@@ -8734,7 +8776,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (!s.log) s.log = [];
       const todayStr = new Date().toISOString().split('T')[0];
       s.log.push({ date: todayStr, status: present ? 'P' : 'A' });
-      sv('subjects', subjects); renderSubjects(); updateOvStats();
+      syncSubjects(); renderSubjects(); updateOvStats();
       showToast(present ? '✓ Present marked' : '✗ Absent marked', present ? 'success' : 'default');
     }
 
@@ -8742,7 +8784,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       const s = subjects.find(x => x.id === id); if (!s) return;
       if (s.total > 0) s.total -= 1;
       if (s.attended > s.total) s.attended = s.total;
-      sv('subjects', subjects); renderSubjects(); updateOvStats();
+      syncSubjects(); renderSubjects(); updateOvStats();
       showToast('−1 Total lecture', 'default');
     }
 
@@ -8753,7 +8795,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       s.total = Math.max(0, s.total - 1);
       if (entry.status === 'P') s.attended = Math.max(0, s.attended - 1);
       s.log.splice(logIdx, 1);
-      sv('subjects', subjects); renderSubjects(); updateOvStats();
+      syncSubjects(); renderSubjects(); updateOvStats();
       showToast('Entry removed', 'default');
     }
 
@@ -8772,11 +8814,11 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (att < 0 || tot < 1) { showToast('Invalid values', 'error'); return; }
       if (att > tot) { showToast('Attended cannot exceed total', 'error'); attEl.value = s.attended; return; }
       s.attended = att; s.total = tot;
-      sv('subjects', subjects); renderSubjects(); updateOvStats();
+      syncSubjects(); renderSubjects(); updateOvStats();
       showToast('Updated!', 'success');
     }
 
-    function deleteSubject(id) { subjects = subjects.filter(s => s.id !== id); sv('subjects', subjects); renderSubjects(); updateOvStats(); }
+    function deleteSubject(id) { subjects = subjects.filter(s => s.id !== id); syncSubjects(); renderSubjects(); updateOvStats(); }
     function safeBunksFor(s) { if (!s.minPct) return 999; const max = Math.floor(s.attended / (s.minPct / 100)); return Math.max(0, max - s.total); }
     function classesNeededFor(s) { const pct = s.total > 0 ? s.attended / s.total : 0; if (pct * 100 >= s.minPct) return 0; const r = s.minPct / 100; if (r >= 1) return '∞'; return Math.max(0, Math.ceil((r * s.total - s.attended) / (1 - r))); }
 
