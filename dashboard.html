@@ -4675,7 +4675,40 @@
                 <rect x="1" y="5" width="15" height="14" rx="2" />
               </svg>Video Download</button>
 
+            <!-- EXTRA TOOLS GROUP -->
+            <div
+              style="margin:10px 16px 4px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--border-light);padding-top:10px;">
+              Extra Tools</div>
+
+            <button class="doc-tab-btn" data-doc="pdfToImages"><svg viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <rect x="3" y="3" width="8" height="7" rx="1" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>PDF → Images</button>
+
+            <button class="doc-tab-btn" data-doc="imgWatermark"><svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+              </svg>Image Watermark</button>
+
+            <button class="doc-tab-btn" data-doc="pdfRotate"><svg viewBox="0 0 24 24">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>PDF Rotate</button>
+
+            <button class="doc-tab-btn" data-doc="imgOcr"><svg viewBox="0 0 24 24">
+                <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3" />
+                <path d="M7 8h2v2H7zM11 8h2v2h-2zM15 8h2v2h-2zM7 12h2v2H7zM11 12h6v2h-6z" />
+              </svg>Image to Text</button>
+
+            <button class="doc-tab-btn" data-doc="csvToPdf"><svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18M3 15h18M9 3v18" />
+              </svg>CSV → PDF</button>
+
           </nav>
+
 
           <div class="doc-tab-content">
 
@@ -5485,8 +5518,310 @@
               </div>
             </div>
 
-          </div>
-        </div>
+            <!-- ═══════════════════════════════════════════════
+                 EXTRA TOOLS
+            ═══════════════════════════════════════════════ -->
+
+            <!-- PDF → IMAGES -->
+            <div id="docPdfToImages" class="doc-tool">
+              <div class="doc-tool-header">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg></div>
+                <div>
+                  <div class="doc-tool-title">PDF → Images</div>
+                  <div class="doc-tool-desc">Convert each PDF page to a PNG image — download all as a ZIP</div>
+                </div>
+              </div>
+              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="p2imgFileInp" onchange="p2imgLoad(event)" />
+                <div class="doc-drop-icon">📄➡️🖼️</div>
+                <div class="doc-drop-text">Drop a PDF here or click to browse</div>
+                <div class="doc-drop-sub">PDF files only</div>
+              </div>
+              <div id="p2imgOptions" style="display:none;flex-direction:column;gap:14px;">
+                <div class="doc-file-item">
+                  <span style="font-size:1.4rem">📄</span>
+                  <span class="doc-file-name" id="p2imgFileName"></span>
+                  <span class="doc-file-size" id="p2imgPageCount"></span>
+                  <button class="doc-file-remove" onclick="p2imgClear()">✕</button>
+                </div>
+                <div class="doc-options" style="align-items:center;gap:12px;">
+                  <span class="doc-opt-label">Image format:</span>
+                  <select class="doc-opt-select" id="p2imgFormat">
+                    <option value="png">PNG (lossless)</option>
+                    <option value="jpeg">JPEG (smaller)</option>
+                  </select>
+                  <span class="doc-opt-label">Scale:</span>
+                  <select class="doc-opt-select" id="p2imgScale">
+                    <option value="1.5">Standard (1.5×)</option>
+                    <option value="2" selected>High (2×)</option>
+                    <option value="3">Ultra (3×)</option>
+                  </select>
+                </div>
+                <div id="p2imgProgress" style="display:none;">
+                  <div style="font-size:.8rem;color:var(--ink-faint);margin-bottom:6px;" id="p2imgProgressTxt">Rendering pages…</div>
+                  <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                    <div id="p2imgProgressBar" style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%"></div>
+                  </div>
+                </div>
+                <div class="doc-result" id="p2imgResult">
+                  <div class="doc-result-icon">🖼️</div>
+                  <div class="doc-result-info">
+                    <div class="doc-result-name" id="p2imgResultName"></div>
+                    <div class="doc-result-size" id="p2imgResultSize"></div>
+                  </div>
+                  <a class="doc-btn" id="p2imgDownloadBtn">⬇ Download ZIP</a>
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="doc-btn" onclick="p2imgConvert()">🖼️ Convert to Images</button>
+                  <button class="doc-btn secondary" onclick="p2imgClear()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- IMAGE WATERMARK -->
+            <div id="docImgWatermark" class="doc-tool">
+              <div class="doc-tool-header">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M8 12h8M12 8v8" />
+                  </svg></div>
+                <div>
+                  <div class="doc-tool-title">Image Watermark</div>
+                  <div class="doc-tool-desc">Add a custom text watermark to any image — position, opacity, size, color</div>
+                </div>
+              </div>
+              <div class="doc-drop-zone"><input type="file" accept="image/*" id="wmFileInp" onchange="wmLoadFile(event)" />
+                <div class="doc-drop-icon">🏷️</div>
+                <div class="doc-drop-text">Drop an image here or click to browse</div>
+                <div class="doc-drop-sub">PNG, JPG, WEBP — any image</div>
+              </div>
+              <div id="wmOptions" style="display:none;flex-direction:column;gap:14px;">
+                <div style="position:relative;display:inline-block;">
+                  <button class="doc-file-remove" onclick="wmClear()" style="position:absolute;top:6px;right:6px;z-index:2;">✕</button>
+                  <canvas id="wmCanvas" style="max-width:100%;border-radius:10px;border:1px solid var(--border);display:block;"></canvas>
+                </div>
+                <div class="doc-options" style="flex-wrap:wrap;gap:12px;">
+                  <span class="doc-opt-label">Text:</span>
+                  <input type="text" id="wmText" value="CONFIDENTIAL" oninput="wmUpdate()"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border-light);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.83rem;font-family:var(--font-sans);flex:1;min-width:140px;" />
+                  <span class="doc-opt-label">Color:</span>
+                  <input type="color" id="wmColor" value="#ffffff" oninput="wmUpdate()" style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;background:none;" />
+                </div>
+                <div class="doc-options" style="flex-wrap:wrap;gap:12px;align-items:center;">
+                  <span class="doc-opt-label">Opacity:</span>
+                  <input type="range" id="wmOpacity" min="5" max="100" value="30" oninput="wmOpacityLbl.textContent=this.value+'%';wmUpdate()" style="flex:1;min-width:100px;" />
+                  <span id="wmOpacityLbl" style="font-size:.82rem;font-weight:600;width:38px;">30%</span>
+                  <span class="doc-opt-label">Size:</span>
+                  <input type="range" id="wmSize" min="10" max="100" value="36" oninput="wmSizeLbl.textContent=this.value+'px';wmUpdate()" style="flex:1;min-width:100px;" />
+                  <span id="wmSizeLbl" style="font-size:.82rem;font-weight:600;width:38px;">36px</span>
+                </div>
+                <div class="doc-options" style="gap:12px;align-items:center;">
+                  <span class="doc-opt-label">Position:</span>
+                  <select class="doc-opt-select" id="wmPosition" onchange="wmUpdate()">
+                    <option value="center">Center</option>
+                    <option value="tiled">Tiled (repeat)</option>
+                    <option value="bottomRight" selected>Bottom Right</option>
+                    <option value="bottomLeft">Bottom Left</option>
+                    <option value="topRight">Top Right</option>
+                    <option value="topLeft">Top Left</option>
+                  </select>
+                  <span class="doc-opt-label">Angle:</span>
+                  <select class="doc-opt-select" id="wmAngle" onchange="wmUpdate()">
+                    <option value="0">0°</option>
+                    <option value="-30" selected>-30°</option>
+                    <option value="-45">-45°</option>
+                    <option value="-60">-60°</option>
+                  </select>
+                  <span class="doc-opt-label">Format:</span>
+                  <select class="doc-opt-select" id="wmFormat">
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg" selected>JPEG</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="doc-btn" onclick="wmDownload()">⬇ Download Watermarked</button>
+                  <button class="doc-btn secondary" onclick="wmClear()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PDF ROTATE PAGES -->
+            <div id="docPdfRotate" class="doc-tool">
+              <div class="doc-tool-header">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg></div>
+                <div>
+                  <div class="doc-tool-title">PDF Rotate Pages</div>
+                  <div class="doc-tool-desc">Rotate all pages or specific pages of a PDF by 90°, 180°, or 270°</div>
+                </div>
+              </div>
+              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="rotFileInp" onchange="rotLoad(event)" />
+                <div class="doc-drop-icon">🔄</div>
+                <div class="doc-drop-text">Drop a PDF here or click to browse</div>
+                <div class="doc-drop-sub">PDF files only</div>
+              </div>
+              <div id="rotOptions" style="display:none;flex-direction:column;gap:14px;">
+                <div class="doc-file-item">
+                  <span style="font-size:1.4rem">📄</span>
+                  <span class="doc-file-name" id="rotFileName"></span>
+                  <span class="doc-file-size" id="rotPageCount"></span>
+                  <button class="doc-file-remove" onclick="rotClear()">✕</button>
+                </div>
+                <div class="doc-options" style="flex-wrap:wrap;gap:12px;align-items:center;">
+                  <span class="doc-opt-label">Rotation:</span>
+                  <select class="doc-opt-select" id="rotDeg">
+                    <option value="90">90° Clockwise</option>
+                    <option value="180">180° (Flip)</option>
+                    <option value="270">270° (90° Counter-CW)</option>
+                  </select>
+                  <span class="doc-opt-label">Pages:</span>
+                  <select class="doc-opt-select" id="rotPageMode" onchange="rotPageModeChange()">
+                    <option value="all">All pages</option>
+                    <option value="specific">Specific pages</option>
+                    <option value="range">Page range</option>
+                  </select>
+                </div>
+                <div id="rotSpecificWrap" style="display:none;flex-direction:column;gap:8px;">
+                  <input type="text" id="rotPages" placeholder="e.g. 1,3,5-7"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border-light);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.85rem;font-family:var(--font-sans);" />
+                  <div style="font-size:.74rem;color:var(--ink-faint);">Enter page numbers or ranges separated by commas</div>
+                </div>
+                <div id="rotRangeWrap" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span class="doc-opt-label">From:</span>
+                  <input type="number" id="rotFrom" value="1" min="1" class="doc-opt-select" style="width:70px" />
+                  <span class="doc-opt-label">To:</span>
+                  <input type="number" id="rotTo" value="1" min="1" class="doc-opt-select" style="width:70px" />
+                </div>
+                <div class="doc-result" id="rotResult">
+                  <div class="doc-result-icon">📄</div>
+                  <div class="doc-result-info">
+                    <div class="doc-result-name" id="rotResultName"></div>
+                    <div class="doc-result-size" id="rotResultSize"></div>
+                  </div>
+                  <a class="doc-btn" id="rotDownloadBtn">⬇ Download Rotated PDF</a>
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="doc-btn" onclick="rotDo()">🔄 Rotate Pages</button>
+                  <button class="doc-btn secondary" onclick="rotClear()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- IMAGE TO TEXT (OCR) -->
+            <div id="docImgOcr" class="doc-tool">
+              <div class="doc-tool-header">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3" />
+                    <rect x="7" y="8" width="10" height="8" rx="1" />
+                  </svg></div>
+                <div>
+                  <div class="doc-tool-title">Image to Text (OCR)</div>
+                  <div class="doc-tool-desc">Extract text from any image using in-browser OCR — no upload required</div>
+                </div>
+              </div>
+              <div class="doc-drop-zone"><input type="file" accept="image/*" id="ocrFileInp" onchange="ocrLoad(event)" />
+                <div class="doc-drop-icon">🔍</div>
+                <div class="doc-drop-text">Drop an image here or click to browse</div>
+                <div class="doc-drop-sub">PNG, JPG, WEBP, BMP — any image with text</div>
+              </div>
+              <div id="ocrOptions" style="display:none;flex-direction:column;gap:14px;">
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <img id="ocrPreview" style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid var(--border);object-fit:contain;flex-shrink:0;" />
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-weight:600;font-size:.88rem;word-break:break-all;" id="ocrFileName"></div>
+                    <div id="ocrStatus" style="font-size:.8rem;color:var(--ink-faint);margin-top:6px;"></div>
+                    <div id="ocrProgressWrap" style="display:none;margin-top:10px;">
+                      <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                        <div id="ocrProgressBar" style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="doc-file-remove" onclick="ocrClear()">✕</button>
+                </div>
+                <div class="doc-options" style="align-items:center;gap:12px;">
+                  <span class="doc-opt-label">Language:</span>
+                  <select class="doc-opt-select" id="ocrLang">
+                    <option value="eng" selected>English</option>
+                    <option value="hin">Hindi</option>
+                    <option value="fra">French</option>
+                    <option value="deu">German</option>
+                    <option value="spa">Spanish</option>
+                    <option value="por">Portuguese</option>
+                    <option value="chi_sim">Chinese (Simplified)</option>
+                    <option value="jpn">Japanese</option>
+                    <option value="ara">Arabic</option>
+                  </select>
+                </div>
+                <textarea id="ocrOutput" rows="8" readonly placeholder="Extracted text will appear here after recognition…"
+                  style="background:rgba(255,255,255,.04);border:1px solid var(--border-light);border-radius:10px;color:var(--ink);font-family:var(--font-sans);font-size:.85rem;padding:12px;resize:vertical;width:100%;box-sizing:border-box;line-height:1.6;"></textarea>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <button class="doc-btn" onclick="ocrRun()">🔍 Recognize Text</button>
+                  <button class="doc-btn secondary" onclick="navigator.clipboard.writeText(document.getElementById('ocrOutput').value).then(()=>showToast('Copied!','success'))">📋 Copy Text</button>
+                  <button class="doc-btn secondary" onclick="ocrDownloadTxt()">⬇ Save as .txt</button>
+                  <button class="doc-btn secondary" onclick="ocrClear()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- CSV → PDF -->
+            <div id="docCsvToPdf" class="doc-tool">
+              <div class="doc-tool-header">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18M3 15h18M9 3v18" />
+                  </svg></div>
+                <div>
+                  <div class="doc-tool-title">CSV → PDF</div>
+                  <div class="doc-tool-desc">Convert a CSV file into a formatted, printable PDF table</div>
+                </div>
+              </div>
+              <div class="doc-drop-zone"><input type="file" accept=".csv,text/csv" id="csv2pFileInp" onchange="csv2pLoad(event)" />
+                <div class="doc-drop-icon">📊➡️📄</div>
+                <div class="doc-drop-text">Drop a CSV file here or click to browse</div>
+                <div class="doc-drop-sub">.csv files only</div>
+              </div>
+              <div id="csv2pOptions" style="display:none;flex-direction:column;gap:14px;">
+                <div class="doc-file-item">
+                  <span style="font-size:1.4rem">📊</span>
+                  <span class="doc-file-name" id="csv2pFileName"></span>
+                  <span class="doc-file-size" id="csv2pRowCount"></span>
+                  <button class="doc-file-remove" onclick="csv2pClear()">✕</button>
+                </div>
+                <div id="csv2pPreview" style="max-height:200px;overflow:auto;border:1px solid var(--border-light);border-radius:10px;font-size:.74rem;"></div>
+                <div class="doc-options" style="flex-wrap:wrap;gap:12px;align-items:center;">
+                  <span class="doc-opt-label">Page size:</span>
+                  <select class="doc-opt-select" id="csv2pPageSize">
+                    <option value="A4">A4 Portrait</option>
+                    <option value="A4L">A4 Landscape</option>
+                    <option value="Letter">Letter Portrait</option>
+                    <option value="LetterL">Letter Landscape</option>
+                  </select>
+                  <span class="doc-opt-label">Title:</span>
+                  <input type="text" id="csv2pTitle" placeholder="Optional table title…"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border-light);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.83rem;font-family:var(--font-sans);flex:1;min-width:120px;" />
+                </div>
+                <div class="doc-result" id="csv2pResult">
+                  <div class="doc-result-icon">📄</div>
+                  <div class="doc-result-info">
+                    <div class="doc-result-name" id="csv2pResultName"></div>
+                    <div class="doc-result-size" id="csv2pResultSize"></div>
+                  </div>
+                  <a class="doc-btn" id="csv2pDownloadBtn">⬇ Download PDF</a>
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="doc-btn" onclick="csv2pConvert()">📄 Convert to PDF</button>
+                  <button class="doc-btn secondary" onclick="csv2pClear()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.doc-tab-content -->
+        </div><!-- /.doc-layout -->
 
         <!-- ─── PDF Tools JS ─────────────────────────────────── -->
         <script>
@@ -6271,6 +6606,417 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
               if (el) { el.style.removeProperty('display'); el.classList.add('active'); }
             });
           });
+
+          // ═══════════════════════════════════════════════
+          //  PDF → IMAGES  (pdf.js CDN + JSZip)
+          // ═══════════════════════════════════════════════
+          let _p2imgFile = null;
+          function p2imgLoad(event) {
+            const file = event.target.files[0]; if (!file) return;
+            _p2imgFile = file;
+            document.getElementById('p2imgFileName').textContent = file.name;
+            document.getElementById('p2imgPageCount').textContent = docFmtBytes(file.size);
+            document.getElementById('p2imgOptions').style.display = 'flex';
+            document.getElementById('p2imgResult').classList.remove('show');
+            document.getElementById('p2imgProgress').style.display = 'none';
+          }
+          function p2imgClear() {
+            _p2imgFile = null;
+            document.getElementById('p2imgFileInp').value = '';
+            document.getElementById('p2imgOptions').style.display = 'none';
+          }
+          async function p2imgConvert() {
+            if (!_p2imgFile) return;
+            try {
+              showToast('Loading PDF…');
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+              const ab = await _p2imgFile.arrayBuffer();
+              const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+              const total = pdf.numPages;
+              const scale = parseFloat(document.getElementById('p2imgScale').value);
+              const fmt = document.getElementById('p2imgFormat').value;
+              const mimeType = fmt === 'jpeg' ? 'image/jpeg' : 'image/png';
+              const ext = fmt === 'jpeg' ? 'jpg' : 'png';
+              const zip = new JSZip();
+              const prog = document.getElementById('p2imgProgress');
+              const bar = document.getElementById('p2imgProgressBar');
+              const txt = document.getElementById('p2imgProgressTxt');
+              prog.style.display = 'block';
+              document.getElementById('p2imgResult').classList.remove('show');
+              for (let i = 1; i <= total; i++) {
+                txt.textContent = `Rendering page ${i} of ${total}…`;
+                bar.style.width = ((i - 1) / total * 100) + '%';
+                const page = await pdf.getPage(i);
+                const vp = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = vp.width; canvas.height = vp.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+                const dataUrl = canvas.toDataURL(mimeType, 0.92);
+                const base64 = dataUrl.split(',')[1];
+                zip.file(`page_${String(i).padStart(3, '0')}.${ext}`, base64, { base64: true });
+              }
+              bar.style.width = '100%';
+              txt.textContent = 'Creating ZIP…';
+              const zipBlob = await zip.generateAsync({ type: 'blob' });
+              const url = URL.createObjectURL(zipBlob);
+              const name = _p2imgFile.name.replace(/\.pdf$/i, '') + '_images.zip';
+              const btn = document.getElementById('p2imgDownloadBtn');
+              btn.href = url; btn.download = name;
+              document.getElementById('p2imgResultName').textContent = name;
+              document.getElementById('p2imgResultSize').textContent = docFmtBytes(zipBlob.size) + ` · ${total} pages`;
+              document.getElementById('p2imgResult').classList.add('show');
+              prog.style.display = 'none';
+              showToast(`✅ ${total} pages converted!`, 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); console.error(e); }
+          }
+
+          // ═══════════════════════════════════════════════
+          //  IMAGE WATERMARK  (pure canvas)
+          // ═══════════════════════════════════════════════
+          let _wmImg = null;
+          function wmLoadFile(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+              const img = new Image();
+              img.onload = () => {
+                _wmImg = img;
+                document.getElementById('wmOptions').style.display = 'flex';
+                wmUpdate();
+              };
+              img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+          function wmUpdate() {
+            if (!_wmImg) return;
+            const canvas = document.getElementById('wmCanvas');
+            const maxW = canvas.parentElement.offsetWidth - 20;
+            const scale = Math.min(1, maxW / _wmImg.width);
+            canvas.width = _wmImg.width * scale;
+            canvas.height = _wmImg.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(_wmImg, 0, 0, canvas.width, canvas.height);
+            const text = document.getElementById('wmText').value || 'Watermark';
+            const opacity = parseInt(document.getElementById('wmOpacity').value) / 100;
+            const size = parseInt(document.getElementById('wmSize').value) * scale;
+            const color = document.getElementById('wmColor').value;
+            const pos = document.getElementById('wmPosition').value;
+            const angle = parseFloat(document.getElementById('wmAngle').value) * Math.PI / 180;
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.fillStyle = color;
+            ctx.font = `bold ${size}px sans-serif`;
+            ctx.textBaseline = 'middle';
+            const tw = ctx.measureText(text).width;
+            if (pos === 'tiled') {
+              const stepX = tw + size * 3;
+              const stepY = size * 3;
+              for (let y = 0; y < canvas.height + stepY; y += stepY) {
+                for (let x = -tw; x < canvas.width + tw; x += stepX) {
+                  ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+                  ctx.fillText(text, -tw / 2, 0); ctx.restore();
+                }
+              }
+            } else {
+              let cx, cy;
+              const pad = size;
+              if (pos === 'center') { cx = canvas.width / 2; cy = canvas.height / 2; }
+              else if (pos === 'topLeft') { cx = tw / 2 + pad; cy = size / 2 + pad; }
+              else if (pos === 'topRight') { cx = canvas.width - tw / 2 - pad; cy = size / 2 + pad; }
+              else if (pos === 'bottomLeft') { cx = tw / 2 + pad; cy = canvas.height - size / 2 - pad; }
+              else { cx = canvas.width - tw / 2 - pad; cy = canvas.height - size / 2 - pad; } // bottomRight
+              ctx.translate(cx, cy); ctx.rotate(angle);
+              ctx.fillText(text, -tw / 2, 0);
+            }
+            ctx.restore();
+          }
+          function wmDownload() {
+            if (!_wmImg) return;
+            // Render at full resolution
+            const canvas2 = document.createElement('canvas');
+            canvas2.width = _wmImg.width; canvas2.height = _wmImg.height;
+            const ctx2 = canvas2.getContext('2d');
+            ctx2.drawImage(_wmImg, 0, 0);
+            const text = document.getElementById('wmText').value || 'Watermark';
+            const opacity = parseInt(document.getElementById('wmOpacity').value) / 100;
+            const size = parseInt(document.getElementById('wmSize').value);
+            const color = document.getElementById('wmColor').value;
+            const pos = document.getElementById('wmPosition').value;
+            const angle = parseFloat(document.getElementById('wmAngle').value) * Math.PI / 180;
+            const fmt = document.getElementById('wmFormat').value;
+            ctx2.save(); ctx2.globalAlpha = opacity; ctx2.fillStyle = color;
+            ctx2.font = `bold ${size}px sans-serif`; ctx2.textBaseline = 'middle';
+            const tw = ctx2.measureText(text).width;
+            if (pos === 'tiled') {
+              const stepX = tw + size * 3, stepY = size * 3;
+              for (let y = 0; y < canvas2.height + stepY; y += stepY)
+                for (let x = -tw; x < canvas2.width + tw; x += stepX) {
+                  ctx2.save(); ctx2.translate(x, y); ctx2.rotate(angle);
+                  ctx2.fillText(text, -tw / 2, 0); ctx2.restore();
+                }
+            } else {
+              const pad = size;
+              let cx, cy;
+              if (pos === 'center') { cx = canvas2.width / 2; cy = canvas2.height / 2; }
+              else if (pos === 'topLeft') { cx = tw / 2 + pad; cy = size / 2 + pad; }
+              else if (pos === 'topRight') { cx = canvas2.width - tw / 2 - pad; cy = size / 2 + pad; }
+              else if (pos === 'bottomLeft') { cx = tw / 2 + pad; cy = canvas2.height - size / 2 - pad; }
+              else { cx = canvas2.width - tw / 2 - pad; cy = canvas2.height - size / 2 - pad; }
+              ctx2.translate(cx, cy); ctx2.rotate(angle); ctx2.fillText(text, -tw / 2, 0);
+            }
+            ctx2.restore();
+            const dataUrl = canvas2.toDataURL(fmt, 0.92);
+            const a = document.createElement('a');
+            a.href = dataUrl; a.download = 'watermarked.' + (fmt === 'image/jpeg' ? 'jpg' : 'png');
+            a.click();
+            showToast('Watermarked image downloaded!', 'success');
+          }
+          function wmClear() {
+            _wmImg = null;
+            document.getElementById('wmFileInp').value = '';
+            document.getElementById('wmOptions').style.display = 'none';
+          }
+
+          // ═══════════════════════════════════════════════
+          //  PDF ROTATE PAGES  (pdf-lib)
+          // ═══════════════════════════════════════════════
+          let _rotFile = null, _rotBytes = null, _rotTotalPages = 0;
+          async function rotLoad(event) {
+            const file = event.target.files[0]; if (!file) return;
+            _rotFile = file;
+            _rotBytes = await file.arrayBuffer();
+            await loadScript('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js');
+            const pdf = await PDFLib.PDFDocument.load(_rotBytes, { ignoreEncryption: true });
+            _rotTotalPages = pdf.getPageCount();
+            document.getElementById('rotFileName').textContent = file.name;
+            document.getElementById('rotPageCount').textContent = _rotTotalPages + ' pages · ' + docFmtBytes(file.size);
+            document.getElementById('rotTo').value = _rotTotalPages;
+            document.getElementById('rotResult').classList.remove('show');
+            document.getElementById('rotOptions').style.display = 'flex';
+          }
+          function rotPageModeChange() {
+            const m = document.getElementById('rotPageMode').value;
+            document.getElementById('rotSpecificWrap').style.display = m === 'specific' ? 'flex' : 'none';
+            document.getElementById('rotRangeWrap').style.display = m === 'range' ? 'flex' : 'none';
+          }
+          async function rotDo() {
+            if (!_rotBytes) return;
+            try {
+              showToast('Rotating pages…');
+              await loadScript('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js');
+              const { PDFDocument, degrees } = PDFLib;
+              const pdf = await PDFDocument.load(_rotBytes, { ignoreEncryption: true });
+              const total = pdf.getPageCount();
+              const deg = parseInt(document.getElementById('rotDeg').value);
+              const mode = document.getElementById('rotPageMode').value;
+              let pageIdxs = [];
+              if (mode === 'all') {
+                pageIdxs = Array.from({ length: total }, (_, i) => i);
+              } else if (mode === 'range') {
+                const from = Math.max(1, parseInt(document.getElementById('rotFrom').value));
+                const to = Math.min(total, parseInt(document.getElementById('rotTo').value));
+                for (let i = from; i <= to; i++) pageIdxs.push(i - 1);
+              } else {
+                const raw = document.getElementById('rotPages').value;
+                raw.split(',').forEach(part => {
+                  part = part.trim();
+                  if (part.includes('-')) {
+                    const [a, b] = part.split('-').map(x => parseInt(x.trim()));
+                    for (let i = a; i <= Math.min(b, total); i++) if (i >= 1) pageIdxs.push(i - 1);
+                  } else {
+                    const n = parseInt(part);
+                    if (n >= 1 && n <= total) pageIdxs.push(n - 1);
+                  }
+                });
+              }
+              pageIdxs.forEach(idx => {
+                const page = pdf.getPage(idx);
+                const cur = page.getRotation().angle;
+                page.setRotation(degrees((cur + deg) % 360));
+              });
+              const bytes = await pdf.save();
+              const blob = new Blob([bytes], { type: 'application/pdf' });
+              const url = URL.createObjectURL(blob);
+              const name = _rotFile.name.replace(/\.pdf$/i, '') + '_rotated.pdf';
+              const btn = document.getElementById('rotDownloadBtn');
+              btn.href = url; btn.download = name;
+              document.getElementById('rotResultName').textContent = name;
+              document.getElementById('rotResultSize').textContent = docFmtBytes(blob.size) + ` · ${pageIdxs.length} page(s) rotated`;
+              document.getElementById('rotResult').classList.add('show');
+              showToast('Pages rotated!', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); console.error(e); }
+          }
+          function rotClear() {
+            _rotFile = null; _rotBytes = null; _rotTotalPages = 0;
+            document.getElementById('rotFileInp').value = '';
+            document.getElementById('rotOptions').style.display = 'none';
+            document.getElementById('rotResult').classList.remove('show');
+          }
+
+          // ═══════════════════════════════════════════════
+          //  IMAGE TO TEXT / OCR  (Tesseract.js)
+          // ═══════════════════════════════════════════════
+          let _ocrFile = null;
+          function ocrLoad(event) {
+            const file = event.target.files[0]; if (!file) return;
+            _ocrFile = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+              document.getElementById('ocrPreview').src = e.target.result;
+              document.getElementById('ocrFileName').textContent = file.name;
+              document.getElementById('ocrStatus').textContent = 'Ready — click "Recognize Text" to start.';
+              document.getElementById('ocrOutput').value = '';
+              document.getElementById('ocrOptions').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+          }
+          async function ocrRun() {
+            if (!_ocrFile) return;
+            try {
+              showToast('Loading OCR engine…');
+              await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+              const lang = document.getElementById('ocrLang').value;
+              const status = document.getElementById('ocrStatus');
+              const progWrap = document.getElementById('ocrProgressWrap');
+              const bar = document.getElementById('ocrProgressBar');
+              progWrap.style.display = 'block';
+              bar.style.width = '0%';
+              status.textContent = 'Initializing…';
+              const worker = await Tesseract.createWorker(lang, 1, {
+                logger: m => {
+                  if (m.status === 'recognizing text') {
+                    bar.style.width = Math.round(m.progress * 100) + '%';
+                    status.textContent = `Recognizing… ${Math.round(m.progress * 100)}%`;
+                  } else if (m.status === 'loading language traineddata') {
+                    status.textContent = 'Downloading language data…';
+                  }
+                }
+              });
+              const { data: { text } } = await worker.recognize(_ocrFile);
+              await worker.terminate();
+              document.getElementById('ocrOutput').value = text.trim();
+              progWrap.style.display = 'none';
+              status.textContent = `✅ Done — ${text.trim().split(/\s+/).filter(Boolean).length} words extracted.`;
+              showToast('Text extracted!', 'success');
+            } catch (e) { showToast('OCR Error: ' + e.message, 'error'); console.error(e); }
+          }
+          function ocrDownloadTxt() {
+            const text = document.getElementById('ocrOutput').value;
+            if (!text) { showToast('No text to save', 'error'); return; }
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = (_ocrFile?.name?.replace(/\.[^.]+$/, '') || 'ocr_output') + '.txt';
+            a.click();
+          }
+          function ocrClear() {
+            _ocrFile = null;
+            document.getElementById('ocrFileInp').value = '';
+            document.getElementById('ocrOptions').style.display = 'none';
+            document.getElementById('ocrOutput').value = '';
+          }
+
+          // ═══════════════════════════════════════════════
+          //  CSV → PDF  (jsPDF + papaparse)
+          // ═══════════════════════════════════════════════
+          let _csv2pFile = null, _csv2pData = [];
+          async function csv2pLoad(event) {
+            const file = event.target.files[0]; if (!file) return;
+            _csv2pFile = file;
+            await loadScript('https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js');
+            const text = await file.text();
+            const result = Papa.parse(text.trim(), { skipEmptyLines: true });
+            _csv2pData = result.data;
+            document.getElementById('csv2pFileName').textContent = file.name;
+            document.getElementById('csv2pRowCount').textContent = `${_csv2pData.length} rows · ${docFmtBytes(file.size)}`;
+            // Preview table
+            const cols = _csv2pData[0] ? _csv2pData[0].length : 0;
+            const previewRows = _csv2pData.slice(0, 8);
+            let tbl = '<table style="width:100%;border-collapse:collapse;">';
+            previewRows.forEach((row, ri) => {
+              tbl += `<tr style="background:${ri === 0 ? 'rgba(255,255,255,.08)' : ri % 2 === 0 ? 'rgba(255,255,255,.02)' : 'none'}">`;
+              row.forEach(cell => {
+                tbl += `<td style="padding:4px 8px;border:1px solid var(--border-light);${ri === 0 ? 'font-weight:700;' : ''}">${String(cell).slice(0, 40)}</td>`;
+              });
+              tbl += '</tr>';
+            });
+            if (_csv2pData.length > 8) tbl += `<tr><td colspan="${cols}" style="padding:6px 8px;color:var(--ink-faint);font-style:italic;">…and ${_csv2pData.length - 8} more rows</td></tr>`;
+            tbl += '</table>';
+            const prev = document.getElementById('csv2pPreview');
+            prev.innerHTML = tbl; prev.style.display = 'block';
+            document.getElementById('csv2pResult').classList.remove('show');
+            document.getElementById('csv2pOptions').style.display = 'flex';
+          }
+          async function csv2pConvert() {
+            if (!_csv2pData.length) return;
+            try {
+              showToast('Creating PDF…');
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
+              const { PDFDocument, rgb, StandardFonts } = PDFLib;
+              const pageSizeVal = document.getElementById('csv2pPageSize').value;
+              const landscape = pageSizeVal.endsWith('L');
+              const isLetter = pageSizeVal.startsWith('Letter');
+              let [W, H] = isLetter ? [612, 792] : [595, 842];
+              if (landscape) [W, H] = [H, W];
+              const doc = await PDFDocument.create();
+              const font = await doc.embedFont(StandardFonts.Helvetica);
+              const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
+              const margin = 36;
+              const fontSize = 8;
+              const lineH = fontSize + 6;
+              const cellPad = 3;
+              const cols = _csv2pData[0]?.length || 1;
+              const colW = Math.max(40, (W - margin * 2) / cols);
+              const title = document.getElementById('csv2pTitle').value.trim();
+              let page = doc.addPage([W, H]);
+              let y = H - margin;
+              if (title) {
+                page.drawText(title, { x: margin, y, font: boldFont, size: 13, color: rgb(0.1, 0.1, 0.1) });
+                y -= 22;
+              }
+              _csv2pData.forEach((row, ri) => {
+                if (y < margin + lineH) { page = doc.addPage([W, H]); y = H - margin; }
+                const isHeader = ri === 0;
+                row.forEach((cell, ci) => {
+                  const x = margin + ci * colW;
+                  const cellStr = String(cell ?? '').substring(0, 35);
+                  page.drawRectangle({
+                    x, y: y - lineH + cellPad, width: colW, height: lineH,
+                    borderColor: rgb(0.75, 0.75, 0.75), borderWidth: 0.5,
+                    color: isHeader ? rgb(0.88, 0.9, 0.98) : (ri % 2 === 0 ? rgb(1, 1, 1) : rgb(0.97, 0.97, 0.97))
+                  });
+                  if (cellStr) page.drawText(cellStr, {
+                    x: x + cellPad, y: y - lineH + cellPad * 2 + 1,
+                    font: isHeader ? boldFont : font, size: fontSize,
+                    color: rgb(0.05, 0.05, 0.05), maxWidth: colW - cellPad * 2
+                  });
+                });
+                y -= lineH;
+              });
+              const bytes = await doc.save();
+              const blob = new Blob([bytes], { type: 'application/pdf' });
+              const url = URL.createObjectURL(blob);
+              const name = _csv2pFile.name.replace(/\.csv$/i, '') + '.pdf';
+              const btn = document.getElementById('csv2pDownloadBtn');
+              btn.href = url; btn.download = name;
+              document.getElementById('csv2pResultName').textContent = name;
+              document.getElementById('csv2pResultSize').textContent = docFmtBytes(blob.size) + ` · ${_csv2pData.length} rows`;
+              document.getElementById('csv2pResult').classList.add('show');
+              showToast('CSV converted to PDF!', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); console.error(e); }
+          }
+          function csv2pClear() {
+            _csv2pFile = null; _csv2pData = [];
+            document.getElementById('csv2pFileInp').value = '';
+            document.getElementById('csv2pOptions').style.display = 'none';
+            document.getElementById('csv2pPreview').style.display = 'none';
+            document.getElementById('csv2pResult').classList.remove('show');
+          }
+
         </script>
 
       </div>
