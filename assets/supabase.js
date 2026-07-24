@@ -479,6 +479,68 @@ async function sendWelcomeEmailIfNew() {
   }
 }
 
+// ── 7. User State DB helpers ──────────────────────────────────────────
+
+/**
+ * fetchUserState(key)
+ * Returns the parsed JSON value for a specific user state key.
+ * @param {string} key
+ * @returns {any|null} The parsed JSON value, or null if not found
+ */
+async function fetchUserState(key) {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const user = await getUserAsync();
+  if (!user) return null;
+
+  const { data, error } = await client
+    .from('user_state')
+    .select('value')
+    .eq('user_id', user.id)
+    .eq('key', key)
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === '42P01' || error.message.includes('user_state')) {
+      console.warn('[Zenspace] The user_state table does not exist in Supabase yet. Please run sync_attendance_schema.sql in your Supabase SQL Editor.');
+    } else {
+      console.error('[Zenspace] fetchUserState error:', error.message);
+    }
+    return null;
+  }
+  return data ? data.value : null;
+}
+
+/**
+ * upsertUserState(key, value)
+ * Upserts a JSON value into the user_state table.
+ * @param {string} key
+ * @param {any} value
+ * @returns {{ error }}
+ */
+async function upsertUserState(key, value) {
+  const client = getSupabaseClient();
+  if (!client) return { error: new Error('Supabase not initialised') };
+  const user = await getUserAsync();
+  if (!user) return { error: new Error('Not authenticated') };
+
+  const { error } = await client.from('user_state').upsert({
+    user_id: user.id,
+    key: key,
+    value: value,
+    updated_at: new Date().toISOString()
+  });
+
+  if (error) {
+    if (error.code === '42P01' || error.message.includes('user_state')) {
+      console.warn('[Zenspace] The user_state table does not exist in Supabase yet. Please run sync_attendance_schema.sql in your Supabase SQL Editor.');
+    } else {
+      console.error('[Zenspace] upsertUserState error:', error.message);
+    }
+  }
+  return { error };
+}
+
 // ── 9. Expose on window for use in inline <script> tags ──────────────────
 window.ZenAuth = {
   initSupabase,
@@ -503,4 +565,7 @@ window.ZenAuth = {
   checkSubscription,
   invalidateSubCache,
   sendWelcomeEmailIfNew,
+  // User State
+  fetchUserState,
+  upsertUserState,
 };
