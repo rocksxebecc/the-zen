@@ -3971,8 +3971,12 @@
         <div class="main-header">
           <h1 style="font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.02em;">Subjects &amp;
             Attendance</h1>
-          <button class="btn btn-ghost btn-sm" onclick="manualCloudSync()" title="Sync data across devices" style="margin-left:auto">☁️ Sync Cloud</button>
-          <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Add subject</button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="manualCloudSync()" title="Sync data across devices">☁️ Sync Cloud</button>
+            <button class="btn btn-ghost btn-sm" onclick="openSubjectSettingsModal()" title="Attendance Settings">⚙️ Settings</button>
+            <button id="subjLockBtn" class="btn btn-sm" onclick="toggleAttendanceLock()" style="display:none;"></button>
+            <button class="btn btn-primary btn-sm" id="addSubjMainBtn" onclick="handleAddSubjectClick()">+ Add subject</button>
+          </div>
         </div>
         <div
           style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:18px;display:flex;gap:28px;flex-wrap:wrap;align-items:center">
@@ -10564,6 +10568,36 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       </div>
     </div>
   </div>
+
+  <!-- SUBJECT SETTINGS MODAL -->
+  <div class="modal-overlay" id="subjectSettingsModal" aria-hidden="true">
+    <div class="modal-box" style="max-width: 440px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:8px;">⚙️ Attendance Settings</h3>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('subjectSettingsModal')" style="padding:2px 8px;font-size:0.9rem;">✕</button>
+      </div>
+
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div style="font-weight:600;font-size:0.88rem;color:var(--ink);">Enable Attendance Lock System</div>
+            <div style="font-size:0.75rem;color:var(--ink-faint);margin-top:4px;line-height:1.35;">
+              Adds a Lock/Unlock button on the Subjects dashboard to lock editing of attendance counts and history logs.
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" id="toggleAttendanceLockSystem"
+              style="accent-color:var(--ink);width:17px;height:17px;cursor:pointer"
+              onchange="toggleAttendanceLockSystemFeature(this.checked)" />
+          </label>
+        </div>
+      </div>
+
+      <div class="m-footer">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('subjectSettingsModal')">Done</button>
+      </div>
+    </div>
+  </div>
   <div class="modal-overlay" id="cgpaModal" aria-hidden="true">
     <div class="modal-box" style="max-width: 600px;">
       <h3>CGPA Calculator</h3>
@@ -12119,6 +12153,90 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     /* ═ ═  SUBJECTS — CUSTOMIZABLE ATTENDANCE ═ ═  */
     let subjects = ld('subjects', []);
 
+    /* ═ ═ ATTENDANCE LOCK SYSTEM ═ ═ */
+    let isAttendanceLockEnabled = localStorage.getItem('zs-attendance-lock-enabled') === 'true';
+    let isAttendanceLocked = localStorage.getItem('zs-attendance-locked') === 'true';
+
+    function openSubjectSettingsModal() {
+      const lockSystemToggle = document.getElementById('toggleAttendanceLockSystem');
+      if (lockSystemToggle) lockSystemToggle.checked = isAttendanceLockEnabled;
+      openModal('subjectSettingsModal');
+    }
+
+    function toggleAttendanceLockSystemFeature(enabled) {
+      isAttendanceLockEnabled = enabled;
+      localStorage.setItem('zs-attendance-lock-enabled', enabled ? 'true' : 'false');
+      if (!enabled) {
+        isAttendanceLocked = false;
+        localStorage.setItem('zs-attendance-locked', 'false');
+      }
+      updateAttendanceLockUI();
+      renderSubjects();
+      showToast(enabled ? 'Attendance lock system enabled' : 'Attendance lock system disabled', enabled ? 'success' : 'default');
+    }
+
+    function toggleAttendanceLock() {
+      if (!isAttendanceLockEnabled) return;
+      isAttendanceLocked = !isAttendanceLocked;
+      localStorage.setItem('zs-attendance-locked', isAttendanceLocked ? 'true' : 'false');
+      updateAttendanceLockUI();
+      renderSubjects();
+      showToast(isAttendanceLocked ? '🔒 Attendance locked! Editing is disabled.' : '🔓 Attendance unlocked! Editing is enabled.', isAttendanceLocked ? 'default' : 'success');
+    }
+
+    function updateAttendanceLockUI() {
+      const lockBtn = document.getElementById('subjLockBtn');
+      const addBtn = document.getElementById('addSubjMainBtn');
+      
+      if (lockBtn) {
+        if (isAttendanceLockEnabled) {
+          lockBtn.style.display = 'inline-flex';
+          lockBtn.style.alignItems = 'center';
+          lockBtn.style.gap = '5px';
+          if (isAttendanceLocked) {
+            lockBtn.className = 'btn btn-sm';
+            lockBtn.style.background = 'var(--warn-faint, rgba(245, 158, 11, 0.15))';
+            lockBtn.style.color = 'var(--warn, #d97706)';
+            lockBtn.style.borderColor = 'var(--warn, #d97706)';
+            lockBtn.innerHTML = '🔒 Attendance Locked';
+            lockBtn.title = 'Attendance editing is locked. Click to unlock.';
+          } else {
+            lockBtn.className = 'btn btn-ghost btn-sm';
+            lockBtn.style.background = '';
+            lockBtn.style.color = '';
+            lockBtn.style.borderColor = '';
+            lockBtn.innerHTML = '🔓 Attendance Unlocked';
+            lockBtn.title = 'Attendance editing is unlocked. Click to lock.';
+          }
+        } else {
+          lockBtn.style.display = 'none';
+        }
+      }
+
+      if (addBtn) {
+        if (isAttendanceLockEnabled && isAttendanceLocked) {
+          addBtn.style.opacity = '0.5';
+          addBtn.title = 'Attendance is locked. Unlock to add subjects.';
+        } else {
+          addBtn.style.opacity = '1';
+          addBtn.title = '';
+        }
+      }
+    }
+
+    function checkAttendanceLock() {
+      if (isAttendanceLockEnabled && isAttendanceLocked) {
+        showToast('🔒 Attendance is locked. Click the unlock button to edit.', 'error');
+        return true;
+      }
+      return false;
+    }
+
+    function handleAddSubjectClick() {
+      if (checkAttendanceLock()) return;
+      openModal('subjectModal');
+    }
+
     async function syncSubjects() {
       sv('subjects', subjects);
       if (window.ZenAuth && window.ZenAuth.upsertUserState) {
@@ -12127,6 +12245,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function openEditSubjectModal(id) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === id); if (!s) return;
       document.getElementById('sEditId').value = s.id;
       document.getElementById('sEditName').value = s.name || '';
@@ -12137,6 +12256,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function saveEditSubject() {
+      if (checkAttendanceLock()) return;
       const id = parseInt(document.getElementById('sEditId').value);
       const s = subjects.find(x => x.id === id); if (!s) return;
       const name = document.getElementById('sEditName').value.trim();
@@ -12150,6 +12270,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function updateLogDate(subjId, logIdx, newDate) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === subjId);
       if (!s || !s.log || !s.log[logIdx] || !newDate) return;
       s.log[logIdx].date = newDate;
@@ -12158,6 +12279,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function toggleLogStatus(subjId, logIdx) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === subjId);
       if (!s || !s.log || !s.log[logIdx]) return;
       const entry = s.log[logIdx];
@@ -12173,6 +12295,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function addPastLogEntry(subjId) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === subjId); if (!s) return;
       const todayStr = new Date().toISOString().split('T')[0];
       const d = prompt("Enter date for lecture (YYYY-MM-DD):", todayStr);
@@ -12187,6 +12310,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function addSubject() {
+      if (checkAttendanceLock()) return;
       const name = document.getElementById('sName').value.trim(), code = document.getElementById('sCode').value.trim();
       const total = parseInt(document.getElementById('sTotal').value) || 0, attended = parseInt(document.getElementById('sAttended').value) || 0;
       const minPct = parseInt(document.getElementById('sMinPct').value) || 75, color = document.getElementById('sColor').value;
@@ -12199,6 +12323,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function markAttendance(id, present) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === id); if (!s) return;
       s.total += 1; if (present) s.attended += 1;
       if (!s.log) s.log = [];
@@ -12209,6 +12334,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function minusTotal(id) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === id); if (!s) return;
       if (s.total > 0) s.total -= 1;
       if (s.attended > s.total) s.attended = s.total;
@@ -12217,6 +12343,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function deleteLogEntry(subjId, logIdx) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === subjId); if (!s || !s.log) return;
       const entry = s.log[logIdx];
       s.total = Math.max(0, s.total - 1);
@@ -12232,6 +12359,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     function saveSubjectCounts(id) {
+      if (checkAttendanceLock()) return;
       const s = subjects.find(x => x.id === id); if (!s) return;
       const attEl = document.getElementById('att-' + id);
       const totEl = document.getElementById('tot-' + id);
@@ -12245,12 +12373,18 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       showToast('Updated!', 'success');
     }
 
-    function deleteSubject(id) { subjects = subjects.filter(s => s.id !== id); syncSubjects(); renderSubjects(); updateOvStats(); }
+    function deleteSubject(id) {
+      if (checkAttendanceLock()) return; subjects = subjects.filter(s => s.id !== id); syncSubjects(); renderSubjects(); updateOvStats(); }
     function safeBunksFor(s) { if (!s.minPct) return 999; const max = Math.floor(s.attended / (s.minPct / 100)); return Math.max(0, max - s.total); }
     function classesNeededFor(s) { const pct = s.total > 0 ? s.attended / s.total : 0; if (pct * 100 >= s.minPct) return 0; const r = s.minPct / 100; if (r >= 1) return '∞'; return Math.max(0, Math.ceil((r * s.total - s.attended) / (1 - r))); }
 
     function renderSubjects() {
+      updateAttendanceLockUI();
       const grid = document.getElementById('subjectsGrid');
+      const isLocked = isAttendanceLockEnabled && isAttendanceLocked;
+      const lockedInpAttr = isLocked ? 'disabled readonly style="opacity:0.65;cursor:not-allowed;"' : '';
+      const lockedBtnAttr = isLocked ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : '';
+
       if (!subjects.length) {
         grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No subjects yet. Add your first subject!</div>';
         ['overallPct', 'safeBunks', 'classesNeeded'].forEach(id => document.getElementById(id).textContent = '—');
@@ -12273,10 +12407,10 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         return `<div class="subj-card">
       <div class="subj-top">
         <div class="subj-icon" style="background:${esc(s.color)}">${s.name.charAt(0).toUpperCase()}</div>
-        <div class="subj-info" onclick="openEditSubjectModal(${s.id})" style="cursor:pointer" title="Click to edit subject name & details">
+        <div class="subj-info" onclick="${isLocked ? 'checkAttendanceLock()' : `openEditSubjectModal(${s.id})`}" style="cursor:pointer" title="${isLocked ? 'Attendance editing is locked' : 'Click to edit subject name & details'}">
           <div class="subj-name" style="display:flex;align-items:center;gap:5px">
             <span>${esc(s.name)}</span>
-            <span style="font-size:0.75rem;opacity:0.5;">✏️</span>
+            ${isLocked ? '<span style="font-size:0.7rem;color:var(--warn);background:var(--warn-faint, rgba(245,158,11,0.15));padding:1px 6px;border-radius:4px;font-weight:600;">🔒 Locked</span>' : '<span style="font-size:0.75rem;opacity:0.5;">✏️</span>'}
           </div>
           <div class="subj-code">${esc(s.code)} · min ${s.minPct}%</div>
         </div>
@@ -12290,12 +12424,12 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       <div class="subj-counts">
         <div class="subj-count-box attended-box">
           <div class="subj-count-lbl">Attended</div>
-          <input class="subj-count-inp" type="number" id="att-${s.id}" value="${s.attended}" min="0" max="${s.total}" onchange="saveSubjectCounts(${s.id})" onblur="saveSubjectCounts(${s.id})" />
+          <input class="subj-count-inp" type="number" id="att-${s.id}" value="${s.attended}" min="0" max="${s.total}" onchange="saveSubjectCounts(${s.id})" onblur="saveSubjectCounts(${s.id})" ${lockedInpAttr} />
         </div>
         <div class="subj-count-divider">/</div>
         <div class="subj-count-box">
           <div class="subj-count-lbl">Total</div>
-          <input class="subj-count-inp" type="number" id="tot-${s.id}" value="${s.total}" min="1" onchange="saveSubjectCounts(${s.id})" onblur="saveSubjectCounts(${s.id})" />
+          <input class="subj-count-inp" type="number" id="tot-${s.id}" value="${s.total}" min="1" onchange="saveSubjectCounts(${s.id})" onblur="saveSubjectCounts(${s.id})" ${lockedInpAttr} />
         </div>
         <div class="subj-count-box" style="flex:1.2;cursor:default">
           <div class="subj-count-lbl">Present %</div>
@@ -12306,11 +12440,11 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       <div class="subj-prog-bar"><div class="subj-prog-fill" style="width:${pct}%;background:${rc}"></div></div>
 
       <div class="subj-actions">
-        <button class="subj-btn present" onclick="markAttendance(${s.id},true)">+ Present</button>
-        <button class="subj-btn absent" onclick="markAttendance(${s.id},false)">− Absent</button>
-        <button class="subj-btn minus-total" onclick="minusTotal(${s.id})">− Total</button>
-        <button class="subj-btn minus-total" onclick="openEditSubjectModal(${s.id})" title="Edit subject details">✏ Edit</button>
-        <button class="del-btn" onclick="deleteSubject(${s.id})">✕</button>
+        <button class="subj-btn present" onclick="markAttendance(${s.id},true)" ${lockedBtnAttr}>+ Present</button>
+        <button class="subj-btn absent" onclick="markAttendance(${s.id},false)" ${lockedBtnAttr}>− Absent</button>
+        <button class="subj-btn minus-total" onclick="minusTotal(${s.id})" ${lockedBtnAttr}>− Total</button>
+        <button class="subj-btn minus-total" onclick="openEditSubjectModal(${s.id})" title="Edit subject details" ${lockedBtnAttr}>✏ Edit</button>
+        <button class="del-btn" onclick="deleteSubject(${s.id})" ${lockedBtnAttr}>✕</button>
       </div>
       <div class="subj-warning ${wc}">${wm}</div>
 
@@ -12331,9 +12465,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
               ? log.map((e, i) => {
                 const realIdx = (s.log || []).length - 1 - i;
                 return `<div class="subj-log-item">
-                <input type="date" class="log-date-input" value="${e.date}" onchange="updateLogDate(${s.id}, ${realIdx}, this.value)" title="Click to edit date" />
-                <span class="log-status ${e.status === 'P' ? 'p' : 'a'}" onclick="toggleLogStatus(${s.id}, ${realIdx})" title="Click to toggle Present/Absent" style="cursor:pointer;user-select:none;">${e.status === 'P' ? '✓ Present' : '✗ Absent'}</span>
-                <button class="log-del" onclick="deleteLogEntry(${s.id},${realIdx})" title="Remove entry">✕</button>
+                <input type="date" class="log-date-input" value="${e.date}" onchange="updateLogDate(${s.id}, ${realIdx}, this.value)" ${lockedInpAttr} title="${isLocked ? 'Attendance editing is locked' : 'Click to edit date'}" />
+                <span class="log-status ${e.status === 'P' ? 'p' : 'a'}" onclick="toggleLogStatus(${s.id}, ${realIdx})" title="${isLocked ? 'Attendance editing is locked' : 'Click to toggle Present/Absent'}" style="cursor:${isLocked ? 'not-allowed' : 'pointer'};user-select:none;${isLocked ? 'opacity:0.6;' : ''}">${e.status === 'P' ? '✓ Present' : '✗ Absent'}</span>
+                <button class="log-del" onclick="deleteLogEntry(${s.id},${realIdx})" title="${isLocked ? 'Attendance editing is locked' : 'Remove entry'}" ${lockedBtnAttr}>✕</button>
               </div>`;
               }).join('')
               : '<div class="subj-log-empty">No attendance marked yet.</div>';
@@ -12342,14 +12476,14 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             📋 Attendance log (${(s.log || []).length} entries)
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <button onclick="addPastLogEntry(${s.id})" style="font-size:.65rem;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--ink-muted);cursor:pointer;font-weight:600;" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">+ Past Date</button>
+          <button onclick="addPastLogEntry(${s.id})" ${lockedBtnAttr} style="font-size:.65rem;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--ink-muted);cursor:${isLocked ? 'not-allowed' : 'pointer'};font-weight:600;${isLocked ? 'opacity:0.5;' : ''}" onmouseover="if(!isAttendanceLockEnabled || !isAttendanceLocked)this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">+ Past Date</button>
         </div>
         <div class="subj-log-wrap" id="log-wrap-${s.id}">
           <div class="subj-log-list">${logRows}</div>
         </div>`;
           })()}
 
-      <div style="font-size:.68rem;color:var(--ink-faint);margin-top:4px;padding-left:2px">✎ Click Subject Name to edit details · Click dates & status in history log to edit</div>
+      <div style="font-size:.68rem;color:var(--ink-faint);margin-top:4px;padding-left:2px">${isLocked ? '🔒 Attendance editing is locked — unlock to make changes' : '✎ Click Subject Name to edit details · Click dates & status in history log to edit'}</div>
     </div>`;
       }).join('');
     }
