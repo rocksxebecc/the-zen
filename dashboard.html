@@ -11195,30 +11195,24 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       setInterval(enforceSubscriptionState, 2 * 60 * 1000);
 
       // Route to initial section on page load / refresh
-      // Use sessionStorage to detect refresh vs. fresh open:
-      //   - Refresh: sessionStorage has 'zs-was-here' → restore saved section
-      //   - Fresh open: sessionStorage is empty → always go to overviewSec
       const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'zenLabsSec', 'serversSec'];
       let initialSec = 'overviewSec';
 
-      const isRefresh = sessionStorage.getItem('zs-was-here') === '1';
       const hash = window.location.hash.substring(1);
+      const savedSec = localStorage.getItem('zs-active-sec');
 
-      if (isRefresh) {
-        // Page refresh → restore exact section user was on
-        if (hash && validSections.includes(hash)) {
-          initialSec = hash;
-        } else {
-          const savedSec = localStorage.getItem('zs-active-sec');
-          if (savedSec && validSections.includes(savedSec)) {
-            initialSec = savedSec;
-          }
-        }
+      if (hash && validSections.includes(hash)) {
+        initialSec = hash;
+      } else if (savedSec && validSections.includes(savedSec)) {
+        initialSec = savedSec;
       }
-      // else: fresh tab/window open → always start at overviewSec (initialSec stays 'overviewSec')
 
-      // Mark this tab as "active" in sessionStorage
-      sessionStorage.setItem('zs-was-here', '1');
+      // Synchronously set active class for zero-flicker instant rendering
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('[data-sec]').forEach(l => l.classList.remove('active'));
+      const activeEl = document.getElementById(initialSec);
+      if (activeEl) activeEl.classList.add('active');
+      document.querySelectorAll(`[data-sec="${initialSec}"]`).forEach(l => l.classList.add('active'));
 
       await goTo(initialSec);
     })();
