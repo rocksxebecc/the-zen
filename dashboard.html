@@ -502,7 +502,7 @@
     /* Focus Background Toolbar */
     .fc-bg-toolbar {
       position: relative;
-      z-index: 10;
+      z-index: 5;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -11271,11 +11271,18 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     async function goTo(id) {
+      if (!id) return;
+
       // ── HARD BLOCK: premium sections require active subscription ──
       if (PREMIUM_SECTIONS.has(id)) {
-        // Always fetch fresh from DB, bypass cache
-        ZenAuth.invalidateSubCache();
-        ZS_sub = await ZenAuth.checkSubscription();
+        try {
+          if (window.ZenAuth && window.ZenAuth.invalidateSubCache) {
+            ZenAuth.invalidateSubCache();
+            ZS_sub = await ZenAuth.checkSubscription();
+          }
+        } catch (e) {
+          console.error('[Zenspace] Subscription check error during nav:', e);
+        }
         const isAdmin = user && user.is_admin;
         if (!ZS_sub && !isAdmin) {
           openPaywall();
@@ -11289,17 +11296,22 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (activeEl) activeEl.classList.add('active');
       document.querySelectorAll(`[data-sec="${id}"]`).forEach(l => l.classList.add('active'));
 
-      await updatePremiumPreviewOverlay(id);
+      try { await updatePremiumPreviewOverlay(id); } catch (e) { console.error(e); }
 
-      if (id === 'notesSec') { renderNotesList(); applyPrivateFolderVisibility(); }
-      if (id === 'goalsSec') renderGoals();
-      if (id === 'financeSec') { renderFinance(); renderAnalytics(); }
-      if (id === 'todoSec') { renderTodo(); renderTodoAnalytics(); }
-      if (id === 'focusSec') renderFocusHistory();
-      if (id === 'overviewSec') renderOverview();
-      if (id === 'subjectsSec') renderSubjects();
-      if (id === 'serversSec') initServers();
-      if (id === 'zenLabsSec') initMathAgent();
+      try {
+        if (id === 'notesSec') { renderNotesList(); applyPrivateFolderVisibility(); }
+        if (id === 'goalsSec') renderGoals();
+        if (id === 'financeSec') { renderFinance(); renderAnalytics(); }
+        if (id === 'todoSec') { renderTodo(); renderTodoAnalytics(); }
+        if (id === 'focusSec') renderFocusHistory();
+        if (id === 'overviewSec') renderOverview();
+        if (id === 'subjectsSec') renderSubjects();
+        if (id === 'serversSec') initServers();
+        if (id === 'zenLabsSec') initMathAgent();
+      } catch (e) {
+        console.error('[Zenspace] Error rendering section contents:', e);
+      }
+
       closeSidebar();
 
       // State persistence
@@ -11316,7 +11328,17 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         console.error('Failed to save navigation state:', e);
       }
     }
-    document.querySelectorAll('[data-sec]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); goTo(b.dataset.sec); }));
+    
+    // Global event delegation for all section navigation triggers
+    document.addEventListener('click', e => {
+      const secBtn = e.target.closest('[data-sec]');
+      if (secBtn) {
+        e.preventDefault();
+        const secId = secBtn.getAttribute('data-sec');
+        if (secId) goTo(secId);
+      }
+    });
+
     document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); }));
 
     window.addEventListener('hashchange', () => {
