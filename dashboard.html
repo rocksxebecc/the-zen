@@ -42,10 +42,13 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.45);
+      background: rgba(0, 0, 0, .45);
       z-index: 199;
     }
-    #sidebarOverlay.open { display: block; }
+
+    #sidebarOverlay.open {
+      display: block;
+    }
 
     /* Hamburger toggle button */
     .sidebar-toggle {
@@ -61,8 +64,19 @@
       border-radius: var(--r-sm);
       transition: background var(--t);
     }
-    .sidebar-toggle:hover { background: var(--surface-2); }
-    .sidebar-toggle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    .sidebar-toggle:hover {
+      background: var(--surface-2);
+    }
+
+    .sidebar-toggle svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
 
     .sidebar-label {
       font-size: .65rem;
@@ -2913,10 +2927,11 @@
         width: 260px;
         z-index: 200;
         transform: translateX(-100%);
-        transition: transform .28s cubic-bezier(.4,0,.2,1);
+        transition: transform .28s cubic-bezier(.4, 0, .2, 1);
         padding-top: 72px;
-        box-shadow: 4px 0 24px rgba(0,0,0,.18);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, .18);
       }
+
       .sidebar.open {
         transform: translateX(0);
       }
@@ -2964,6 +2979,7 @@
       justify-content: space-around;
       padding: 0 8px;
     }
+
     .mob-nav-btn {
       display: flex;
       flex-direction: column;
@@ -2981,6 +2997,7 @@
       transition: color var(--t), background var(--t);
       letter-spacing: .03em;
     }
+
     .mob-nav-btn svg {
       width: 18px;
       height: 18px;
@@ -2990,7 +3007,9 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    .mob-nav-btn:hover, .mob-nav-btn.active {
+
+    .mob-nav-btn:hover,
+    .mob-nav-btn.active {
       color: var(--ink);
     }
 
@@ -3504,9 +3523,7 @@
       <a class="nav-link" href="#" data-sec="financeSec">Finance</a>
       <a class="nav-link" href="#" data-sec="notesSec">Notes</a>
       <a class="nav-link" href="#" data-sec="serversSec">Servers</a>
-      <a class="nav-link" href="#" data-sec="mathSec" style="display:flex;align-items:center;gap:5px">∑ ZenLab</a>
-      <a class="nav-link" href="#" data-sec="aiImageSec" style="display:flex;align-items:center;gap:5px">✨ AI Images</a>
-      <a class="nav-link" href="#" data-sec="zenAiSec" style="display:flex;align-items:center;gap:5px">🤖 ZenAI</a>
+      <a class="nav-link" href="#" data-sec="zenLabsSec" style="display:flex;align-items:center;gap:5px">⚗️ ZenLabs</a>
       <a class="nav-link" href="chat.html" style="display:flex;align-items:center;gap:5px" id="chatNavLink"> Messages
         <span id="chatBadge"
           style="display:none;background:var(--error);color:#fff;border-radius:10px;font-size:.58rem;font-weight:700;padding:1px 5px;min-width:15px;text-align:center">0</span></a>
@@ -3593,21 +3610,11 @@
           <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
           <polyline points="13 2 13 9 20 9" />
         </svg>Documents</button>
-      <span class="sidebar-label" style="margin-top:10px">ZenLab</span>
-      <button class="sidebar-link" data-sec="mathSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>Math Agent</button>
-      <button class="sidebar-link" data-sec="aiImageSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>AI Images</button>
-      <button class="sidebar-link" data-sec="zenAiSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/>
-          <path d="M6 20v-2a6 6 0 0112 0v2"/>
-        </svg>ZenAI Chat</button>
+      <span class="sidebar-label" style="margin-top:10px">ZenLabs</span>
+      <button class="sidebar-link" data-sec="zenLabsSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+        </svg>ZenLabs</button>
       <span class="sidebar-label" style="margin-top:4px">Community</span>
       <button class="sidebar-link" data-sec="serversSec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round">
@@ -5536,7 +5543,8 @@
             <!-- PDF → IMAGES -->
             <div id="docPdfToImages" class="doc-tool">
               <div class="doc-tool-header">
-                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <polyline points="21 15 16 10 5 21" />
@@ -5546,7 +5554,8 @@
                   <div class="doc-tool-desc">Convert each PDF page to a PNG image — download all as a ZIP</div>
                 </div>
               </div>
-              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="p2imgFileInp" onchange="p2imgLoad(event)" />
+              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="p2imgFileInp"
+                  onchange="p2imgLoad(event)" />
                 <div class="doc-drop-icon">📄➡️🖼️</div>
                 <div class="doc-drop-text">Drop a PDF here or click to browse</div>
                 <div class="doc-drop-sub">PDF files only</div>
@@ -5572,9 +5581,11 @@
                   </select>
                 </div>
                 <div id="p2imgProgress" style="display:none;">
-                  <div style="font-size:.8rem;color:var(--ink-faint);margin-bottom:6px;" id="p2imgProgressTxt">Rendering pages…</div>
+                  <div style="font-size:.8rem;color:var(--ink-faint);margin-bottom:6px;" id="p2imgProgressTxt">Rendering
+                    pages…</div>
                   <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
-                    <div id="p2imgProgressBar" style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%"></div>
+                    <div id="p2imgProgressBar"
+                      style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%"></div>
                   </div>
                 </div>
                 <div class="doc-result" id="p2imgResult">
@@ -5595,38 +5606,46 @@
             <!-- IMAGE WATERMARK -->
             <div id="docImgWatermark" class="doc-tool">
               <div class="doc-tool-header">
-                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <path d="M8 12h8M12 8v8" />
                   </svg></div>
                 <div>
                   <div class="doc-tool-title">Image Watermark</div>
-                  <div class="doc-tool-desc">Add a custom text watermark to any image — position, opacity, size, color</div>
+                  <div class="doc-tool-desc">Add a custom text watermark to any image — position, opacity, size, color
+                  </div>
                 </div>
               </div>
-              <div class="doc-drop-zone"><input type="file" accept="image/*" id="wmFileInp" onchange="wmLoadFile(event)" />
+              <div class="doc-drop-zone"><input type="file" accept="image/*" id="wmFileInp"
+                  onchange="wmLoadFile(event)" />
                 <div class="doc-drop-icon">🏷️</div>
                 <div class="doc-drop-text">Drop an image here or click to browse</div>
                 <div class="doc-drop-sub">PNG, JPG, WEBP — any image</div>
               </div>
               <div id="wmOptions" style="display:none;flex-direction:column;gap:14px;">
                 <div style="position:relative;display:inline-block;">
-                  <button class="doc-file-remove" onclick="wmClear()" style="position:absolute;top:6px;right:6px;z-index:2;">✕</button>
-                  <canvas id="wmCanvas" style="max-width:100%;border-radius:10px;border:1px solid var(--border);display:block;"></canvas>
+                  <button class="doc-file-remove" onclick="wmClear()"
+                    style="position:absolute;top:6px;right:6px;z-index:2;">✕</button>
+                  <canvas id="wmCanvas"
+                    style="max-width:100%;border-radius:10px;border:1px solid var(--border);display:block;"></canvas>
                 </div>
                 <div class="doc-options" style="flex-wrap:wrap;gap:12px;">
                   <span class="doc-opt-label">Text:</span>
                   <input type="text" id="wmText" value="CONFIDENTIAL" oninput="wmUpdate()"
                     style="background:rgba(255,255,255,.06);border:1px solid var(--border-light);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.83rem;font-family:var(--font-sans);flex:1;min-width:140px;" />
                   <span class="doc-opt-label">Color:</span>
-                  <input type="color" id="wmColor" value="#ffffff" oninput="wmUpdate()" style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;background:none;" />
+                  <input type="color" id="wmColor" value="#ffffff" oninput="wmUpdate()"
+                    style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;background:none;" />
                 </div>
                 <div class="doc-options" style="flex-wrap:wrap;gap:12px;align-items:center;">
                   <span class="doc-opt-label">Opacity:</span>
-                  <input type="range" id="wmOpacity" min="5" max="100" value="30" oninput="wmOpacityLbl.textContent=this.value+'%';wmUpdate()" style="flex:1;min-width:100px;" />
+                  <input type="range" id="wmOpacity" min="5" max="100" value="30"
+                    oninput="wmOpacityLbl.textContent=this.value+'%';wmUpdate()" style="flex:1;min-width:100px;" />
                   <span id="wmOpacityLbl" style="font-size:.82rem;font-weight:600;width:38px;">30%</span>
                   <span class="doc-opt-label">Size:</span>
-                  <input type="range" id="wmSize" min="10" max="100" value="36" oninput="wmSizeLbl.textContent=this.value+'px';wmUpdate()" style="flex:1;min-width:100px;" />
+                  <input type="range" id="wmSize" min="10" max="100" value="36"
+                    oninput="wmSizeLbl.textContent=this.value+'px';wmUpdate()" style="flex:1;min-width:100px;" />
                   <span id="wmSizeLbl" style="font-size:.82rem;font-weight:600;width:38px;">36px</span>
                 </div>
                 <div class="doc-options" style="gap:12px;align-items:center;">
@@ -5662,7 +5681,8 @@
             <!-- PDF ROTATE PAGES -->
             <div id="docPdfRotate" class="doc-tool">
               <div class="doc-tool-header">
-                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="23 4 23 10 17 10" />
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                   </svg></div>
@@ -5671,7 +5691,8 @@
                   <div class="doc-tool-desc">Rotate all pages or specific pages of a PDF by 90°, 180°, or 270°</div>
                 </div>
               </div>
-              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="rotFileInp" onchange="rotLoad(event)" />
+              <div class="doc-drop-zone"><input type="file" accept="application/pdf" id="rotFileInp"
+                  onchange="rotLoad(event)" />
                 <div class="doc-drop-icon">🔄</div>
                 <div class="doc-drop-text">Drop a PDF here or click to browse</div>
                 <div class="doc-drop-sub">PDF files only</div>
@@ -5700,7 +5721,8 @@
                 <div id="rotSpecificWrap" style="display:none;flex-direction:column;gap:8px;">
                   <input type="text" id="rotPages" placeholder="e.g. 1,3,5-7"
                     style="background:rgba(255,255,255,.06);border:1px solid var(--border-light);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.85rem;font-family:var(--font-sans);" />
-                  <div style="font-size:.74rem;color:var(--ink-faint);">Enter page numbers or ranges separated by commas</div>
+                  <div style="font-size:.74rem;color:var(--ink-faint);">Enter page numbers or ranges separated by commas
+                  </div>
                 </div>
                 <div id="rotRangeWrap" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span class="doc-opt-label">From:</span>
@@ -5726,7 +5748,8 @@
             <!-- IMAGE TO TEXT (OCR) -->
             <div id="docImgOcr" class="doc-tool">
               <div class="doc-tool-header">
-                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3" />
                     <rect x="7" y="8" width="10" height="8" rx="1" />
                   </svg></div>
@@ -5735,20 +5758,24 @@
                   <div class="doc-tool-desc">Extract text from any image using in-browser OCR — no upload required</div>
                 </div>
               </div>
-              <div class="doc-drop-zone"><input type="file" accept="image/*" id="ocrFileInp" onchange="ocrLoad(event)" />
+              <div class="doc-drop-zone"><input type="file" accept="image/*" id="ocrFileInp"
+                  onchange="ocrLoad(event)" />
                 <div class="doc-drop-icon">🔍</div>
                 <div class="doc-drop-text">Drop an image here or click to browse</div>
                 <div class="doc-drop-sub">PNG, JPG, WEBP, BMP — any image with text</div>
               </div>
               <div id="ocrOptions" style="display:none;flex-direction:column;gap:14px;">
                 <div style="display:flex;gap:12px;align-items:flex-start;">
-                  <img id="ocrPreview" style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid var(--border);object-fit:contain;flex-shrink:0;" />
+                  <img id="ocrPreview"
+                    style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid var(--border);object-fit:contain;flex-shrink:0;" />
                   <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:.88rem;word-break:break-all;" id="ocrFileName"></div>
                     <div id="ocrStatus" style="font-size:.8rem;color:var(--ink-faint);margin-top:6px;"></div>
                     <div id="ocrProgressWrap" style="display:none;margin-top:10px;">
                       <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
-                        <div id="ocrProgressBar" style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%"></div>
+                        <div id="ocrProgressBar"
+                          style="height:100%;background:var(--ink);border-radius:2px;transition:width .3s;width:0%">
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -5768,11 +5795,14 @@
                     <option value="ara">Arabic</option>
                   </select>
                 </div>
-                <textarea id="ocrOutput" rows="8" readonly placeholder="Extracted text will appear here after recognition…"
+                <textarea id="ocrOutput" rows="8" readonly
+                  placeholder="Extracted text will appear here after recognition…"
                   style="background:rgba(255,255,255,.04);border:1px solid var(--border-light);border-radius:10px;color:var(--ink);font-family:var(--font-sans);font-size:.85rem;padding:12px;resize:vertical;width:100%;box-sizing:border-box;line-height:1.6;"></textarea>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                   <button class="doc-btn" onclick="ocrRun()">🔍 Recognize Text</button>
-                  <button class="doc-btn secondary" onclick="navigator.clipboard.writeText(document.getElementById('ocrOutput').value).then(()=>showToast('Copied!','success'))">📋 Copy Text</button>
+                  <button class="doc-btn secondary"
+                    onclick="navigator.clipboard.writeText(document.getElementById('ocrOutput').value).then(()=>showToast('Copied!','success'))">📋
+                    Copy Text</button>
                   <button class="doc-btn secondary" onclick="ocrDownloadTxt()">⬇ Save as .txt</button>
                   <button class="doc-btn secondary" onclick="ocrClear()">Clear</button>
                 </div>
@@ -5782,7 +5812,8 @@
             <!-- CSV → PDF -->
             <div id="docCsvToPdf" class="doc-tool">
               <div class="doc-tool-header">
-                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <div class="doc-tool-icon"><svg viewBox="0 0 24 24" stroke="var(--ink)" fill="none" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <path d="M3 9h18M3 15h18M9 3v18" />
                   </svg></div>
@@ -5791,7 +5822,8 @@
                   <div class="doc-tool-desc">Convert a CSV file into a formatted, printable PDF table</div>
                 </div>
               </div>
-              <div class="doc-drop-zone"><input type="file" accept=".csv,text/csv" id="csv2pFileInp" onchange="csv2pLoad(event)" />
+              <div class="doc-drop-zone"><input type="file" accept=".csv,text/csv" id="csv2pFileInp"
+                  onchange="csv2pLoad(event)" />
                 <div class="doc-drop-icon">📊➡️📄</div>
                 <div class="doc-drop-text">Drop a CSV file here or click to browse</div>
                 <div class="doc-drop-sub">.csv files only</div>
@@ -5803,7 +5835,9 @@
                   <span class="doc-file-size" id="csv2pRowCount"></span>
                   <button class="doc-file-remove" onclick="csv2pClear()">✕</button>
                 </div>
-                <div id="csv2pPreview" style="max-height:200px;overflow:auto;border:1px solid var(--border-light);border-radius:10px;font-size:.74rem;"></div>
+                <div id="csv2pPreview"
+                  style="max-height:200px;overflow:auto;border:1px solid var(--border-light);border-radius:10px;font-size:.74rem;">
+                </div>
                 <div class="doc-options" style="flex-wrap:wrap;gap:12px;align-items:center;">
                   <span class="doc-opt-label">Page size:</span>
                   <select class="doc-opt-select" id="csv2pPageSize">
@@ -7032,303 +7066,358 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
       </div>
 
-      <!-- ══ ZENLAB (MATH AGENT) ══ -->
-      <div id="mathSec" class="content-section">
+      <!-- ══ ZENLABS (UNIFIED) ══ -->
+      <div id="zenLabsSec" class="content-section">
         <style>
-          #mathSec {
+          #zenLabsSec {
             height: 100%;
             display: none;
             flex-direction: column;
             padding: 0;
             overflow: hidden;
           }
-          #mathSec.active {
+
+          #zenLabsSec.active {
             display: flex;
           }
-          #mathAgentFrame {
+
+          /* ── ZenLabs tab bar ── */
+          .zl-tabbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+          }
+
+          .zl-tabbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 16px;
+          }
+
+          .zl-tabbar-brand-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+          }
+
+          .zl-tabbar-brand-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+          }
+
+          .zl-tabbar-brand-name {
+            font-weight: 800;
+            font-size: .88rem;
+            letter-spacing: -.01em;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+
+          .zl-tab {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--ink-muted);
+            border: 1px solid transparent;
+            background: none;
+            cursor: pointer;
+            transition: all .18s;
+            font-family: var(--font-sans);
+          }
+
+          .zl-tab svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+          }
+
+          .zl-tab:hover {
+            background: var(--surface-2);
+            color: var(--ink);
+          }
+
+          .zl-tab.active {
+            background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.12));
+            border-color: rgba(99,102,241,.35);
+            color: #818cf8;
+          }
+
+          /* ── ZenLabs tab panels ── */
+          .zl-panels {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+          }
+
+          .zl-panel {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            overflow: hidden;
+          }
+
+          .zl-panel.active {
+            display: flex;
+          }
+
+          /* Math Agent iframe panel */
+          #zlMathPanel iframe {
             flex: 1;
             width: 100%;
             border: none;
             background: var(--bg);
           }
-        </style>
-        <iframe
-          id="mathAgentFrame"
-          src="math-agent.html?embed=1"
-          title="ZenLab Math Agent"
-          allow="camera"
-          allowfullscreen
-        ></iframe>
-      </div>
 
-
-      <!-- ══ ZENAI CHAT ASSISTANT ══ -->
-      <div id="zenAiSec" class="content-section">
-        <style>
-          #zenAiSec { display:none; flex-direction:column; height:100%; overflow:hidden; }
-          #zenAiSec.active { display:flex; }
-
+          /* ══ ZenAI Chat styles (scoped) ══ */
           .zai-topbar {
-            padding:12px 20px; border-bottom:1px solid var(--border-light);
-            display:flex; align-items:center; gap:12px; flex-shrink:0;
-            background:var(--surface);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            background: var(--surface);
           }
+
           .zai-topbar-logo {
-            width:36px; height:36px; border-radius:10px; flex-shrink:0;
-            background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
-            display:grid; place-items:center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            display: grid;
+            place-items: center;
           }
-          .zai-topbar-logo svg { width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round; }
-          .zai-topbar-info { flex:1; min-width:0; }
-          .zai-topbar-title { font-weight:700; font-size:.95rem; }
-          .zai-topbar-sub { font-size:.72rem; color:var(--ink-faint); margin-top:1px; }
+
+          .zai-topbar-logo svg {
+            width: 18px;
+            height: 18px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+          }
+
+          .zai-topbar-info { flex: 1; min-width: 0; }
+          .zai-topbar-title { font-weight: 700; font-size: .95rem; }
+          .zai-topbar-sub { font-size: .72rem; color: var(--ink-faint); margin-top: 1px; }
 
           .zai-model-pill {
-            background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.25);
-            border-radius:20px; padding:4px 12px;
-            font-size:.75rem; font-weight:600; color:#818cf8;
-            cursor:pointer; white-space:nowrap; transition:all .2s;
+            background: rgba(99,102,241,.12);
+            border: 1px solid rgba(99,102,241,.25);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: .75rem;
+            font-weight: 600;
+            color: #818cf8;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .2s;
           }
-          .zai-model-pill:hover { background:rgba(99,102,241,.2); }
+          .zai-model-pill:hover { background: rgba(99,102,241,.2); }
 
-          .zai-topbar-actions { display:flex; gap:6px; }
+          .zai-topbar-actions { display: flex; gap: 6px; }
           .zai-icon-btn {
-            width:32px; height:32px; border-radius:8px; border:1px solid var(--border-light);
-            background:rgba(255,255,255,.06); color:var(--ink-faint);
-            display:grid; place-items:center; cursor:pointer; transition:all .15s;
+            width: 32px; height: 32px; border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: rgba(255,255,255,.06);
+            color: var(--ink-faint);
+            display: grid; place-items: center;
+            cursor: pointer; transition: all .15s;
           }
-          .zai-icon-btn:hover { color:var(--ink); border-color:var(--ink-muted); }
-          .zai-icon-btn svg { width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round; }
+          .zai-icon-btn:hover { color: var(--ink); border-color: var(--ink-muted); }
+          .zai-icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-          /* Chat layout */
-          .zai-body { display:flex; flex:1; overflow:hidden; }
+          .zai-body { display: flex; flex: 1; overflow: hidden; }
 
-          /* Sidebar: history + system prompt */
           .zai-sidebar {
-            width:240px; min-width:200px; flex-shrink:0;
-            border-right:1px solid var(--border-light);
-            display:flex; flex-direction:column; overflow:hidden;
-            background:var(--surface);
+            width: 240px; min-width: 200px; flex-shrink: 0;
+            border-right: 1px solid var(--border-light);
+            display: flex; flex-direction: column; overflow: hidden;
+            background: var(--surface);
           }
-
           .zai-sidebar-header {
-            padding:12px 14px 8px; font-size:.66rem; font-weight:700;
-            letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint);
-            display:flex; align-items:center; justify-content:space-between;
+            padding: 12px 14px 8px;
+            font-size: .66rem; font-weight: 700; letter-spacing: .07em;
+            text-transform: uppercase; color: var(--ink-faint);
+            display: flex; align-items: center; justify-content: space-between;
           }
-
           .zai-new-chat-btn {
-            padding:5px 10px; border-radius:7px; font-size:.72rem; font-weight:600;
-            border:1px solid var(--border-light); background:rgba(255,255,255,.06);
-            color:var(--ink); cursor:pointer; transition:all .15s;
+            padding: 5px 10px; border-radius: 7px;
+            font-size: .72rem; font-weight: 600;
+            border: 1px solid var(--border-light);
+            background: rgba(255,255,255,.06); color: var(--ink);
+            cursor: pointer; transition: all .15s;
           }
-          .zai-new-chat-btn:hover { border-color:#6366f1; color:#818cf8; }
+          .zai-new-chat-btn:hover { border-color: #6366f1; color: #818cf8; }
 
-          .zai-history { flex:1; overflow-y:auto; padding:0 8px 8px; }
-
+          .zai-history { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
           .zai-history-item {
-            padding:8px 10px; border-radius:8px; font-size:.8rem; color:var(--ink-muted);
-            cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-            transition:background .15s; display:flex; align-items:center; gap:6px;
-            position:relative;
+            padding: 8px 10px; border-radius: 8px;
+            font-size: .8rem; color: var(--ink-muted);
+            cursor: pointer; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+            transition: background .15s;
+            display: flex; align-items: center; gap: 6px; position: relative;
           }
-          .zai-history-item:hover { background:rgba(255,255,255,.06); }
-          .zai-history-item.active { background:rgba(99,102,241,.12); color:#818cf8; }
-          .zai-history-item .zai-del-conv {
-            display:none; margin-left:auto; flex-shrink:0;
-            background:none; border:none; color:var(--ink-faint); cursor:pointer;
-            font-size:.75rem; padding:0 2px;
-          }
-          .zai-history-item:hover .zai-del-conv { display:block; }
+          .zai-history-item:hover { background: rgba(255,255,255,.06); }
+          .zai-history-item.active { background: rgba(99,102,241,.12); color: #818cf8; }
+          .zai-history-item .zai-del-conv { display: none; margin-left: auto; flex-shrink: 0; background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: .75rem; padding: 0 2px; }
+          .zai-history-item:hover .zai-del-conv { display: block; }
 
-          .zai-sys-section {
-            border-top:1px solid var(--border-light); padding:10px 12px;
-          }
-          .zai-sys-label {
-            font-size:.64rem; font-weight:700; letter-spacing:.07em;
-            text-transform:uppercase; color:var(--ink-faint); margin-bottom:5px;
-          }
+          .zai-sys-section { border-top: 1px solid var(--border-light); padding: 10px 12px; }
+          .zai-sys-label { font-size: .64rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
           .zai-sys-prompt {
-            width:100%; box-sizing:border-box; background:rgba(255,255,255,.04);
-            border:1px solid var(--border-light); border-radius:8px;
-            color:var(--ink); font-size:.76rem; font-family:var(--font-sans);
-            padding:7px 9px; resize:none; outline:none; line-height:1.5; min-height:72px;
+            width: 100%; box-sizing: border-box;
+            background: rgba(255,255,255,.04);
+            border: 1px solid var(--border-light); border-radius: 8px;
+            color: var(--ink); font-size: .76rem; font-family: var(--font-sans);
+            padding: 7px 9px; resize: none; outline: none;
+            line-height: 1.5; min-height: 72px;
           }
-          .zai-sys-prompt:focus { border-color:#6366f1; }
+          .zai-sys-prompt:focus { border-color: #6366f1; }
 
-          /* Main chat area */
-          .zai-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+          .zai-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .zai-messages { flex: 1; overflow-y: auto; padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; }
 
-          .zai-messages {
-            flex:1; overflow-y:auto; padding:24px 32px; display:flex;
-            flex-direction:column; gap:20px;
-          }
+          .zai-msg { display: flex; gap: 12px; max-width: 760px; }
+          .zai-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+          .zai-msg.assistant { align-self: flex-start; }
 
-          .zai-msg { display:flex; gap:12px; max-width:760px; }
-          .zai-msg.user { align-self:flex-end; flex-direction:row-reverse; }
-          .zai-msg.assistant { align-self:flex-start; }
+          .zai-avatar { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; font-size: .85rem; }
+          .zai-avatar.user-av { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: .7rem; font-weight: 700; }
+          .zai-avatar.ai-av { background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid var(--border-light); }
+          .zai-avatar.ai-av svg { width: 16px; height: 16px; stroke: #818cf8; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-          .zai-avatar {
-            width:32px; height:32px; border-radius:10px; flex-shrink:0;
-            display:grid; place-items:center; font-size:.85rem;
-          }
-          .zai-avatar.user-av { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:.7rem; font-weight:700; }
-          .zai-avatar.ai-av { background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid var(--border-light); }
-          .zai-avatar.ai-av svg { width:16px;height:16px;stroke:#818cf8;fill:none;stroke-width:2;stroke-linecap:round; }
+          .zai-bubble { padding: 12px 16px; border-radius: 14px; font-size: .88rem; line-height: 1.7; max-width: 640px; }
+          .zai-msg.user .zai-bubble { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border-bottom-right-radius: 4px; }
+          .zai-msg.assistant .zai-bubble { background: rgba(255,255,255,.06); border: 1px solid var(--border-light); color: var(--ink); border-bottom-left-radius: 4px; }
 
-          .zai-bubble {
-            padding:12px 16px; border-radius:14px; font-size:.88rem;
-            line-height:1.7; max-width:640px;
-          }
-          .zai-msg.user .zai-bubble {
-            background:linear-gradient(135deg,#6366f1,#4f46e5);
-            color:#fff; border-bottom-right-radius:4px;
-          }
-          .zai-msg.assistant .zai-bubble {
-            background:rgba(255,255,255,.06); border:1px solid var(--border-light);
-            color:var(--ink); border-bottom-left-radius:4px;
-          }
+          .zai-bubble code { background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: .82em; }
+          .zai-bubble pre { background: rgba(0,0,0,.35); border-radius: 10px; padding: 12px 14px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,.06); }
+          .zai-bubble pre code { background: none; padding: 0; font-size: .83em; }
+          .zai-bubble p { margin: 0 0 8px; }
+          .zai-bubble p:last-child { margin: 0; }
+          .zai-bubble ul, .zai-bubble ol { padding-left: 18px; margin: 6px 0; }
+          .zai-bubble li { margin: 3px 0; }
+          .zai-bubble h1, .zai-bubble h2, .zai-bubble h3 { margin: 12px 0 6px; font-weight: 700; line-height: 1.3; }
+          .zai-bubble blockquote { border-left: 3px solid #6366f1; padding-left: 12px; color: var(--ink-muted); margin: 8px 0; }
+          .zai-bubble table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: .82em; }
+          .zai-bubble th, .zai-bubble td { border: 1px solid var(--border-light); padding: 5px 9px; text-align: left; }
+          .zai-bubble th { background: rgba(255,255,255,.07); font-weight: 700; }
 
-          /* Markdown styles inside bubbles */
-          .zai-bubble code {
-            background:rgba(0,0,0,.3); padding:1px 5px; border-radius:4px;
-            font-family:monospace; font-size:.82em;
-          }
-          .zai-bubble pre {
-            background:rgba(0,0,0,.35); border-radius:10px; padding:12px 14px;
-            overflow-x:auto; margin:10px 0; border:1px solid rgba(255,255,255,.06);
-          }
-          .zai-bubble pre code { background:none; padding:0; font-size:.83em; }
-          .zai-bubble p { margin:0 0 8px; }
-          .zai-bubble p:last-child { margin:0; }
-          .zai-bubble ul,
-          .zai-bubble ol { padding-left:18px; margin:6px 0; }
-          .zai-bubble li { margin:3px 0; }
-          .zai-bubble h1,.zai-bubble h2,.zai-bubble h3 {
-            margin:12px 0 6px; font-weight:700; line-height:1.3;
-          }
-          .zai-bubble blockquote {
-            border-left:3px solid #6366f1; padding-left:12px;
-            color:var(--ink-muted); margin:8px 0;
-          }
-          .zai-bubble table {
-            border-collapse:collapse; width:100%; margin:10px 0; font-size:.82em;
-          }
-          .zai-bubble th,.zai-bubble td {
-            border:1px solid var(--border-light); padding:5px 9px; text-align:left;
-          }
-          .zai-bubble th { background:rgba(255,255,255,.07); font-weight:700; }
+          .zai-msg-actions { display: flex; gap: 4px; margin-top: 6px; opacity: 0; transition: opacity .15s; }
+          .zai-msg:hover .zai-msg-actions { opacity: 1; }
+          .zai-msg-act { padding: 3px 8px; border-radius: 6px; font-size: .7rem; border: 1px solid var(--border-light); background: rgba(255,255,255,.06); color: var(--ink-faint); cursor: pointer; transition: all .15s; }
+          .zai-msg-act:hover { color: var(--ink); border-color: var(--ink-muted); }
 
-          /* Msg actions */
-          .zai-msg-actions {
-            display:flex; gap:4px; margin-top:6px; opacity:0; transition:opacity .15s;
-          }
-          .zai-msg:hover .zai-msg-actions { opacity:1; }
-          .zai-msg-act {
-            padding:3px 8px; border-radius:6px; font-size:.7rem;
-            border:1px solid var(--border-light); background:rgba(255,255,255,.06);
-            color:var(--ink-faint); cursor:pointer; transition:all .15s;
-          }
-          .zai-msg-act:hover { color:var(--ink); border-color:var(--ink-muted); }
+          .zai-typing { display: flex; gap: 5px; padding: 10px 0; align-items: center; }
+          .zai-typing span { width: 7px; height: 7px; border-radius: 50%; background: #818cf8; animation: zai-bounce .9s ease-in-out infinite; }
+          .zai-typing span:nth-child(2) { animation-delay: .15s; }
+          .zai-typing span:nth-child(3) { animation-delay: .3s; }
+          @keyframes zai-bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
-          /* Typing indicator */
-          .zai-typing { display:flex; gap:5px; padding:10px 0; align-items:center; }
-          .zai-typing span {
-            width:7px; height:7px; border-radius:50%;
-            background:#818cf8; animation:zai-bounce .9s ease-in-out infinite;
-          }
-          .zai-typing span:nth-child(2) { animation-delay:.15s; }
-          .zai-typing span:nth-child(3) { animation-delay:.3s; }
-          @keyframes zai-bounce {
-            0%,60%,100% { transform:translateY(0); }
-            30% { transform:translateY(-6px); }
-          }
+          .zai-welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; text-align: center; }
+          .zai-welcome-logo { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899); display: grid; place-items: center; margin: 0 auto; }
+          .zai-welcome-logo svg { width: 34px; height: 34px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+          .zai-welcome h2 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+          .zai-welcome p { font-size: .88rem; color: var(--ink-faint); max-width: 400px; line-height: 1.6; margin: 0; }
 
-          /* Welcome screen */
-          .zai-welcome {
-            flex:1; display:flex; flex-direction:column; align-items:center;
-            justify-content:center; gap:20px; padding:40px 20px; text-align:center;
-          }
-          .zai-welcome-logo {
-            width:72px; height:72px; border-radius:20px;
-            background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
-            display:grid; place-items:center; margin:0 auto;
-          }
-          .zai-welcome-logo svg { width:34px;height:34px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round; }
-          .zai-welcome h2 { font-size:1.4rem; font-weight:800; margin:0; }
-          .zai-welcome p { font-size:.88rem; color:var(--ink-faint); max-width:400px; line-height:1.6; margin:0; }
-          .zai-suggestions { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:560px; }
-          .zai-suggest-btn {
-            padding:8px 16px; border-radius:20px; border:1px solid var(--border-light);
-            background:rgba(255,255,255,.05); color:var(--ink-muted);
-            font-size:.8rem; cursor:pointer; transition:all .18s;
-          }
-          .zai-suggest-btn:hover { border-color:#6366f1; color:#818cf8; background:rgba(99,102,241,.08); }
+          .zai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 560px; }
+          .zai-suggest-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-light); background: rgba(255,255,255,.05); color: var(--ink-muted); font-size: .8rem; cursor: pointer; transition: all .18s; }
+          .zai-suggest-btn:hover { border-color: #6366f1; color: #818cf8; background: rgba(99,102,241,.08); }
 
-          /* Input bar */
-          .zai-input-bar {
-            padding:14px 20px 16px; border-top:1px solid var(--border-light);
-            background:var(--surface); flex-shrink:0;
-          }
-          .zai-input-wrap {
-            display:flex; gap:10px; align-items:flex-end;
-            background:rgba(255,255,255,.05); border:1.5px solid var(--border-light);
-            border-radius:14px; padding:10px 14px; transition:border-color .2s;
-          }
-          .zai-input-wrap:focus-within { border-color:#6366f1; }
-          .zai-input {
-            flex:1; background:none; border:none; outline:none;
-            color:var(--ink); font-family:var(--font-sans); font-size:.9rem;
-            resize:none; line-height:1.5; max-height:160px; overflow-y:auto;
-            min-height:24px;
-          }
-          .zai-input::placeholder { color:var(--ink-faint); }
-          .zai-send-btn {
-            width:36px; height:36px; border-radius:10px; border:none; flex-shrink:0;
-            background:linear-gradient(135deg,#6366f1,#4f46e5);
-            color:#fff; display:grid; place-items:center; cursor:pointer;
-            transition:opacity .2s, transform .1s;
-          }
-          .zai-send-btn:hover { opacity:.85; }
-          .zai-send-btn:active { transform:scale(.95); }
-          .zai-send-btn:disabled { opacity:.35; cursor:not-allowed; }
-          .zai-send-btn svg { width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round; }
+          .zai-input-bar { padding: 14px 20px 16px; border-top: 1px solid var(--border-light); background: var(--surface); flex-shrink: 0; }
+          .zai-input-wrap { display: flex; gap: 10px; align-items: flex-end; background: rgba(255,255,255,.05); border: 1.5px solid var(--border-light); border-radius: 14px; padding: 10px 14px; transition: border-color .2s; }
+          .zai-input-wrap:focus-within { border-color: #6366f1; }
+          .zai-input { flex: 1; background: none; border: none; outline: none; color: var(--ink); font-family: var(--font-sans); font-size: .9rem; resize: none; line-height: 1.5; max-height: 160px; overflow-y: auto; min-height: 24px; }
+          .zai-input::placeholder { color: var(--ink-faint); }
 
-          .zai-input-meta {
-            display:flex; justify-content:space-between; align-items:center;
-            margin-top:8px; font-size:.7rem; color:var(--ink-faint);
-          }
-          .zai-tokens-used { font-variant-numeric:tabular-nums; }
+          .zai-send-btn { width: 36px; height: 36px; border-radius: 10px; border: none; flex-shrink: 0; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; display: grid; place-items: center; cursor: pointer; transition: opacity .2s, transform .1s; }
+          .zai-send-btn:hover { opacity: .85; }
+          .zai-send-btn:active { transform: scale(.95); }
+          .zai-send-btn:disabled { opacity: .35; cursor: not-allowed; }
+          .zai-send-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-          /* Model selector popup */
-          .zai-model-popup {
-            position:fixed; z-index:900; background:var(--surface);
-            border:1px solid var(--border); border-radius:14px;
-            padding:8px; box-shadow:0 12px 40px rgba(0,0,0,.25);
-            display:none; flex-direction:column; gap:2px; min-width:260px;
-          }
-          .zai-model-popup.open { display:flex; }
-          .zai-model-option {
-            padding:8px 12px; border-radius:8px; cursor:pointer;
-            transition:background .15s; display:flex; flex-direction:column; gap:2px;
-          }
-          .zai-model-option:hover { background:rgba(255,255,255,.07); }
-          .zai-model-option.selected { background:rgba(99,102,241,.12); }
-          .zai-model-option-name { font-size:.85rem; font-weight:600; }
-          .zai-model-option-desc { font-size:.71rem; color:var(--ink-faint); }
+          .zai-input-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: .7rem; color: var(--ink-faint); }
+          .zai-tokens-used { font-variant-numeric: tabular-nums; }
 
-          .zai-stop-btn {
-            padding:6px 14px; border-radius:8px; border:1px solid rgba(239,68,68,.3);
-            background:rgba(239,68,68,.07); color:#f87171;
-            font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s;
-          }
-          .zai-stop-btn:hover { background:rgba(239,68,68,.15); }
+          .zai-model-popup { position: fixed; z-index: 900; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.25); display: none; flex-direction: column; gap: 2px; min-width: 260px; }
+          .zai-model-popup.open { display: flex; }
+          .zai-model-option { padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background .15s; display: flex; flex-direction: column; gap: 2px; }
+          .zai-model-option:hover { background: rgba(255,255,255,.07); }
+          .zai-model-option.selected { background: rgba(99,102,241,.12); }
+          .zai-model-option-name { font-size: .85rem; font-weight: 600; }
+          .zai-model-option-desc { font-size: .71rem; color: var(--ink-faint); }
+
+          .zai-stop-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(239,68,68,.3); background: rgba(239,68,68,.07); color: #f87171; font-size: .78rem; font-weight: 600; cursor: pointer; transition: all .15s; }
+          .zai-stop-btn:hover { background: rgba(239,68,68,.15); }
         </style>
+
+        <!-- ZenLabs Tab Bar -->
+        <div class="zl-tabbar">
+          <div class="zl-tabbar-brand">
+            <div class="zl-tabbar-brand-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+            </div>
+            <span class="zl-tabbar-brand-name">ZenLabs</span>
+          </div>
+          <button class="zl-tab active" data-panel="zlMathPanel" onclick="zlSwitchTab(this)">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Math Agent
+          </button>
+          <button class="zl-tab" data-panel="zlChatPanel" onclick="zlSwitchTab(this)">
+            <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 007 4.5v15A2.5 2.5 0 009.5 22h5a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0014.5 2h-5z"/><path d="M12 6v4M10 14h4"/></svg>
+            AI Chat
+          </button>
+          <button class="zl-tab" data-panel="zlImagePanel" onclick="zlSwitchTab(this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            AI Image
+          </button>
+        </div>
+
+        <!-- Tab Panels -->
+        <div class="zl-panels">
+
+          <!-- ── MATH AGENT PANEL ── -->
+          <div class="zl-panel active" id="zlMathPanel">
+            <iframe id="mathAgentFrame" src="math-agent.html?embed=1" title="ZenLab Math Agent" allow="camera" allowfullscreen></iframe>
+          </div>
+
+          <!-- ── AI CHAT PANEL ── -->
+          <div class="zl-panel" id="zlChatPanel">
 
         <!-- Top bar -->
         <div class="zai-topbar">
           <div class="zai-topbar-logo">
-            <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 007 4.5v15A2.5 2.5 0 009.5 22h5a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0014.5 2h-5z"/><path d="M12 6v4M10 14h4"/></svg>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M9.5 2A2.5 2.5 0 007 4.5v15A2.5 2.5 0 009.5 22h5a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0014.5 2h-5z" />
+              <path d="M12 6v4M10 14h4" />
+            </svg>
           </div>
           <div class="zai-topbar-info">
             <div class="zai-topbar-title">ZenAI Assistant</div>
@@ -7339,10 +7428,16 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
           </div>
           <div class="zai-topbar-actions">
             <button class="zai-icon-btn" title="Export chat" onclick="zaiExport()">
-              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
             </button>
             <button class="zai-icon-btn" title="Clear chat" onclick="zaiClearChat()">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              <svg viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
             </button>
           </div>
         </div>
@@ -7357,7 +7452,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             <div class="zai-history" id="zaiHistory"></div>
             <div class="zai-sys-section">
               <div class="zai-sys-label">System Prompt</div>
-              <textarea class="zai-sys-prompt" id="zaiSysPrompt" placeholder="You are a helpful AI assistant…" rows="4">You are ZenAI, a highly capable AI assistant integrated into Zenspace — a student productivity platform. You help with studying, writing, coding, math, analysis, creative tasks, and general questions. Be concise, clear, and friendly.</textarea>
+              <textarea class="zai-sys-prompt" id="zaiSysPrompt" placeholder="You are a helpful AI assistant…"
+                rows="4">You are ZenAI, a highly capable AI assistant integrated into Zenspace — a student productivity platform. You help with studying, writing, coding, math, analysis, creative tasks, and general questions. Be concise, clear, and friendly.</textarea>
             </div>
           </div>
 
@@ -7366,17 +7462,32 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             <!-- Welcome screen -->
             <div class="zai-welcome" id="zaiWelcome">
               <div class="zai-welcome-logo">
-                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
               </div>
               <h2>How can I help you?</h2>
-              <p>Ask me anything — studying, coding, writing, math, research, creative ideas, or just a conversation.</p>
+              <p>Ask me anything — studying, coding, writing, math, research, creative ideas, or just a conversation.
+              </p>
               <div class="zai-suggestions">
-                <button class="zai-suggest-btn" onclick="zaiSuggest('Explain quantum entanglement in simple terms')">⚛️ Explain quantum entanglement</button>
-                <button class="zai-suggest-btn" onclick="zaiSuggest('Write a Python function to sort a list of dicts by a key')">💻 Python sorting function</button>
-                <button class="zai-suggest-btn" onclick="zaiSuggest('Give me 5 tips to study more effectively for exams')">📚 Study tips for exams</button>
-                <button class="zai-suggest-btn" onclick="zaiSuggest('Write a short creative story about a time traveler')">✍️ Creative story idea</button>
-                <button class="zai-suggest-btn" onclick="zaiSuggest('What are the best productivity techniques for students?')">🎯 Productivity techniques</button>
-                <button class="zai-suggest-btn" onclick="zaiSuggest('Summarize the main causes of World War I')">🌍 WW1 causes summary</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Explain quantum entanglement in simple terms')">⚛️
+                  Explain quantum entanglement</button>
+                <button class="zai-suggest-btn"
+                  onclick="zaiSuggest('Write a Python function to sort a list of dicts by a key')">💻 Python sorting
+                  function</button>
+                <button class="zai-suggest-btn"
+                  onclick="zaiSuggest('Give me 5 tips to study more effectively for exams')">📚 Study tips for
+                  exams</button>
+                <button class="zai-suggest-btn"
+                  onclick="zaiSuggest('Write a short creative story about a time traveler')">✍️ Creative story
+                  idea</button>
+                <button class="zai-suggest-btn"
+                  onclick="zaiSuggest('What are the best productivity techniques for students?')">🎯 Productivity
+                  techniques</button>
+                <button class="zai-suggest-btn" onclick="zaiSuggest('Summarize the main causes of World War I')">🌍 WW1
+                  causes summary</button>
               </div>
             </div>
 
@@ -7386,14 +7497,19 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             <!-- Input bar -->
             <div class="zai-input-bar">
               <div class="zai-input-wrap">
-                <textarea class="zai-input" id="zaiInput" placeholder="Message ZenAI… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+                <textarea class="zai-input" id="zaiInput"
+                  placeholder="Message ZenAI… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
                 <button class="zai-send-btn" id="zaiSendBtn" onclick="zaiSend()">
-                  <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <svg viewBox="0 0 24 24">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
                 </button>
               </div>
               <div class="zai-input-meta">
                 <span class="zai-tokens-used" id="zaiTokensUsed">Ready</span>
-                <span id="zaiStopWrap" style="display:none;"><button class="zai-stop-btn" onclick="zaiStop()">⏹ Stop</button></span>
+                <span id="zaiStopWrap" style="display:none;"><button class="zai-stop-btn" onclick="zaiStop()">⏹
+                    Stop</button></span>
               </div>
             </div>
           </div>
@@ -7401,7 +7517,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
         <!-- Model picker popup -->
         <div class="zai-model-popup" id="zaiModelPopup">
-          <div style="padding:6px 12px 4px;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);">Select Model</div>
+          <div
+            style="padding:6px 12px 4px;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);">
+            Select Model</div>
           <div class="zai-model-option selected" data-model="llama-3.3-70b-versatile" onclick="zaiSelectModel(this)">
             <div class="zai-model-option-name">🧠 Llama 3.3 70B</div>
             <div class="zai-model-option-desc">Best quality · General purpose · Recommended</div>
@@ -7442,19 +7560,19 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
           // ── Markdown renderer (minimal, no deps) ────────────────
           function zaiMd(text) {
             return text
-              .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
               .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
                 `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`)
-              .replace(/`([^`]+)`/g,'<code>$1</code>')
-              .replace(/^#{3} (.+)$/gm,'<h3>$1</h3>')
-              .replace(/^#{2} (.+)$/gm,'<h2>$1</h2>')
-              .replace(/^# (.+)$/gm,'<h1>$1</h1>')
-              .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-              .replace(/\*(.+?)\*/g,'<em>$1</em>')
-              .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
-              .replace(/^- (.+)$/gm,'<li>$1</li>')
+              .replace(/`([^`]+)`/g, '<code>$1</code>')
+              .replace(/^#{3} (.+)$/gm, '<h3>$1</h3>')
+              .replace(/^#{2} (.+)$/gm, '<h2>$1</h2>')
+              .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.+?)\*/g, '<em>$1</em>')
+              .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+              .replace(/^- (.+)$/gm, '<li>$1</li>')
               .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-              .replace(/\n\n/g,'</p><p>')
+              .replace(/\n\n/g, '</p><p>')
               .replace(/^(?!<[hupblo]|<pre)(.+)$/gm, (l) => l ? l : '')
               .replace(/^(<(?!pre|ul|ol|h[1-6]|blockquote))/, '<p>$1');
           }
@@ -7477,7 +7595,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             _zaiModel = el.dataset.model;
             document.querySelectorAll('.zai-model-option').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
-            document.getElementById('zaiModelPill').textContent = '🧠 ' + el.querySelector('.zai-model-option-name').textContent.replace(/^.+? /,'') + ' ▾';
+            document.getElementById('zaiModelPill').textContent = '🧠 ' + el.querySelector('.zai-model-option-name').textContent.replace(/^.+? /, '') + ' ▾';
             document.getElementById('zaiModelPopup').classList.remove('open');
           }
 
@@ -7544,13 +7662,13 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
                 </div>
                 <div>
                   <div class="zai-bubble" id="${id}-bubble">
-                    ${isUser ? content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : zaiMd(content)}
+                    ${isUser ? content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : zaiMd(content)}
                   </div>
                   <div class="zai-msg-actions">
                     <button class="zai-msg-act" onclick="navigator.clipboard.writeText(document.getElementById('${id}-raw')?.dataset.raw||'').then(()=>showToast('Copied!','success'))">📋 Copy</button>
                     ${!isUser ? `<button class="zai-msg-act" onclick="zaiRegenerate()">↺ Retry</button>` : ''}
                   </div>
-                  <div id="${id}-raw" data-raw="${(content||'').replace(/"/g,'&quot;')}" style="display:none;"></div>
+                  <div id="${id}-raw" data-raw="${(content || '').replace(/"/g, '&quot;')}" style="display:none;"></div>
                 </div>
               </div>`;
             container.insertAdjacentHTML('beforeend', html);
@@ -7641,14 +7759,14 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
           function zaiRegenerate() {
             // Remove last assistant message and re-send
-            while (_zaiMessages.length && _zaiMessages[_zaiMessages.length-1].role === 'assistant')
+            while (_zaiMessages.length && _zaiMessages[_zaiMessages.length - 1].role === 'assistant')
               _zaiMessages.pop();
-            const last = _zaiMessages[_zaiMessages.length-1];
+            const last = _zaiMessages[_zaiMessages.length - 1];
             if (!last) return;
             const container = document.getElementById('zaiMessages');
             // Remove last two bubbles (user + assistant)
             const bubbles = container.querySelectorAll('.zai-msg');
-            [bubbles[bubbles.length-1]]?.forEach(b => b?.remove());
+            [bubbles[bubbles.length - 1]]?.forEach(b => b?.remove());
             zaiSend();
           }
 
@@ -7676,7 +7794,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             const blob = new Blob([text], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'zenai-chat-' + new Date().toISOString().slice(0,10) + '.txt';
+            a.download = 'zenai-chat-' + new Date().toISOString().slice(0, 10) + '.txt';
             a.click();
             showToast('Chat exported!', 'success');
           }
@@ -7686,7 +7804,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); zaiSend(); }
           });
           // Auto-resize textarea
-          document.getElementById('zaiInput').addEventListener('input', function() {
+          document.getElementById('zaiInput').addEventListener('input', function () {
             this.style.height = '';
             this.style.height = Math.min(this.scrollHeight, 160) + 'px';
           });
@@ -7695,208 +7813,426 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
           zaiNewChat();
           zaiRenderHistory();
         </script>
-      </div>
+          </div><!-- /zlChatPanel -->
 
-      <!-- ══ AI IMAGE GENERATOR ══ -->
-      <div id="aiImageSec" class="content-section">
+          <!-- ── AI IMAGE PANEL ── -->
+          <div class="zl-panel" id="zlImagePanel">
         <style>
-          #aiImageSec { display: none; flex-direction: column; height: 100%; overflow: hidden; }
-          #aiImageSec.active { display: flex; }
-
-          .aig-layout { display: flex; height: 100%; overflow: hidden; gap: 0; }
+          .aig-layout {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+            gap: 0;
+          }
 
           .aig-panel {
-            width: 320px; min-width: 280px; flex-shrink: 0;
+            width: 320px;
+            min-width: 280px;
+            flex-shrink: 0;
             border-right: 1px solid var(--border-light);
-            display: flex; flex-direction: column;
-            padding: 20px 18px; gap: 16px; overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 18px;
+            gap: 16px;
+            overflow-y: auto;
             background: var(--surface);
           }
 
           .aig-canvas-area {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start;
-            padding: 24px; overflow-y: auto; gap: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 24px;
+            overflow-y: auto;
+            gap: 20px;
             background: var(--bg);
           }
 
-          .aig-header { display: flex; align-items: center; gap: 10px; }
+          .aig-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
 
           .aig-header-icon {
-            width: 42px; height: 42px; border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
             background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            display: grid; place-items: center; flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
           }
-          .aig-header-icon svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; }
 
-          .aig-title { font-size: 1.05rem; font-weight: 700; }
-          .aig-subtitle { font-size: .74rem; color: var(--ink-faint); margin-top: 2px; }
+          .aig-header-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+          }
+
+          .aig-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+          }
+
+          .aig-subtitle {
+            font-size: .74rem;
+            color: var(--ink-faint);
+            margin-top: 2px;
+          }
 
           .aig-label {
-            font-size: .68rem; font-weight: 700; letter-spacing: .06em;
-            text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 6px;
           }
 
           .aig-prompt {
-            width: 100%; box-sizing: border-box;
-            background: rgba(255,255,255,.05);
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, .05);
             border: 1.5px solid var(--border-light);
-            border-radius: 12px; padding: 12px 14px;
-            color: var(--ink); font-family: var(--font-sans); font-size: .88rem;
-            line-height: 1.5; resize: vertical; min-height: 100px;
-            outline: none; transition: border-color .2s;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--ink);
+            font-family: var(--font-sans);
+            font-size: .88rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: border-color .2s;
           }
-          .aig-prompt:focus { border-color: #7c3aed; }
+
+          .aig-prompt:focus {
+            border-color: #7c3aed;
+          }
 
           .aig-select {
-            width: 100%; box-sizing: border-box;
-            background: rgba(255,255,255,.06);
-            border: 1px solid var(--border-light); color: var(--ink);
-            border-radius: 8px; padding: 7px 10px; font-size: .83rem;
-            font-family: var(--font-sans); outline: none; cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid var(--border-light);
+            color: var(--ink);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: .83rem;
+            font-family: var(--font-sans);
+            outline: none;
+            cursor: pointer;
           }
 
-          .aig-row { display: flex; gap: 10px; }
-          .aig-row .aig-select { flex: 1; }
+          .aig-row {
+            display: flex;
+            gap: 10px;
+          }
+
+          .aig-row .aig-select {
+            flex: 1;
+          }
 
           .aig-generate-btn {
-            width: 100%; padding: 12px; border: none; border-radius: 12px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
             background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            color: #fff; font-family: var(--font-sans); font-size: .92rem;
-            font-weight: 700; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; gap: 8px;
+            color: #fff;
+            font-family: var(--font-sans);
+            font-size: .92rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             transition: opacity .2s, transform .1s;
           }
-          .aig-generate-btn:hover { opacity: .88; }
-          .aig-generate-btn:active { transform: scale(.98); }
-          .aig-generate-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+          .aig-generate-btn:hover {
+            opacity: .88;
+          }
+
+          .aig-generate-btn:active {
+            transform: scale(.98);
+          }
+
+          .aig-generate-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+          }
 
           .aig-surprise-btn {
-            width: 100%; padding: 9px; border: 1px solid var(--border-light);
-            border-radius: 10px; background: rgba(255,255,255,.06);
-            color: var(--ink-faint); font-family: var(--font-sans); font-size: .82rem;
-            cursor: pointer; transition: all .18s;
+            width: 100%;
+            padding: 9px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .06);
+            color: var(--ink-faint);
+            font-family: var(--font-sans);
+            font-size: .82rem;
+            cursor: pointer;
+            transition: all .18s;
           }
-          .aig-surprise-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+
+          .aig-surprise-btn:hover {
+            border-color: #7c3aed;
+            color: #7c3aed;
+          }
 
           .aig-divider {
-            height: 1px; background: var(--border-light); margin: 2px 0;
+            height: 1px;
+            background: var(--border-light);
+            margin: 2px 0;
           }
 
           /* Result area */
           .aig-result-wrap {
-            width: 100%; max-width: 640px;
-            background: rgba(255,255,255,.04);
-            border: 1px solid var(--border-light); border-radius: 16px;
-            overflow: hidden; position: relative;
+            width: 100%;
+            max-width: 640px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
           }
 
           .aig-result-img {
-            width: 100%; display: block; border-radius: 14px;
-            cursor: zoom-in; transition: transform .2s;
+            width: 100%;
+            display: block;
+            border-radius: 14px;
+            cursor: zoom-in;
+            transition: transform .2s;
           }
-          .aig-result-img:hover { transform: scale(1.01); }
+
+          .aig-result-img:hover {
+            transform: scale(1.01);
+          }
 
           .aig-result-actions {
-            display: flex; gap: 8px; padding: 12px 14px;
-            border-top: 1px solid var(--border-light); flex-wrap: wrap;
+            display: flex;
+            gap: 8px;
+            padding: 12px 14px;
+            border-top: 1px solid var(--border-light);
+            flex-wrap: wrap;
           }
 
           .aig-act-btn {
-            padding: 7px 14px; border-radius: 8px; font-size: .8rem;
-            font-family: var(--font-sans); font-weight: 600; cursor: pointer;
-            border: 1px solid var(--border-light); background: rgba(255,255,255,.06);
-            color: var(--ink); transition: all .15s; text-decoration: none;
-            display: inline-flex; align-items: center; gap: 5px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: .8rem;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            background: rgba(255, 255, 255, .06);
+            color: var(--ink);
+            transition: all .15s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
           }
-          .aig-act-btn:hover { border-color: #7c3aed; color: #7c3aed; }
-          .aig-act-btn.primary { background: #7c3aed; border-color: #7c3aed; color: #fff; }
-          .aig-act-btn.primary:hover { opacity: .85; }
+
+          .aig-act-btn:hover {
+            border-color: #7c3aed;
+            color: #7c3aed;
+          }
+
+          .aig-act-btn.primary {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: #fff;
+          }
+
+          .aig-act-btn.primary:hover {
+            opacity: .85;
+          }
 
           .aig-prompt-echo {
-            font-size: .75rem; color: var(--ink-faint);
-            padding: 10px 14px 0; font-style: italic; line-height: 1.4;
+            font-size: .75rem;
+            color: var(--ink-faint);
+            padding: 10px 14px 0;
+            font-style: italic;
+            line-height: 1.4;
           }
 
           /* Gallery */
           .aig-gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px; width: 100%; max-width: 640px;
+            gap: 12px;
+            width: 100%;
+            max-width: 640px;
           }
 
           .aig-gallery-item {
-            border-radius: 10px; overflow: hidden; cursor: pointer;
-            aspect-ratio: 1; position: relative;
-            background: rgba(255,255,255,.04); border: 1px solid var(--border-light);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 1;
+            position: relative;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border-light);
             transition: transform .2s;
           }
-          .aig-gallery-item:hover { transform: scale(1.03); }
-          .aig-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+          .aig-gallery-item:hover {
+            transform: scale(1.03);
+          }
+
+          .aig-gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
 
           .aig-gallery-item .aig-thumb-del {
-            position: absolute; top: 4px; right: 4px;
-            background: rgba(0,0,0,.6); color: #fff; border: none;
-            border-radius: 50%; width: 22px; height: 22px; font-size: .65rem;
-            cursor: pointer; display: none; place-items: center;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, .6);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: .65rem;
+            cursor: pointer;
+            display: none;
+            place-items: center;
           }
-          .aig-gallery-item:hover .aig-thumb-del { display: grid; }
+
+          .aig-gallery-item:hover .aig-thumb-del {
+            display: grid;
+          }
 
           /* Loading spinner */
           .aig-spinner {
-            width: 48px; height: 48px;
-            border: 3px solid rgba(124,58,237,.2);
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(124, 58, 237, .2);
             border-top-color: #7c3aed;
-            border-radius: 50%; animation: aig-spin .8s linear infinite;
+            border-radius: 50%;
+            animation: aig-spin .8s linear infinite;
           }
-          @keyframes aig-spin { to { transform: rotate(360deg); } }
+
+          @keyframes aig-spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
 
           .aig-loading-wrap {
-            display: none; flex-direction: column; align-items: center;
-            justify-content: center; gap: 16px; padding: 60px 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 60px 20px;
           }
-          .aig-loading-wrap.show { display: flex; }
-          .aig-loading-txt { font-size: .85rem; color: var(--ink-faint); text-align: center; }
+
+          .aig-loading-wrap.show {
+            display: flex;
+          }
+
+          .aig-loading-txt {
+            font-size: .85rem;
+            color: var(--ink-faint);
+            text-align: center;
+          }
 
           .aig-empty {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 14px; padding: 80px 20px;
-            color: var(--ink-faint); text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 80px 20px;
+            color: var(--ink-faint);
+            text-align: center;
           }
-          .aig-empty-icon { font-size: 3.5rem; }
-          .aig-empty-txt { font-size: .9rem; line-height: 1.6; max-width: 300px; }
+
+          .aig-empty-icon {
+            font-size: 3.5rem;
+          }
+
+          .aig-empty-txt {
+            font-size: .9rem;
+            line-height: 1.6;
+            max-width: 300px;
+          }
 
           /* Settings row */
           .aig-settings-row {
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
           }
-          .aig-seed-row { display: flex; gap: 8px; align-items: center; }
+
+          .aig-seed-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+          }
+
           .aig-seed-inp {
-            flex: 1; background: rgba(255,255,255,.06);
-            border: 1px solid var(--border-light); border-radius: 8px;
-            padding: 6px 10px; font-size: .82rem; color: var(--ink);
-            font-family: var(--font-sans); outline: none;
+            flex: 1;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: .82rem;
+            color: var(--ink);
+            font-family: var(--font-sans);
+            outline: none;
           }
 
           /* Negative prompt toggle */
           .aig-neg-toggle {
-            font-size: .76rem; color: var(--ink-faint); cursor: pointer;
-            display: flex; align-items: center; gap: 5px;
-            background: none; border: none; padding: 0; font-family: var(--font-sans);
+            font-size: .76rem;
+            color: var(--ink-faint);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: var(--font-sans);
           }
+
           .aig-neg-prompt {
-            display: none; width: 100%; box-sizing: border-box;
-            background: rgba(255,255,255,.04);
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, .04);
             border: 1px solid var(--border-light);
-            border-radius: 10px; padding: 8px 12px;
-            color: var(--ink-faint); font-family: var(--font-sans); font-size: .8rem;
-            resize: vertical; min-height: 60px; outline: none;
+            border-radius: 10px;
+            padding: 8px 12px;
+            color: var(--ink-faint);
+            font-family: var(--font-sans);
+            font-size: .8rem;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
           }
         </style>
 
-        <div style="padding:16px 22px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div
+          style="padding:16px 22px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;flex-shrink:0;">
           <div style="font-weight:700;font-size:1.05rem;">✨ AI Image Generator</div>
-          <div style="font-size:.78rem;color:var(--ink-faint);">Powered by Pollinations AI · Flux · Free, no API key needed</div>
+          <div style="font-size:.78rem;color:var(--ink-faint);">Powered by Pollinations AI · Flux · Free, no API key
+            needed</div>
         </div>
 
         <div class="aig-layout">
@@ -7905,7 +8241,10 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
             <div class="aig-header">
               <div class="aig-header-icon">
-                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                </svg>
               </div>
               <div>
                 <div class="aig-title">Generate Image</div>
@@ -7915,7 +8254,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
             <div>
               <div class="aig-label">Prompt</div>
-              <textarea class="aig-prompt" id="aigPrompt" placeholder="A cinematic photo of a glowing city at night, neon reflections on wet streets, ultra detailed, 8K…" rows="5"></textarea>
+              <textarea class="aig-prompt" id="aigPrompt"
+                placeholder="A cinematic photo of a glowing city at night, neon reflections on wet streets, ultra detailed, 8K…"
+                rows="5"></textarea>
             </div>
 
             <button class="aig-surprise-btn" onclick="aigSurprise()">🎲 Surprise me!</button>
@@ -7949,9 +8290,11 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             </div>
 
             <div id="aigCustomSize" style="display:none;flex-direction:row;gap:8px;align-items:center;">
-              <input type="number" id="aigW" placeholder="Width" value="1024" min="256" max="2048" step="64" class="aig-seed-inp" style="width:80px;">
+              <input type="number" id="aigW" placeholder="Width" value="1024" min="256" max="2048" step="64"
+                class="aig-seed-inp" style="width:80px;">
               <span style="color:var(--ink-faint);font-size:.85rem;">×</span>
-              <input type="number" id="aigH" placeholder="Height" value="1024" min="256" max="2048" step="64" class="aig-seed-inp" style="width:80px;">
+              <input type="number" id="aigH" placeholder="Height" value="1024" min="256" max="2048" step="64"
+                class="aig-seed-inp" style="width:80px;">
             </div>
 
             <div>
@@ -7975,19 +8318,25 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
               <div class="aig-label">Seed (leave blank for random)</div>
               <div class="aig-seed-row">
                 <input type="number" class="aig-seed-inp" id="aigSeed" placeholder="Random" min="0" max="4294967295">
-                <button onclick="aigRandomSeed()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-light);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;font-size:.78rem;" title="Roll random seed">🎲</button>
+                <button onclick="aigRandomSeed()"
+                  style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-light);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;font-size:.78rem;"
+                  title="Roll random seed">🎲</button>
               </div>
             </div>
 
             <div>
               <button class="aig-neg-toggle" onclick="aigToggleNeg()" id="aigNegBtn">＋ Negative prompt</button>
-              <textarea class="aig-neg-prompt" id="aigNegPrompt" placeholder="blurry, low quality, deformed, watermark, text, bad anatomy…"></textarea>
+              <textarea class="aig-neg-prompt" id="aigNegPrompt"
+                placeholder="blurry, low quality, deformed, watermark, text, bad anatomy…"></textarea>
             </div>
 
             <div class="aig-divider"></div>
 
             <button class="aig-generate-btn" id="aigGenBtn" onclick="aigGenerate()">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
               Generate Image
             </button>
 
@@ -7999,7 +8348,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             <!-- Loading state -->
             <div class="aig-loading-wrap" id="aigLoading">
               <div class="aig-spinner"></div>
-              <div class="aig-loading-txt" id="aigLoadingTxt">Creating your image…<br><span style="font-size:.74rem;opacity:.7">This takes 5–20 seconds</span></div>
+              <div class="aig-loading-txt" id="aigLoadingTxt">Creating your image…<br><span
+                  style="font-size:.74rem;opacity:.7">This takes 5–20 seconds</span></div>
             </div>
 
             <!-- Main result -->
@@ -8017,12 +8367,15 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             <!-- Empty state -->
             <div class="aig-empty" id="aigEmpty">
               <div class="aig-empty-icon">🎨</div>
-              <div class="aig-empty-txt">Enter a prompt and hit <strong>Generate</strong> to create your first AI image. Uses the Flux model — completely free, no sign-up needed.</div>
+              <div class="aig-empty-txt">Enter a prompt and hit <strong>Generate</strong> to create your first AI image.
+                Uses the Flux model — completely free, no sign-up needed.</div>
             </div>
 
             <!-- Gallery section -->
             <div id="aigGalleryWrap" style="width:100%;max-width:640px;display:none;">
-              <div style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px;">Saved Gallery</div>
+              <div
+                style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px;">
+                Saved Gallery</div>
               <div class="aig-gallery-grid" id="aigGallery"></div>
             </div>
 
@@ -8030,8 +8383,10 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         </div>
 
         <!-- Lightbox -->
-        <div id="aigLightbox" onclick="aigCloseLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;place-items:center;cursor:zoom-out;">
-          <img id="aigLightboxImg" style="max-width:96vw;max-height:96vh;border-radius:10px;box-shadow:0 24px 80px rgba(0,0,0,.6);" />
+        <div id="aigLightbox" onclick="aigCloseLightbox()"
+          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;place-items:center;cursor:zoom-out;">
+          <img id="aigLightboxImg"
+            style="max-width:96vw;max-height:96vh;border-radius:10px;box-shadow:0 24px 80px rgba(0,0,0,.6);" />
         </div>
 
         <script>
@@ -8214,7 +8569,10 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
           // Render saved gallery on load
           aigRenderGallery();
         </script>
-      </div>
+          </div><!-- /zlImagePanel -->
+
+        </div><!-- /zl-panels -->
+      </div><!-- /zenLabsSec -->
 
       <!-- ══ SERVERS ══ -->
       <div id="serversSec" class="content-section">
@@ -9397,10 +9755,12 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       <h3>Edit Subject</h3>
       <input type="hidden" id="sEditId" />
       <div class="m2">
-        <div class="mf"><label>Subject name</label><input type="text" id="sEditName" placeholder="e.g. Data Structures" /></div>
+        <div class="mf"><label>Subject name</label><input type="text" id="sEditName"
+            placeholder="e.g. Data Structures" /></div>
         <div class="mf"><label>Subject code</label><input type="text" id="sEditCode" placeholder="e.g. CS301" /></div>
       </div>
-      <div class="mf"><label>Min required attendance %</label><input type="number" id="sEditMinPct" placeholder="75" min="0" max="100" /></div>
+      <div class="mf"><label>Min required attendance %</label><input type="number" id="sEditMinPct" placeholder="75"
+          min="0" max="100" /></div>
       <div class="mf"><label>Color</label><select id="sEditColor">
           <option value="#1A1A1A">Black</option>
           <option value="#555555">Graphite</option>
@@ -9909,7 +10269,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       let initialSec = 'overviewSec';
       const hash = window.location.hash.substring(1);
       const savedSec = localStorage.getItem('zs-active-sec');
-      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'mathSec', 'serversSec', 'aiImageSec', 'zenAiSec'];
+      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'zenLabsSec', 'serversSec'];
       if (hash && validSections.includes(hash)) {
         initialSec = hash;
       } else if (savedSec && validSections.includes(savedSec)) {
@@ -10676,7 +11036,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       if (id === 'overviewSec') renderOverview();
       if (id === 'subjectsSec') renderSubjects();
       if (id === 'serversSec') initServers();
-      if (id === 'mathSec') initMathAgent();
+      if (id === 'zenLabsSec') initMathAgent();
       closeSidebar();
 
       // State persistence
@@ -10698,14 +11058,30 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
     window.addEventListener('hashchange', () => {
       const hash = window.location.hash.substring(1);
-      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'mathSec', 'serversSec'];
+      const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'zenLabsSec', 'serversSec'];
       if (hash && validSections.includes(hash)) {
         goTo(hash);
       }
     });
     /* == ZENLAB MATH AGENT INIT == */
     let _mathLoaded = false;
-    function initMathAgent() {
+    
+        // ── ZenLabs Tab Switcher ─────────────────────────────
+        function zlSwitchTab(btn) {
+          // Deactivate all tabs
+          document.querySelectorAll('.zl-tab').forEach(t => t.classList.remove('active'));
+          // Activate clicked tab
+          btn.classList.add('active');
+          // Hide all panels
+          document.querySelectorAll('.zl-panel').forEach(p => p.classList.remove('active'));
+          // Show target panel
+          const panelId = btn.getAttribute('data-panel');
+          const panel = document.getElementById(panelId);
+          if (panel) panel.classList.add('active');
+          // Init math agent when math tab is opened
+          if (panelId === 'zlMathPanel') initMathAgent();
+        }
+function initMathAgent() {
       const frame = document.getElementById('mathAgentFrame');
       if (!frame) return;
       const isDark = document.documentElement.classList.contains('dark');
@@ -10973,9 +11349,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'attendance.csv'; a.click();
     }
 
-    
 
-/* ═ ═  CGPA CALCULATOR ═ ═  */
+
+    /* ═ ═  CGPA CALCULATOR ═ ═  */
     let cgpaMode = 'grades';
 
     function setCgpaMode(mode) {
@@ -13359,39 +13735,57 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         <button class="btn btn-ghost btn-sm" onclick="closeModal('srvJoinModal')">Cancel</button>
         <button class="btn btn-primary btn-sm" onclick="srvJoinServer()">Join</button>
       </div>
-  </div>
-
-  <!-- Image Preview Modal -->
-  <div class="modal-overlay" id="imgPreviewModal" aria-hidden="true" style="z-index:9999;">
-    <div class="modal-box"
-      style="max-width:85vw; max-height:90vh; padding:10px; background:transparent; box-shadow:none; border:none;">
-      <button class="doc-file-remove" onclick="closeModal('imgPreviewModal')"
-        style="position:absolute; top:-10px; right:-10px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:34px; height:34px; font-size:1rem; display:flex; align-items:center; justify-content:center;">✕</button>
-      <img id="imgPreviewModalImg" src=""
-        style="width:100%; height:100%; max-height:85vh; object-fit:contain; border-radius:10px;" />
     </div>
-  </div>
 
-  <!-- Mobile Bottom Navigation Bar -->
-  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile navigation">
-    <button class="mob-nav-btn" onclick="goTo('overviewSec')" title="Overview">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Home
-    </button>
-    <button class="mob-nav-btn" onclick="goTo('todoSec')" title="To-Do">
-      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Tasks
-    </button>
-    <button class="mob-nav-btn" onclick="goTo('notesSec')" title="Notes">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Notes
-    </button>
-    <button class="mob-nav-btn" onclick="goTo('focusSec')" title="Focus">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Focus
-    </button>
-    <button class="mob-nav-btn" onclick="toggleSidebar()" title="More">
-      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      More
-    </button>
-  </nav>
+    <!-- Image Preview Modal -->
+    <div class="modal-overlay" id="imgPreviewModal" aria-hidden="true" style="z-index:9999;">
+      <div class="modal-box"
+        style="max-width:85vw; max-height:90vh; padding:10px; background:transparent; box-shadow:none; border:none;">
+        <button class="doc-file-remove" onclick="closeModal('imgPreviewModal')"
+          style="position:absolute; top:-10px; right:-10px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:34px; height:34px; font-size:1rem; display:flex; align-items:center; justify-content:center;">✕</button>
+        <img id="imgPreviewModalImg" src=""
+          style="width:100%; height:100%; max-height:85vh; object-fit:contain; border-radius:10px;" />
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile navigation">
+      <button class="mob-nav-btn" onclick="goTo('overviewSec')" title="Overview">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Home
+      </button>
+      <button class="mob-nav-btn" onclick="goTo('todoSec')" title="To-Do">
+        <svg viewBox="0 0 24 24">
+          <polyline points="9 11 12 14 22 4" />
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+        </svg>
+        Tasks
+      </button>
+      <button class="mob-nav-btn" onclick="goTo('notesSec')" title="Notes">
+        <svg viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        Notes
+      </button>
+      <button class="mob-nav-btn" onclick="goTo('focusSec')" title="Focus">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        Focus
+      </button>
+      <button class="mob-nav-btn" onclick="toggleSidebar()" title="More">
+        <svg viewBox="0 0 24 24">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+        More
+      </button>
+    </nav>
