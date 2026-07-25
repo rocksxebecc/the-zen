@@ -3784,6 +3784,7 @@
             <path
               d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
           </svg>Admin Panel</button>
+        <button class="pd-item" onclick="toggleAdminMode()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="3"/></svg><span id="enableAdminTxt">🔑 Enable Admin Mode</span></button>
         <button class="pd-item" onclick="ZenAuth.signOutUser()"><svg viewBox="0 0 24 24">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />
@@ -3793,7 +3794,7 @@
     </div>
   </nav>
 
-  <div class="layout">
+  <div class="app-layout">
     <aside class="sidebar">
       <span class="sidebar-label">Workspace</span>
       <button class="sidebar-link active" onclick="goTo('overviewSec')" data-sec="overviewSec"><svg viewBox="0 0 24 24">
@@ -3847,6 +3848,7 @@
           <path d="M23 21v-2a4 4 0 00-3-3.87" />
           <path d="M16 3.13a4 4 0 010 7.75" />
         </svg>Servers</button>
+      <button class="sidebar-link" id="adminSidebarLink" style="display:none" onclick="openAdminPanel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="3"/></svg><span>Admin Panel</span></button>
       <span class="sidebar-spacer"></span>
       <a class="sidebar-link" href="chat.html"><svg viewBox="0 0 24 24">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
@@ -11868,11 +11870,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       // ══ SUBSCRIPTION CHECK ══
       ZS_sub = await ZenAuth.checkSubscription();
       await applySubscriptionUI();
-      // Show admin panel link if user is admin
-      if (user && user.is_admin) {
-        const adminLink = document.getElementById('adminPanelLink');
-        if (adminLink) adminLink.style.display = 'flex';
-      }
+      // Show admin panel link if user is admin or admin mode enabled
+      updateAdminVisibility();
 
       // ══ SESSION TRACKING ══
       let _sessionId = null;
@@ -12163,6 +12162,26 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
     /* ══ ADMIN PANEL ══ */
+    function toggleAdminMode() {
+      const current = localStorage.getItem('zs_admin_mode') === 'true';
+      const next = !current;
+      localStorage.setItem('zs_admin_mode', next ? 'true' : 'false');
+      updateAdminVisibility();
+      showToast(next ? '⚡ Admin Mode Enabled! Admin Panel unlocked.' : 'Admin Mode Disabled.', next ? 'success' : 'default');
+      if (next) openAdminPanel();
+    }
+
+    function updateAdminVisibility() {
+      const isAdmin = (user && user.is_admin) || localStorage.getItem('zs_admin_mode') === 'true';
+      const adminLink = document.getElementById('adminPanelLink');
+      const adminSidebarLink = document.getElementById('adminSidebarLink');
+      const enableTxt = document.getElementById('enableAdminTxt');
+
+      if (adminLink) adminLink.style.display = isAdmin ? 'flex' : 'none';
+      if (adminSidebarLink) adminSidebarLink.style.display = isAdmin ? 'flex' : 'none';
+      if (enableTxt) enableTxt.innerHTML = isAdmin ? '⚡ Admin Panel (Active)' : '🔑 Enable Admin Mode';
+    }
+
     async function openAdminPanel() {
       window.location.href = 'admin.html';
     }
