@@ -10937,6 +10937,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         }
       })();
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
+      if (typeof renderSubjects === 'function') renderSubjects();
       // Fetch cloud subjects & finance & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
         try {
@@ -11915,8 +11916,39 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
     /* ═ ═  STORAGE ═ ═  */
     const K = k => `zs-${user ? user.email : 'anon'}-${k}`;
-    function ld(k, def) { try { const v = localStorage.getItem(K(k)); return v ? JSON.parse(v) : def; } catch { return def; } }
-    function sv(k, v) { try { localStorage.setItem(K(k), JSON.stringify(v)); } catch (e) { showToast('Storage full', 'error'); } }
+    function ld(k, def) {
+      try {
+        const primary = localStorage.getItem(K(k));
+        if (primary !== null && primary !== '[]') {
+          const parsed = JSON.parse(primary);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+        }
+        const anonVal = localStorage.getItem('zs-anon-' + k);
+        if (anonVal !== null && anonVal !== '[]') {
+          const parsed = JSON.parse(anonVal);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+        }
+        const rawVal = localStorage.getItem('zs-' + k);
+        if (rawVal !== null && rawVal !== '[]') {
+          const parsed = JSON.parse(rawVal);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+        }
+        return primary ? JSON.parse(primary) : def;
+      } catch (e) {
+        return def;
+      }
+    }
+    function sv(k, v) {
+      try {
+        localStorage.setItem(K(k), JSON.stringify(v));
+        localStorage.setItem('zs-' + k, JSON.stringify(v));
+      } catch (e) {
+        showToast('Storage full', 'error');
+      }
+    }
     const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const today = () => new Date().toISOString().split('T')[0];
     const daysLeft = d => Math.ceil((new Date(d + 'T00:00:00') - new Date()) / 86400000);
