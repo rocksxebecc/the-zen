@@ -3860,25 +3860,7 @@
     </aside>
 
     <main class="main">
-      <script>
-        (function() {
-          try {
-            var valid = ['overviewSec','subjectsSec','todoSec','goalsSec','focusSec','financeSec','notesSec','documentsSec','zenLabsSec','serversSec'];
-            var hash = window.location.hash.replace('#','');
-            var saved = localStorage.getItem('zs-active-sec');
-            var sec = (hash && valid.indexOf(hash) !== -1) ? hash : ((saved && valid.indexOf(saved) !== -1) ? saved : 'overviewSec');
-            // Store so async goTo() uses same section
-            window._ZS_INITIAL_SEC = sec;
-            // Instantly show correct section — no animation on initial restore
-            var el = document.getElementById(sec);
-            if (el) { el.classList.add('instant-active'); }
-            // Update sidebar/nav active states immediately
-            document.querySelectorAll('[data-sec]').forEach(function(l) {
-              l.classList.toggle('active', l.getAttribute('data-sec') === sec);
-            });
-          } catch(e) {}
-        })();
-      </script>
+
 
       <!-- ══ OVERVIEW ══ -->
       <div id="overviewSec" class="content-section">
@@ -10921,8 +10903,6 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
     async function goTo(id) {
       if (!id) return;
-      // Strip instant-active from all sections (applied during initial restore)
-      document.querySelectorAll('.content-section.instant-active').forEach(s => s.classList.remove('instant-active'));
 
       if (PREMIUM_SECTIONS.has(id)) {
         try {
@@ -10991,6 +10971,65 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     let user = null;
     let dbPrivatePwdHash = null;
     (async () => {
+      // ── INSTANT SECTION RESTORE ──────────────────────────────────────────
+      // Apply the correct section BEFORE any await so page is never blank.
+      (function applyInitialSection() {
+        try {
+          const _valid = ['overviewSec','subjectsSec','todoSec','goalsSec','focusSec','financeSec','notesSec','documentsSec','zenLabsSec','serversSec'];
+          const _hash = window.location.hash.substring(1);
+          const _saved = localStorage.getItem('zs-active-sec');
+          const _sec = (_hash && _valid.includes(_hash)) ? _hash : ((_saved && _valid.includes(_saved)) ? _saved : 'overviewSec');
+          // Show correct section shell immediately
+          document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+          const _el = document.getElementById(_sec);
+          if (_el) _el.classList.add('active');
+          // Sync sidebar/nav active state
+          document.querySelectorAll('[data-sec]').forEach(l => l.classList.toggle('active', l.getAttribute('data-sec') === _sec));
+          // Update URL hash without triggering navigation
+          if (history.replaceState && window.location.hash !== '#' + _sec) {
+            history.replaceState(null, null, '#' + _sec);
+          }
+          // Pre-render local data immediately so section isn't empty during auth
+          try {
+            // Mirror ld() fallback chain: email-keyed → anon key → raw key
+            // (user email unknown pre-auth, so we scan all zs-*-KEY entries)
+            const _ld = (k, d) => {
+              try {
+                // Scan all keys matching zs-*-{k} pattern (covers email-keyed data)
+                for (let i = 0; i < localStorage.length; i++) {
+                  const lk = localStorage.key(i);
+                  if (lk && lk.endsWith('-' + k) && lk.startsWith('zs-') && !lk.startsWith('zs-anon-') && lk !== 'zs-' + k) {
+                    const raw = localStorage.getItem(lk);
+                    if (raw && raw !== '[]') {
+                      const parsed = JSON.parse(raw);
+                      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+                    }
+                  }
+                }
+                // Fallback: anon or raw keys
+                for (const lk of [`zs-anon-${k}`, `zs-${k}`]) {
+                  const raw = localStorage.getItem(lk);
+                  if (raw && raw !== '[]') {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+                  }
+                }
+              } catch(e) {}
+              return d;
+            };
+            if (_sec === 'subjectsSec' && typeof renderSubjects === 'function') { subjects = _ld('subjects', subjects); renderSubjects(); }
+            if (_sec === 'todoSec' && typeof renderTodo === 'function') { tasks = _ld('tasks', tasks); renderTodo(); }
+            if (_sec === 'goalsSec' && typeof renderGoals === 'function') { goals = _ld('goals', goals); renderGoals(); }
+            if (_sec === 'financeSec') { txns = _ld('finance', txns); if (typeof renderFinance === 'function') renderFinance(); if (typeof renderAnalytics === 'function') renderAnalytics(); }
+            if (_sec === 'overviewSec' && typeof renderOverview === 'function') renderOverview();
+            if (_sec === 'notesSec' && typeof renderNotesList === 'function') renderNotesList();
+          } catch(e) { /* silently ignore pre-render errors */ }
+        } catch(e) { /* silently ignore — auth will fix state */ }
+      })();
+      // ─────────────────────────────────────────────────────────────────────
+
       await ZenAuth.initSupabase();
       user = await ZenAuth.getUserProfile();
       if (!user) { window.location.href = 'login.html'; return; }
@@ -11236,9 +11275,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         initialSec = savedSec;
       }
 
-      // Use section already determined by inline restore script (zero flicker)
-      const resolvedSec = window._ZS_INITIAL_SEC || initialSec;
-      await goTo(resolvedSec);
+      // goTo() re-renders with fresh authenticated data and saves state
+      await goTo(initialSec);
     })();
 
     /* dark mode */
