@@ -12192,21 +12192,31 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         if (isAttendanceLockEnabled) {
           lockBtn.style.display = 'inline-flex';
           lockBtn.style.alignItems = 'center';
-          lockBtn.style.gap = '5px';
+          lockBtn.style.gap = '6px';
+          lockBtn.style.padding = '6px 14px';
+          lockBtn.style.borderRadius = '8px';
+          lockBtn.style.fontWeight = '700';
+          lockBtn.style.fontSize = '0.82rem';
+          lockBtn.style.cursor = 'pointer';
+          lockBtn.style.transition = 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)';
+          lockBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.18)';
+          
           if (isAttendanceLocked) {
+            // RED push button for LOCKED
             lockBtn.className = 'btn btn-sm';
-            lockBtn.style.background = 'var(--warn-faint, rgba(245, 158, 11, 0.15))';
-            lockBtn.style.color = 'var(--warn, #d97706)';
-            lockBtn.style.borderColor = 'var(--warn, #d97706)';
-            lockBtn.innerHTML = '🔒 Attendance Locked';
-            lockBtn.title = 'Attendance editing is locked. Click to unlock.';
+            lockBtn.style.background = '#dc2626';
+            lockBtn.style.color = '#ffffff';
+            lockBtn.style.border = '1px solid #b91c1c';
+            lockBtn.innerHTML = '🔒 Locked';
+            lockBtn.title = 'Attendance is locked. Click to unlock editing.';
           } else {
-            lockBtn.className = 'btn btn-ghost btn-sm';
-            lockBtn.style.background = '';
-            lockBtn.style.color = '';
-            lockBtn.style.borderColor = '';
-            lockBtn.innerHTML = '🔓 Attendance Unlocked';
-            lockBtn.title = 'Attendance editing is unlocked. Click to lock.';
+            // GREEN push button for UNLOCKED
+            lockBtn.className = 'btn btn-sm';
+            lockBtn.style.background = '#16a34a';
+            lockBtn.style.color = '#ffffff';
+            lockBtn.style.border = '1px solid #15803d';
+            lockBtn.innerHTML = '🔓 Unlocked';
+            lockBtn.title = 'Attendance is unlocked. Click to lock editing.';
           }
         } else {
           lockBtn.style.display = 'none';
