@@ -171,6 +171,14 @@
       animation: fade-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
+    /* Used during initial page restore — instant with no animation flicker */
+    .content-section.instant-active {
+      display: block !important;
+      opacity: 1 !important;
+      animation: none !important;
+      transform: none !important;
+    }
+
     /* SHARED */
     .sec-hdr {
       display: flex;
@@ -3852,9 +3860,28 @@
     </aside>
 
     <main class="main">
+      <script>
+        (function() {
+          try {
+            var valid = ['overviewSec','subjectsSec','todoSec','goalsSec','focusSec','financeSec','notesSec','documentsSec','zenLabsSec','serversSec'];
+            var hash = window.location.hash.replace('#','');
+            var saved = localStorage.getItem('zs-active-sec');
+            var sec = (hash && valid.indexOf(hash) !== -1) ? hash : ((saved && valid.indexOf(saved) !== -1) ? saved : 'overviewSec');
+            // Store so async goTo() uses same section
+            window._ZS_INITIAL_SEC = sec;
+            // Instantly show correct section — no animation on initial restore
+            var el = document.getElementById(sec);
+            if (el) { el.classList.add('instant-active'); }
+            // Update sidebar/nav active states immediately
+            document.querySelectorAll('[data-sec]').forEach(function(l) {
+              l.classList.toggle('active', l.getAttribute('data-sec') === sec);
+            });
+          } catch(e) {}
+        })();
+      </script>
 
       <!-- ══ OVERVIEW ══ -->
-      <div id="overviewSec" class="content-section active">
+      <div id="overviewSec" class="content-section">
         <div class="main-header">
           <h1 id="greeting">Good morning</h1><span
             style="font-size:.78rem;color:var(--ink-muted);margin-left:auto;letter-spacing:.04em;text-transform:uppercase"
@@ -10894,6 +10921,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
 
     async function goTo(id) {
       if (!id) return;
+      // Strip instant-active from all sections (applied during initial restore)
+      document.querySelectorAll('.content-section.instant-active').forEach(s => s.classList.remove('instant-active'));
 
       if (PREMIUM_SECTIONS.has(id)) {
         try {
@@ -11207,14 +11236,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         initialSec = savedSec;
       }
 
-      // Synchronously set active class for zero-flicker instant rendering
-      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('[data-sec]').forEach(l => l.classList.remove('active'));
-      const activeEl = document.getElementById(initialSec);
-      if (activeEl) activeEl.classList.add('active');
-      document.querySelectorAll(`[data-sec="${initialSec}"]`).forEach(l => l.classList.add('active'));
-
-      await goTo(initialSec);
+      // Use section already determined by inline restore script (zero flicker)
+      const resolvedSec = window._ZS_INITIAL_SEC || initialSec;
+      await goTo(resolvedSec);
     })();
 
     /* dark mode */
