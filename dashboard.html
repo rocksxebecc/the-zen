@@ -457,70 +457,77 @@
       overflow: hidden;
     }
 
-    /* Background image layer */
-    .fc-bg-img {
+    /* FOCUS SECTION - WHOLE PAGE BACKGROUND */
+    #focusSec {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--r-xl);
+      padding: 24px;
+      transition: background .3s;
+    }
+
+    /* Background image layer covering whole focus section */
+    #focusSec .fc-bg-img {
       position: absolute;
       inset: 0;
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      border-radius: var(--r-lg);
+      border-radius: var(--r-xl);
       transition: opacity .4s ease;
       pointer-events: none;
+      z-index: 0;
     }
 
-    /* Dark overlay on top of bg image so text stays readable */
-    .fc-bg-overlay {
+    /* Dark overlay on top of bg image so text & cards stay ultra-readable */
+    #focusSec .fc-bg-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(160deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.45) 100%);
-      border-radius: var(--r-lg);
-      pointer-events: none;
-    }
-
-    .focus-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 20% 20%, rgba(255, 255, 255, .06) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,.35) 0%, rgba(0,0,0,.65) 100%);
+      border-radius: var(--r-xl);
       pointer-events: none;
       z-index: 1;
     }
 
-    /* Background picker button */
-    .fc-bg-controls {
-      position: absolute;
-      top: 12px;
-      right: 12px;
+    /* Header controls in focus section header */
+    #focusSec .main-header {
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .fc-bg-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       z-index: 3;
     }
 
     .fc-bg-btn {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.3);
-      background: rgba(255,255,255,.12);
-      backdrop-filter: blur(6px);
-      color: rgba(255,255,255,.85);
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface-2);
+      color: var(--ink);
       display: grid;
       place-items: center;
       cursor: pointer;
       transition: all .18s;
-      font-size: .75rem;
+      font-size: .8rem;
     }
 
     .fc-bg-btn:hover {
-      background: rgba(255,255,255,.22);
-      border-color: rgba(255,255,255,.55);
+      background: var(--surface-3);
+      border-color: var(--ink);
     }
 
     .fc-bg-btn svg {
-      width: 13px;
-      height: 13px;
+      width: 15px;
+      height: 15px;
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
@@ -529,9 +536,9 @@
     }
 
     .fc-opacity-slider {
-      width: 70px;
-      height: 3px;
-      accent-color: #fff;
+      width: 85px;
+      height: 4px;
+      accent-color: var(--ink);
       cursor: pointer;
       opacity: 0;
       pointer-events: none;
@@ -541,6 +548,95 @@
     .fc-opacity-slider.visible {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* Glassmorphism & High-Contrast styling when custom background is active */
+    #focusSec.has-custom-bg .fc-bg-btn {
+      border-color: rgba(255,255,255,.35);
+      background: rgba(255,255,255,.18);
+      backdrop-filter: blur(8px);
+      color: #fff;
+    }
+
+    #focusSec.has-custom-bg .fc-bg-btn:hover {
+      background: rgba(255,255,255,.30);
+      border-color: rgba(255,255,255,.65);
+    }
+
+    #focusSec.has-custom-bg .fc-opacity-slider {
+      accent-color: #fff;
+    }
+
+    #focusSec.has-custom-bg .main-header h1,
+    #focusSec.has-custom-bg .sec-hdr h2 {
+      color: #fff !important;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    #focusSec.has-custom-bg .focus-card {
+      background: rgba(15, 15, 15, 0.65) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    #focusSec.has-custom-bg .fh-stat {
+      background: rgba(18, 18, 18, 0.65) !important;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    #focusSec.has-custom-bg .fh-stat-num {
+      color: #fff !important;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    #focusSec.has-custom-bg .fh-stat-lbl {
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    #focusSec.has-custom-bg .prog-wrap {
+      background: rgba(18, 18, 18, 0.60);
+      padding: 14px 18px;
+      border-radius: var(--r-lg);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.20);
+    }
+
+    #focusSec.has-custom-bg .prog-lbl {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    #focusSec.has-custom-bg .fh-item {
+      background: rgba(18, 18, 18, 0.65) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(255, 255, 255, 0.20) !important;
+      color: #fff !important;
+    }
+
+    #focusSec.has-custom-bg .fh-lbl {
+      color: #fff !important;
+    }
+
+    #focusSec.has-custom-bg .fh-sub {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    #focusSec.has-custom-bg .fh-num {
+      color: #fff !important;
+    }
+
+    #focusSec.has-custom-bg .empty-msg {
+      background: rgba(18, 18, 18, 0.55);
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: var(--r-lg);
+      padding: 18px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .fc-title {
@@ -3992,32 +4088,32 @@
         <div class="goals-grid" id="goalsGrid"></div>
       </div>
 
-      <!-- ══ FOCUS TIMER ══ -->
+      <!-- ═ ═  FOCUS TIMER ═ ═  -->
       <div id="focusSec" class="content-section">
+        <!-- Whole-page Background Layers -->
+        <div class="fc-bg-img" id="fcBgImg"></div>
+        <div class="fc-bg-overlay" id="fcBgOverlay" style="display:none"></div>
+
         <div class="main-header">
           <h1>Focus Timer</h1>
+          <!-- Whole-page BG photo controls -->
+          <div class="fc-bg-controls">
+            <input type="range" class="fc-opacity-slider" id="fcOpacitySlider" min="10" max="95" value="50"
+              title="Background opacity"
+              oninput="fcSetOpacity(this.value)">
+            <button class="fc-bg-btn" title="Remove background photo" id="fcBgClearBtn"
+              onclick="fcClearBg()" style="display:none">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <label class="fc-bg-btn" title="Set background photo" for="fcBgInput">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <input type="file" id="fcBgInput" accept="image/*" style="display:none" onchange="fcLoadBg(event)">
+            </label>
+          </div>
         </div>
-        <div class="focus-layout">
+
+        <div class="focus-layout" style="position:relative; z-index:2">
           <div class="focus-card" id="focusCard">
-            <!-- Background layers -->
-            <div class="fc-bg-img" id="fcBgImg"></div>
-            <div class="fc-bg-overlay" id="fcBgOverlay" style="display:none"></div>
-
-            <!-- BG photo controls (top-right) -->
-            <div class="fc-bg-controls">
-              <input type="range" class="fc-opacity-slider" id="fcOpacitySlider" min="10" max="90" value="50"
-                title="Background opacity"
-                oninput="fcSetOpacity(this.value)">
-              <button class="fc-bg-btn" title="Remove background" id="fcBgClearBtn"
-                onclick="fcClearBg()" style="display:none">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-              <label class="fc-bg-btn" title="Set background photo" for="fcBgInput">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <input type="file" id="fcBgInput" accept="image/*" style="display:none" onchange="fcLoadBg(event)">
-              </label>
-            </div>
-
             <div class="fc-title">Session Timer</div>
             <div class="fc-sub">Fully customisable · every session tracked</div>
             <div
@@ -11991,11 +12087,14 @@ function initMathAgent() {
     function fcClearBg() {
       localStorage.removeItem('zen_focus_bg');
       localStorage.removeItem('zen_focus_bg_opacity');
+      const sec = document.getElementById('focusSec');
       const bgImg = document.getElementById('fcBgImg');
       const overlay = document.getElementById('fcBgOverlay');
       const slider = document.getElementById('fcOpacitySlider');
       const clearBtn = document.getElementById('fcBgClearBtn');
       const input = document.getElementById('fcBgInput');
+
+      if (sec) sec.classList.remove('has-custom-bg');
       if (bgImg) { bgImg.style.backgroundImage = 'none'; bgImg.style.opacity = 0.5; }
       if (overlay) overlay.style.display = 'none';
       if (slider) { slider.classList.remove('visible'); slider.value = 50; }
@@ -12004,11 +12103,14 @@ function initMathAgent() {
       showToast('Background photo removed');
     }
     function applyFcBg(dataUrl, savedOpacity) {
+      const sec = document.getElementById('focusSec');
       const bgImg = document.getElementById('fcBgImg');
       const overlay = document.getElementById('fcBgOverlay');
       const slider = document.getElementById('fcOpacitySlider');
       const clearBtn = document.getElementById('fcBgClearBtn');
       const opVal = savedOpacity !== undefined && savedOpacity !== null ? savedOpacity : (localStorage.getItem('zen_focus_bg_opacity') || 50);
+
+      if (sec) sec.classList.add('has-custom-bg');
       if (bgImg && dataUrl) {
         bgImg.style.backgroundImage = `url('${dataUrl}')`;
         bgImg.style.opacity = opVal / 100;
