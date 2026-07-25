@@ -3230,9 +3230,6 @@
       color: var(--ink);
     }
 
-    button,
-    input,
-    optgroup,
     /* ═══ PRIVATE NOTES FOLDER ═══════════════════════════ */
     .notes-folders-tab button.active {
       background: var(--surface-2) !important;
@@ -11273,7 +11270,6 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     async function goTo(id) {
       if (!id) return;
 
-      // ── HARD BLOCK: premium sections require active subscription ──
       if (PREMIUM_SECTIONS.has(id)) {
         try {
           if (window.ZenAuth && window.ZenAuth.invalidateSubCache) {
@@ -11282,11 +11278,6 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
           }
         } catch (e) {
           console.error('[Zenspace] Subscription check error during nav:', e);
-        }
-        const isAdmin = user && user.is_admin;
-        if (!ZS_sub && !isAdmin) {
-          openPaywall();
-          return; // DO NOT navigate to the section at all
         }
       }
 
