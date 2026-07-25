@@ -156,13 +156,19 @@
       color: var(--ink);
     }
 
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .content-section {
       display: none;
+      opacity: 0;
     }
 
     .content-section.active {
       display: block;
-      animation: fade-in .25s ease;
+      animation: fade-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     /* SHARED */
@@ -11057,14 +11063,13 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         const client = ZenAuth.getSupabaseClient();
         if (client) {
           client
-            .channel('user_state_changes')
+            .channel('user_state_changes_' + user.id)
             .on('postgres_changes', {
               event: '*',
               schema: 'public',
-              table: 'user_state',
-              filter: `user_id=eq.${user.id}`
+              table: 'user_state'
             }, payload => {
-              if (payload.new) {
+              if (payload.new && payload.new.user_id === user.id) {
                 const k = payload.new.key;
                 const v = payload.new.value || [];
                 if (k === 'subjects') { subjects = v; sv('subjects', subjects); if (typeof renderSubjects === 'function') renderSubjects(); }
@@ -11077,6 +11082,15 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             .subscribe();
         }
       }
+
+      // Automatic instant sync on window focus, tab switch, & 3s polling
+      window.addEventListener('focus', () => { if (typeof syncAllFromCloud === 'function') syncAllFromCloud(); });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && typeof syncAllFromCloud === 'function') syncAllFromCloud(); });
+      setInterval(() => {
+        if (typeof syncAllFromCloud === 'function' && !document.hidden) {
+          syncAllFromCloud();
+        }
+      }, 3000);
       notes = await ZenAuth.fetchNotes();
       notes.forEach(n => { n.tags = ld('ntags-' + n.id, []); n.color = ld('ncolor-' + n.id, '#1A1A1A'); n.images = ld('nimgs-' + n.id, []); });
       renderOverview(); syncDisplays(); renderSubjects();
@@ -11181,15 +11195,31 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       setInterval(enforceSubscriptionState, 2 * 60 * 1000);
 
       // Route to initial section on page load / refresh
-      let initialSec = 'overviewSec';
-      const hash = window.location.hash.substring(1);
-      const savedSec = localStorage.getItem('zs-active-sec');
+      // Use sessionStorage to detect refresh vs. fresh open:
+      //   - Refresh: sessionStorage has 'zs-was-here' → restore saved section
+      //   - Fresh open: sessionStorage is empty → always go to overviewSec
       const validSections = ['overviewSec', 'subjectsSec', 'todoSec', 'goalsSec', 'focusSec', 'financeSec', 'notesSec', 'documentsSec', 'zenLabsSec', 'serversSec'];
-      if (hash && validSections.includes(hash)) {
-        initialSec = hash;
-      } else if (savedSec && validSections.includes(savedSec)) {
-        initialSec = savedSec;
+      let initialSec = 'overviewSec';
+
+      const isRefresh = sessionStorage.getItem('zs-was-here') === '1';
+      const hash = window.location.hash.substring(1);
+
+      if (isRefresh) {
+        // Page refresh → restore exact section user was on
+        if (hash && validSections.includes(hash)) {
+          initialSec = hash;
+        } else {
+          const savedSec = localStorage.getItem('zs-active-sec');
+          if (savedSec && validSections.includes(savedSec)) {
+            initialSec = savedSec;
+          }
+        }
       }
+      // else: fresh tab/window open → always start at overviewSec (initialSec stays 'overviewSec')
+
+      // Mark this tab as "active" in sessionStorage
+      sessionStorage.setItem('zs-was-here', '1');
+
       await goTo(initialSec);
     })();
 
