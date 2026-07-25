@@ -506,21 +506,17 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 24px;
-      padding: 12px 16px;
+      margin-bottom: 20px;
+      padding: 10px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       flex-wrap: wrap;
-      width: 100%;
-      box-sizing: border-box;
-      clear: both;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       transition: all .25s ease;
     }
 
     #focusSec.has-custom-bg .fc-bg-toolbar {
-      background: rgba(18, 18, 18, 0.75) !important;
+      background: rgba(18, 18, 18, 0.65) !important;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-color: rgba(255, 255, 255, 0.22);
@@ -556,11 +552,10 @@
       gap: 8px;
       flex-wrap: wrap;
       flex: 1;
-      min-width: 0;
     }
 
     .fc-preset-chip {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 8px;
       height: 38px;
@@ -575,8 +570,6 @@
       cursor: pointer;
       transition: all .18s ease;
       user-select: none;
-      white-space: nowrap;
-      flex-shrink: 0;
     }
 
     #focusSec.has-custom-bg .fc-preset-chip {
@@ -4167,7 +4160,7 @@
           </div>
         </div>
 
-        <div class="focus-layout" style="position:relative; z-index:1">
+        <div class="focus-layout" style="position:relative; z-index:2">
           <div class="focus-card" id="focusCard">
             <div class="fc-title">Session Timer</div>
             <div class="fc-sub">Fully customisable · every session tracked</div>
@@ -11290,15 +11283,24 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       try { await updatePremiumPreviewOverlay(id); } catch (e) { console.error(e); }
 
       try {
-        if (id === 'notesSec') { renderNotesList(); applyPrivateFolderVisibility(); }
-        if (id === 'goalsSec') renderGoals();
-        if (id === 'financeSec') { renderFinance(); renderAnalytics(); }
-        if (id === 'todoSec') { renderTodo(); renderTodoAnalytics(); }
-        if (id === 'focusSec') renderFocusHistory();
-        if (id === 'overviewSec') renderOverview();
-        if (id === 'subjectsSec') renderSubjects();
-        if (id === 'serversSec') initServers();
-        if (id === 'zenLabsSec') initMathAgent();
+        if (id === 'notesSec') {
+          if (typeof renderNotesList === 'function') renderNotesList();
+          if (typeof applyPrivateFolderVisibility === 'function') applyPrivateFolderVisibility();
+        }
+        if (id === 'goalsSec' && typeof renderGoals === 'function') renderGoals();
+        if (id === 'financeSec') {
+          if (typeof renderFinance === 'function') renderFinance();
+          if (typeof renderAnalytics === 'function') renderAnalytics();
+        }
+        if (id === 'todoSec') {
+          if (typeof renderTodo === 'function') renderTodo();
+          if (typeof renderTodoAnalytics === 'function') renderTodoAnalytics();
+        }
+        if (id === 'focusSec' && typeof renderFocusHistory === 'function') renderFocusHistory();
+        if (id === 'overviewSec' && typeof renderOverview === 'function') renderOverview();
+        if (id === 'subjectsSec' && typeof renderSubjects === 'function') renderSubjects();
+        if (id === 'serversSec' && typeof initServers === 'function') initServers();
+        if (id === 'zenLabsSec' && typeof initMathAgent === 'function') initMathAgent();
       } catch (e) {
         console.error('[Zenspace] Error rendering section contents:', e);
       }
@@ -11320,6 +11322,22 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       }
     }
     
+    function initNavTriggers() {
+      document.querySelectorAll('[data-sec]').forEach(el => {
+        el.onclick = (e) => {
+          e.preventDefault();
+          const secId = el.getAttribute('data-sec');
+          if (secId) goTo(secId);
+        };
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initNavTriggers);
+    } else {
+      initNavTriggers();
+    }
+
     // Global event delegation for all section navigation triggers
     document.addEventListener('click', e => {
       const secBtn = e.target.closest('[data-sec]');
