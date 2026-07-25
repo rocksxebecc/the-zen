@@ -10938,43 +10938,55 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       })();
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
       if (typeof renderSubjects === 'function') renderSubjects();
-      // Fetch cloud subjects & finance & subscribe to realtime cross-device updates
+      // Fetch cloud subjects, finance, tasks, goals & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
         try {
-          const [cloudSubj, cloudTxns] = await Promise.all([
+          const [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
             window.ZenAuth.fetchUserState('subjects'),
-            window.ZenAuth.fetchUserState('finance')
+            window.ZenAuth.fetchUserState('finance'),
+            window.ZenAuth.fetchUserState('tasks'),
+            window.ZenAuth.fetchUserState('goals')
           ]);
-          if (Array.isArray(cloudSubj)) {
-            if (cloudSubj.length > 0) {
-              subjects = cloudSubj;
-              sv('subjects', subjects);
-              renderSubjects();
-              updateOvStats();
-            } else if (subjects && subjects.length > 0) {
-              await window.ZenAuth.upsertUserState('subjects', subjects);
-            }
+
+          if (Array.isArray(cloudSubj) && cloudSubj.length > 0) {
+            subjects = cloudSubj;
+            sv('subjects', subjects);
+            if (typeof renderSubjects === 'function') renderSubjects();
           } else if (subjects && subjects.length > 0) {
             await window.ZenAuth.upsertUserState('subjects', subjects);
           }
 
-          if (Array.isArray(cloudTxns)) {
-            if (cloudTxns.length > 0) {
-              txns = cloudTxns;
-              sv('finance', txns);
-              renderFinance();
-              renderAnalytics();
-              updateOvStats();
-            } else if (txns && txns.length > 0) {
-              await window.ZenAuth.upsertUserState('finance', txns);
-            }
+          if (Array.isArray(cloudTxns) && cloudTxns.length > 0) {
+            txns = cloudTxns;
+            sv('finance', txns);
+            if (typeof renderFinance === 'function') renderFinance();
+            if (typeof renderAnalytics === 'function') renderAnalytics();
           } else if (txns && txns.length > 0) {
             await window.ZenAuth.upsertUserState('finance', txns);
           }
+
+          if (Array.isArray(cloudTasks) && cloudTasks.length > 0) {
+            tasks = cloudTasks;
+            sv('tasks', tasks);
+            if (typeof renderTodo === 'function') renderTodo();
+          } else if (tasks && tasks.length > 0) {
+            await window.ZenAuth.upsertUserState('tasks', tasks);
+          }
+
+          if (Array.isArray(cloudGoals) && cloudGoals.length > 0) {
+            goals = cloudGoals;
+            sv('goals', goals);
+            if (typeof renderGoals === 'function') renderGoals();
+          } else if (goals && goals.length > 0) {
+            await window.ZenAuth.upsertUserState('goals', goals);
+          }
+
+          if (typeof updateOvStats === 'function') updateOvStats();
         } catch (err) {
           console.error('[Zenspace] Error syncing cloud user state:', err);
         }
       }
+
       if (window.ZenAuth && window.ZenAuth.getSupabaseClient && user) {
         const client = ZenAuth.getSupabaseClient();
         if (client) {
@@ -10986,18 +10998,14 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
               table: 'user_state',
               filter: `user_id=eq.${user.id}`
             }, payload => {
-              if (payload.new && payload.new.key === 'subjects') {
-                subjects = payload.new.value || [];
-                sv('subjects', subjects);
-                renderSubjects();
-                updateOvStats();
-              }
-              if (payload.new && payload.new.key === 'finance') {
-                txns = payload.new.value || [];
-                sv('finance', txns);
-                renderFinance();
-                renderAnalytics();
-                updateOvStats();
+              if (payload.new) {
+                const k = payload.new.key;
+                const v = payload.new.value || [];
+                if (k === 'subjects') { subjects = v; sv('subjects', subjects); if (typeof renderSubjects === 'function') renderSubjects(); }
+                if (k === 'finance') { txns = v; sv('finance', txns); if (typeof renderFinance === 'function') renderFinance(); if (typeof renderAnalytics === 'function') renderAnalytics(); }
+                if (k === 'tasks') { tasks = v; sv('tasks', tasks); if (typeof renderTodo === 'function') renderTodo(); }
+                if (k === 'goals') { goals = v; sv('goals', goals); if (typeof renderGoals === 'function') renderGoals(); }
+                if (typeof updateOvStats === 'function') updateOvStats();
               }
             })
             .subscribe();
