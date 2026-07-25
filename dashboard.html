@@ -11543,7 +11543,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     const PREMIUM_SECTIONS = new Set(['subjectsSec', 'documentsSec', 'financeSec']);
 
     async function syncAllFromCloud() {
-      if (!window.ZenAuth || !window.ZenAuth.fetchUserState) return;
+      if (!window.ZenAuth || !window.ZenAuth.fetchUserState || !user) return;
       try {
         const [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
           window.ZenAuth.fetchUserState('subjects'),
@@ -11871,6 +11871,15 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       notes = await ZenAuth.fetchNotes();
       notes.forEach(n => { n.tags = ld('ntags-' + n.id, []); n.color = ld('ncolor-' + n.id, '#1A1A1A'); n.images = ld('nimgs-' + n.id, []); });
       renderOverview(); syncDisplays(); renderSubjects();
+      // ── Final re-render: call goTo() on current section so data is visible immediately after refresh ──
+      try {
+        const _activeSec = localStorage.getItem('zs-active-sec') ||
+          (window.location.hash ? window.location.hash.substring(1) : 'overviewSec');
+        const _validSecs = ['overviewSec','subjectsSec','todoSec','goalsSec','focusSec','financeSec','notesSec','documentsSec','zenLabsSec','serversSec'];
+        if (_validSecs.includes(_activeSec) && typeof goTo === 'function') {
+          await goTo(_activeSec);
+        }
+      } catch (e) { console.error('[Zenspace] Error on post-auth section restore:', e); }
       // Apply private folder hidden state on load
       applyPrivateFolderVisibility();
       // ══ SUBSCRIPTION CHECK ══
