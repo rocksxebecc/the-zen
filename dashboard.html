@@ -499,11 +499,16 @@
       margin-bottom: 20px;
     }
 
+    /* Background picker button & Dropdown */
     .fc-bg-controls {
       display: flex;
       align-items: center;
       gap: 8px;
       z-index: 3;
+    }
+
+    .fc-bg-picker-wrap {
+      position: relative;
     }
 
     .fc-bg-btn {
@@ -533,6 +538,132 @@
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+
+    .fc-bg-dropdown {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 230px;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-md);
+      padding: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,.3);
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      display: none;
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dropdown {
+      background: rgba(20, 20, 20, 0.94);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    .fc-bg-dd-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 8px;
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dd-title {
+      color: rgba(255,255,255,0.65);
+    }
+
+    .fc-bg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .fc-bg-thumb {
+      height: 54px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      padding: 0;
+      cursor: pointer;
+      background: #000;
+      transition: all .18s;
+      position: relative;
+    }
+
+    .fc-bg-thumb:hover {
+      border-color: var(--accent);
+      transform: scale(1.03);
+    }
+
+    .fc-bg-thumb.active {
+      border-color: #fff !important;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+    }
+
+    .fc-bg-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .fc-bg-dd-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 8px 0;
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dd-divider {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .fc-bg-dd-opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 7px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--ink);
+      transition: background .15s;
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      background: none;
+      text-align: left;
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dd-opt {
+      color: #fff;
+    }
+
+    .fc-bg-dd-opt:hover {
+      background: var(--surface-2);
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dd-opt:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .fc-bg-dd-opt svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .fc-bg-dd-opt.danger {
+      color: var(--error);
+    }
+
+    #focusSec.has-custom-bg .fc-bg-dd-opt.danger {
+      color: #ff6b6b;
     }
 
     .fc-opacity-slider {
@@ -4098,17 +4229,45 @@
           <h1>Focus Timer</h1>
           <!-- Whole-page BG photo controls -->
           <div class="fc-bg-controls">
+            <!-- Preset & Custom Background Picker Menu -->
+            <div class="fc-bg-picker-wrap">
+              <button class="fc-bg-btn" title="Choose background theme" id="fcBgPickerBtn" onclick="toggleFcBgMenu(event)">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <!-- Dropdown menu -->
+              <div class="fc-bg-dropdown" id="fcBgDropdown">
+                <div class="fc-bg-dd-title">Preset Themes</div>
+                <div class="fc-bg-grid">
+                  <button class="fc-bg-thumb" data-preset="assets/focus_bg/preset1.jpg" onclick="fcSelectPreset('assets/focus_bg/preset1.jpg', this)" title="Anime Sunset Coast">
+                    <img src="assets/focus_bg/preset1.jpg" alt="Sunset Coast" />
+                  </button>
+                  <button class="fc-bg-thumb" data-preset="assets/focus_bg/preset2.jpg" onclick="fcSelectPreset('assets/focus_bg/preset2.jpg', this)" title="Misty Mountain Lake">
+                    <img src="assets/focus_bg/preset2.jpg" alt="Misty Mountain" />
+                  </button>
+                  <button class="fc-bg-thumb" data-preset="assets/focus_bg/preset3.jpg" onclick="fcSelectPreset('assets/focus_bg/preset3.jpg', this)" title="Canoe & Reflection Lake">
+                    <img src="assets/focus_bg/preset3.jpg" alt="Canoe Lake" />
+                  </button>
+                  <button class="fc-bg-thumb" data-preset="assets/focus_bg/preset4.jpg" onclick="fcSelectPreset('assets/focus_bg/preset4.jpg', this)" title="Starry Tree & Lake">
+                    <img src="assets/focus_bg/preset4.jpg" alt="Starry Tree" />
+                  </button>
+                </div>
+                <div class="fc-bg-dd-divider"></div>
+                <label class="fc-bg-dd-opt" for="fcBgInput">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload Custom Photo…
+                  <input type="file" id="fcBgInput" accept="image/*" style="display:none" onchange="fcLoadBg(event)">
+                </label>
+                <button class="fc-bg-dd-opt danger" onclick="fcClearBg()">
+                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Remove Background
+                </button>
+              </div>
+            </div>
+
+            <!-- Opacity Slider -->
             <input type="range" class="fc-opacity-slider" id="fcOpacitySlider" min="10" max="95" value="50"
               title="Background opacity"
               oninput="fcSetOpacity(this.value)">
-            <button class="fc-bg-btn" title="Remove background photo" id="fcBgClearBtn"
-              onclick="fcClearBg()" style="display:none">
-              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-            <label class="fc-bg-btn" title="Set background photo" for="fcBgInput">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <input type="file" id="fcBgInput" accept="image/*" style="display:none" onchange="fcLoadBg(event)">
-            </label>
           </div>
         </div>
 
@@ -12066,6 +12225,28 @@ function initMathAgent() {
     function clearHistory() { const f = loadFD(); f.history = []; sv('focus', f); renderFocusHistory(); showToast('History cleared'); }
 
     /* ══ FOCUS CARD BACKGROUND PHOTO ══ */
+    function toggleFcBgMenu(e) {
+      if (e) e.stopPropagation();
+      const dd = document.getElementById('fcBgDropdown');
+      if (dd) dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('fcBgDropdown');
+      const btn = document.getElementById('fcBgPickerBtn');
+      if (dd && dd.style.display === 'block' && !dd.contains(e.target) && !btn.contains(e.target)) {
+        dd.style.display = 'none';
+      }
+    });
+
+    function fcSelectPreset(path, btnEl) {
+      localStorage.setItem('zen_focus_bg', path);
+      applyFcBg(path);
+      const dd = document.getElementById('fcBgDropdown');
+      if (dd) dd.style.display = 'none';
+      showToast('Theme updated!', 'success');
+    }
+
     function fcLoadBg(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -12075,15 +12256,19 @@ function initMathAgent() {
         const dataUrl = e.target.result;
         try { localStorage.setItem('zen_focus_bg', dataUrl); } catch(err) { showToast('Image too large for browser storage', 'warn'); }
         applyFcBg(dataUrl, 50);
-        showToast('Background photo set!', 'success');
+        const dd = document.getElementById('fcBgDropdown');
+        if (dd) dd.style.display = 'none';
+        showToast('Custom photo set!', 'success');
       };
       reader.readAsDataURL(file);
     }
+
     function fcSetOpacity(val) {
       const bgImg = document.getElementById('fcBgImg');
       if (bgImg) bgImg.style.opacity = val / 100;
       localStorage.setItem('zen_focus_bg_opacity', val);
     }
+
     function fcClearBg() {
       localStorage.removeItem('zen_focus_bg');
       localStorage.removeItem('zen_focus_bg_opacity');
@@ -12091,23 +12276,24 @@ function initMathAgent() {
       const bgImg = document.getElementById('fcBgImg');
       const overlay = document.getElementById('fcBgOverlay');
       const slider = document.getElementById('fcOpacitySlider');
-      const clearBtn = document.getElementById('fcBgClearBtn');
       const input = document.getElementById('fcBgInput');
+      const dd = document.getElementById('fcBgDropdown');
 
       if (sec) sec.classList.remove('has-custom-bg');
       if (bgImg) { bgImg.style.backgroundImage = 'none'; bgImg.style.opacity = 0.5; }
       if (overlay) overlay.style.display = 'none';
       if (slider) { slider.classList.remove('visible'); slider.value = 50; }
-      if (clearBtn) clearBtn.style.display = 'none';
       if (input) input.value = '';
+      if (dd) dd.style.display = 'none';
+      document.querySelectorAll('.fc-bg-thumb').forEach(t => t.classList.remove('active'));
       showToast('Background photo removed');
     }
+
     function applyFcBg(dataUrl, savedOpacity) {
       const sec = document.getElementById('focusSec');
       const bgImg = document.getElementById('fcBgImg');
       const overlay = document.getElementById('fcBgOverlay');
       const slider = document.getElementById('fcOpacitySlider');
-      const clearBtn = document.getElementById('fcBgClearBtn');
       const opVal = savedOpacity !== undefined && savedOpacity !== null ? savedOpacity : (localStorage.getItem('zen_focus_bg_opacity') || 50);
 
       if (sec) sec.classList.add('has-custom-bg');
@@ -12120,8 +12306,11 @@ function initMathAgent() {
         slider.value = opVal;
         slider.classList.add('visible');
       }
-      if (clearBtn) clearBtn.style.display = 'grid';
+      document.querySelectorAll('.fc-bg-thumb').forEach(t => {
+        t.classList.toggle('active', t.getAttribute('data-preset') === dataUrl);
+      });
     }
+
     function initFcBg() {
       const savedBg = localStorage.getItem('zen_focus_bg');
       const savedOp = localStorage.getItem('zen_focus_bg_opacity');
