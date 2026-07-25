@@ -1949,6 +1949,13 @@
        • Bilateral-filter-style response parsing
     ══════════════════════════════════════════════════════════════ */
 
+    
+    // Safe DOM helpers
+    function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+    function setElHtml(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
+    function setElDisabled(id, val) { const el = document.getElementById(id); if (el) el.disabled = !!val; }
+    function setElStyle(id, prop, val) { const el = document.getElementById(id); if (el && el.style) el.style[prop] = val; }
+
     const STATE = {
       mode: 'step-by-step',
       messages: [],       // API message history
@@ -2159,7 +2166,7 @@
       const subj = SUBJECT_DATA[STATE.subject];
       const topicObj = subj?.topics?.find(t => t.id === STATE.topic);
       const status = topicObj ? `${subj.label} · ${topicObj.label}` : (subj?.label || 'All subjects');
-      document.getElementById('agentStatus').textContent = `${status} · Vision enabled`;
+      setElText('agentStatus', `${status} · Vision enabled`);
     }
 
     // ── MODE ──────────────────────────────────────────────────────
@@ -2175,7 +2182,7 @@
         'explore': 'Explore',
         'phd': 'PhD⚡',
       };
-      document.getElementById('statMode').textContent = labels[mode] || mode;
+      setElText('statMode', labels[mode] || mode);
     }
 
     function switchPanel(name, btn) {
@@ -2370,9 +2377,9 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
           video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
         document.getElementById('cameraVideo').srcObject = cameraStream;
-        document.getElementById('cameraHint').textContent = 'Camera active · Position math problem in frame · Tap Capture';
+        setElText('cameraHint', 'Camera active · Position math problem in frame · Tap Capture');
       } catch (err) {
-        document.getElementById('cameraHint').textContent = 'Camera access denied. Please use the Upload button instead.';
+        setElText('cameraHint', 'Camera access denied. Please use the Upload button instead.');
         document.getElementById('captureBtn').disabled = true;
       }
     }
@@ -2404,7 +2411,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
 
       STATE.pendingImages.push({ dataUrl, base64, mimeType: 'image/jpeg', source: 'camera' });
       STATE.imagesScanned++;
-      document.getElementById('statImages').textContent = STATE.imagesScanned;
+      setElText('statImages', STATE.imagesScanned);
 
       addPreviewThumb(dataUrl, STATE.pendingImages.length - 1);
       closeCamera();
@@ -2464,7 +2471,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       autoResize(input);
       STATE.isLoading = true;
       sendBtn.disabled = true;
-      document.getElementById('agentStatus').textContent = 'Solving…';
+      setElText('agentStatus', 'Solving…');
 
       // Build user message content (OpenAI-compatible for Groq)
       const msgContent = hasImages
@@ -2521,7 +2528,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
         if (useCustom && !customKey) {
           removeTyping(typingId);
           appendError('API key is enabled in Settings, but no key has been entered. Please enter your API key (starts with gsk_) or disable the toggle to use the free engine.');
-          document.getElementById('agentStatus').textContent = 'API key required';
+          setElText('agentStatus', 'API key required');
           STATE.isLoading = false; sendBtn.disabled = false; input.focus();
           return;
         }
@@ -2564,9 +2571,9 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
         STATE.solved++;
         STATE.totalTime += parseFloat(elapsed);
         addToHistory(displayText, domain);
-        document.getElementById('statSolved').textContent = STATE.solved;
-        document.getElementById('statTime').textContent = (STATE.totalTime / STATE.solved).toFixed(1) + 's';
-        document.getElementById('agentStatus').textContent = `Solved in ${elapsed}s · ${STATE.solved} problems this session`;
+        setElText('statSolved', STATE.solved);
+        setElText('statTime', (STATE.totalTime / STATE.solved).toFixed(1) + 's');
+        setElText('agentStatus', `Solved in ${elapsed}s · ${STATE.solved} problems this session`);
 
       } catch (err) {
         removeTyping(typingId);
@@ -2583,7 +2590,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
           msg = 'AI engine is temporarily busy — please try again in a moment.';
         }
         appendError(msg);
-        document.getElementById('agentStatus').textContent = 'Error — see message below';
+        setElText('agentStatus', 'Error — see message below');
         console.error('Sugii:', err);
       }
 
@@ -2908,7 +2915,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       <div class="welcome-orb">📖</div>
       <h2><em>Sugii</em></h2>
     </div>`;
-      document.getElementById('agentStatus').textContent = 'Your all-subject study companion · Vision enabled';
+      setElText('agentStatus', 'Your all-subject study companion · Vision enabled');
     }
 
     // ── FOLLOW UP ─────────────────────────────────────────────────
