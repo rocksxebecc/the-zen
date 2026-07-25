@@ -3956,7 +3956,8 @@
         <div class="main-header">
           <h1 style="font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.02em;">Subjects &amp;
             Attendance</h1>
-          <button class="btn btn-primary btn-sm ml" onclick="openModal('subjectModal')">+ Add subject</button>
+          <button class="btn btn-ghost btn-sm" onclick="manualCloudSync()" title="Sync data across devices" style="margin-left:auto">☁️ Sync Cloud</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Add subject</button>
         </div>
         <div
           style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:18px;display:flex;gap:28px;flex-wrap:wrap;align-items:center">
@@ -10861,6 +10862,27 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
         if (typeof updateOvStats === 'function') updateOvStats();
       } catch (err) {
         console.error('[Zenspace] Error in syncAllFromCloud:', err);
+      }
+    }
+
+    async function manualCloudSync() {
+      showToast('Syncing with Zenspace cloud...', 'default');
+      if (!window.ZenAuth || !window.ZenAuth.getUserAsync) {
+        showToast('Auth system initializing', 'error');
+        return;
+      }
+      const u = await window.ZenAuth.getUserAsync();
+      if (!u) {
+        showToast('Please log in to sync data across devices', 'error');
+        return;
+      }
+      try {
+        if (typeof syncSubjects === 'function') await syncSubjects();
+        await syncAllFromCloud();
+        showToast(`✓ Cloud sync complete (${u.email})`, 'success');
+      } catch (e) {
+        console.error('[Zenspace] Manual cloud sync error:', e);
+        showToast('Cloud sync error: ' + (e.message || 'Check network connection'), 'error');
       }
     }
 
