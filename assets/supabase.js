@@ -10,9 +10,12 @@
         HTML files with the async helpers exported here.
    ========================================================= */
 
-// ── 1. Configuration ──────────────────────────────────────
-const SUPABASE_URL = 'https://bqtyvvzhnkesitodaqgu.supabase.co'; // base project URL only — no /rest/v1/
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxdHl2dnpobmtlc2l0b2RhcWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjE4MDYsImV4cCI6MjA5NDAzNzgwNn0.lhIemhIriOqlqMDm1jJW-97pAlqhl0izkycK_gfBDUo';                 // ← replace
+(function (window) {
+  'use strict';
+
+  // ── 1. Configuration ──────────────────────────────────────
+  var SUPABASE_URL = window.SUPABASE_URL || 'https://bqtyvvzhnkesitodaqgu.supabase.co'; // base project URL only — no /rest/v1/
+  var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxdHl2dnpobmtlc2l0b2RhcWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjE4MDYsImV4cCI6MjA5NDAzNzgwNn0.lhIemhIriOqlqMDm1jJW-97pAlqhl0izkycK_gfBDUo';
 
 // ── 2. Load the Supabase JS SDK (CDN) ────────────────────
 //  This file must be loaded AFTER the Supabase CDN script tag, OR you can
@@ -529,7 +532,7 @@ async function upsertUserState(key, value) {
     key: key,
     value: value,
     updated_at: new Date().toISOString()
-  });
+  }, { onConflict: 'user_id,key' });
 
   if (error) {
     if (error.code === '42P01' || error.message.includes('user_state')) {
@@ -569,3 +572,5 @@ window.ZenAuth = {
   fetchUserState,
   upsertUserState,
 };
+
+})(window);
