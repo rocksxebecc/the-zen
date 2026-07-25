@@ -2245,7 +2245,7 @@
     }
 
     function saveCustomApiKey() {
-      const key = document.getElementById('customApiKeyInput').value.trim();
+      const key = document.getElementById('customApiKeyInput')?.value?.trim() || '';
       localStorage.setItem('zs-math-custom-groq-key', key);
       updateCustomKeyStatus();
     }
@@ -2508,7 +2508,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
             return { role: m.role, content: m.content };
           }),
         ];
-        const temp = parseFloat(document.getElementById('settingTemp').value) / 100;
+        const temp = parseFloat(document.getElementById('settingTemp')?.value || 20) / 100;
         // Auto-select vision model when images are included — the text model doesn't support image_url
         const activeModel = hasImages ? GROQ_VISION_MODEL : GROQ_MODEL;
         const payload = { model: activeModel, messages, max_tokens: 8192, temperature: temp };
@@ -2595,7 +2595,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       const container = document.getElementById('chatMessages');
       const row = document.createElement('div');
       row.className = 'msg-row user';
-      const initials = document.getElementById('navAvatar').textContent || 'U';
+      const initials = document.getElementById('navAvatar')?.textContent || 'U';
       const imagesHtml = images.map(img =>
         `<img src="${img.dataUrl}" class="user-img-preview" alt="Problem image">`
       ).join('');
@@ -2619,7 +2619,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       const row = document.createElement('div');
       row.className = 'msg-row';
       const bubbleId = 'bubble-' + Date.now();
-      const showReasoning = document.getElementById('togReasoning').classList.contains('on');
+      const showReasoning = document.getElementById('togReasoning')?.classList.contains('on');
 
       const formattedHtml = formatResponse(text);
       const thinkHtml = showReasoning ? buildThinkBlock(text, userQ) : '';
@@ -2656,7 +2656,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       container.appendChild(row);
 
       // KaTeX rendering
-      if (document.getElementById('togLatex').classList.contains('on') && window.renderMathInElement) {
+      if (document.getElementById('togLatex')?.classList.contains('on') && window.renderMathInElement) {
         setTimeout(() => {
           try {
             renderMathInElement(document.getElementById(bubbleId), {
@@ -2693,8 +2693,8 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       </button>
       <div class="think-body" id="${id}-body">
         <strong>Solver mode:</strong> ${STATE.mode.replace('-', ' ')} ·
-        <strong>Domain:</strong> ${document.getElementById('settingDomain').value.replace('_', ' ')} ·
-        <strong>Temperature:</strong> ${(parseFloat(document.getElementById('settingTemp').value) / 100).toFixed(2)}
+        <strong>Domain:</strong> ${(document.getElementById('settingDomain')?.value || 'auto').replace('_', ' ')} ·
+        <strong>Temperature:</strong> ${((parseFloat(document.getElementById('settingTemp')?.value || 20)) / 100).toFixed(2)}
         <br><br>
         Solution contains <strong>${steps}</strong> explicit steps,
         <strong>${equations}</strong> display equations,
@@ -2819,14 +2819,14 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
 
     function appendError(msg) {
       const container = document.getElementById('chatMessages');
+      if (!container) return;
       const row = document.createElement('div');
       row.className = 'msg-row';
       row.innerHTML = `
     <div class="msg-av agent">∑</div>
     <div class="msg-body">
       <div class="err-bubble">
-        <strong>Error:</strong> ${escHtml(msg)}<br>
-        <span style="font-size:.75rem;opacity:.8">The page must be served from a web server. If running locally, try: <code>npx serve .</code></span>
+        <strong>Error:</strong> ${escHtml(msg)}
       </div>
     </div>`;
       container.appendChild(row);
