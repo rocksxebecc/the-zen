@@ -1831,14 +1831,7 @@
               <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
             </svg>
           </button>
-          <button class="icon-btn" title="Toggle Settings & Examples" onclick="toggleRightSidebar()"
-            id="toggleSettingsBtn">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-            </svg>
-          </button>
+
           <button class="icon-btn" title="Toggle Light/Dark Theme" onclick="toggleTheme()" id="themeToggleBtn">
             <svg viewBox="0 0 24 24" id="themeIcon"
               style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;">
@@ -1849,33 +1842,6 @@
         </div>
       </div>
 
-      <!-- Mode bar -->
-      <div class="mode-bar">
-        <button class="mode-btn active" onclick="setMode('step-by-step',this)">Step-by-Step</button>
-        <button class="mode-btn" onclick="setMode('direct',this)">Direct Answer</button>
-        <button class="mode-btn" onclick="setMode('proof',this)">Formal Proof</button>
-        <button class="mode-btn" onclick="setMode('verify',this)">Verify</button>
-        <button class="mode-btn" onclick="setMode('explore',this)">Deep Explore</button>
-        <button class="mode-btn" onclick="setMode('phd',this)">⚡ PhD Mode</button>
-      </div>
-
-      <!-- Subject Selector Bar -->
-      <div class="subject-bar" id="subjectBar">
-        <div class="subject-row">
-          <span class="subject-label">Subject</span>
-          <button class="subj-pill active" data-subj="math" onclick="selectSubject('math',this)">📐 Mathematics</button>
-          <button class="subj-pill" data-subj="physics" onclick="selectSubject('physics',this)">⚛️ Physics</button>
-          <button class="subj-pill" data-subj="chemistry" onclick="selectSubject('chemistry',this)">🧪
-            Chemistry</button>
-          <button class="subj-pill" data-subj="biology" onclick="selectSubject('biology',this)">🧬 Biology</button>
-          <button class="subj-pill" data-subj="cs" onclick="selectSubject('cs',this)">💻 Comp. Sci</button>
-          <button class="subj-pill" data-subj="economics" onclick="selectSubject('economics',this)">📊
-            Economics</button>
-        </div>
-        <div class="topic-row show" id="topicRow">
-          <span class="subject-label">Topic</span>
-        </div>
-      </div>
 
       <!-- Messages -->
       <div id="chatMessages">
@@ -1885,19 +1851,6 @@
           <p>PhD-level mathematics powered by Llama 3.3. Handles everything from undergraduate calculus to
             graduate-level real analysis, algebraic topology, measure theory, abstract algebra, and beyond. Now with
             vision — scan or photograph any problem.</p>
-          <div class="capability-pills">
-            <span class="cap-pill">∫ Analysis</span>
-            <span class="cap-pill">∑ Algebra</span>
-            <span class="cap-pill">⊗ Linear Algebra</span>
-            <span class="cap-pill">σ Probability</span>
-            <span class="cap-pill">∂ PDEs / ODEs</span>
-            <span class="cap-pill">ℕ Number Theory</span>
-            <span class="cap-pill">⌂ Topology</span>
-            <span class="cap-pill">∇ Differential Geometry</span>
-            <span class="cap-pill">∀ Logic & Proofs</span>
-            <span class="cap-pill">∞ Measure Theory</span>
-            <span class="cap-pill">📸 Vision OCR</span>
-          </div>
         </div>
       </div>
 
@@ -1938,9 +1891,7 @@
             <textarea id="mathInput" rows="1"
               placeholder="Ask any math problem… e.g. Prove the Riemann hypothesis is equivalent to… or Solve the Navier–Stokes… or just snap a photo ↑"
               onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-            <div class="input-hint">
-              <kbd>Enter</kbd> send · <kbd>Shift+Enter</kbd> newline · Supports LaTeX $…$ and $$…$$
-            </div>
+
           </div>
           <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
             <svg viewBox="0 0 24 24">
@@ -1952,166 +1903,7 @@
       </div>
     </main>
 
-    <!-- RIGHT PANEL -->
-    <aside class="sidebar-right closed" id="rightSidebar">
-      <div class="panel-tabs">
-        <button class="panel-tab active" onclick="switchPanel('settings',this)">Settings</button>
-        <button class="panel-tab" onclick="switchPanel('examples',this)">Examples</button>
-        <button class="panel-tab" onclick="switchPanel('stats',this)">Stats</button>
-      </div>
 
-      <!-- Settings pane -->
-      <div class="panel-pane active" id="pane-settings">
-
-        <!-- ── API KEY ────────────────────────────────────── -->
-        <div class="panel-section"
-          style="background:rgba(139,92,246,.08);border-radius:10px;padding:12px 14px;margin-bottom:2px">
-          <div class="panel-label" style="color:var(--accent-2);margin-bottom:6px">⚡ AI Engine</div>
-          <div
-            style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(139,92,246,.25);border-radius:8px;padding:8px 12px">
-            <span style="font-size:1.1rem">🤖</span>
-            <div>
-              <div style="font-size:.78rem;font-weight:600;color:var(--ink-1)">Advanced AI Engine</div>
-              <div style="font-size:.67rem;color:var(--ink-4)">PhD-level math · Ultra-fast inference</div>
-            </div>
-            <span
-              style="margin-left:auto;font-size:.65rem;background:rgba(74,222,128,.15);color:#4ade80;border-radius:20px;padding:2px 8px;font-weight:600">FREE</span>
-          </div>
-          <div style="margin-top:12px; border-top:1px solid rgba(139,92,246,.15); padding-top:12px">
-            <div class="setting-toggle-row" style="padding:0">
-              <span class="setting-label" style="font-size:.76rem; font-weight: 600;">Add API Key</span>
-              <button class="toggle" id="togCustomKey" onclick="toggleCustomKey()"></button>
-            </div>
-            <div id="customKeyContainer" style="display:none; margin-top:8px">
-              <div
-                style="font-size:.72rem;color:var(--ink-3);margin-bottom:8px;padding:8px 10px;background:rgba(139,92,246,.08);border-radius:7px;border:1px solid rgba(139,92,246,.2)">
-                🔑 Use a <strong style="color:var(--ink-2)">Groq API key</strong> — get one free at <a
-                  href="https://console.groq.com" target="_blank"
-                  style="color:var(--accent);text-decoration:none">console.groq.com</a>
-              </div>
-              <div style="position:relative">
-                <input type="password" id="customApiKeyInput" placeholder="gsk_…" oninput="saveCustomApiKey()"
-                  style="width:100%;box-sizing:border-box;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:8px 36px 8px 10px;font-size:.78rem;color:var(--ink-2);font-family:var(--mono);outline:none;transition:border-color .2s"
-                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-2)'" />
-                <button onclick="toggleCustomKeyVis()" title="Show/hide key" id="customApiVisBtn"
-                  style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-3);font-size:.9rem;padding:0;line-height:1">👁</button>
-              </div>
-              <div id="customKeyStatus" style="font-size:.66rem;margin-top:5px;color:var(--ink-3)">Paste your Groq API
-                key above (starts with gsk_).</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel-section">
-          <div class="panel-label">Solver Settings</div>
-          <div class="setting-row">
-            <div class="setting-label">Response Detail</div>
-            <select class="setting-select" id="settingDetail">
-              <option value="comprehensive">Comprehensive</option>
-              <option value="concise">Concise</option>
-              <option value="minimal">Minimal</option>
-            </select>
-          </div>
-          <div class="setting-row">
-            <div class="setting-label">Domain Focus</div>
-            <select class="setting-select" id="settingDomain">
-              <option value="auto">Auto-detect</option>
-              <option value="algebra">Abstract Algebra</option>
-              <option value="analysis">Real Analysis</option>
-              <option value="complex">Complex Analysis</option>
-              <option value="topology">Topology</option>
-              <option value="diff_geo">Differential Geometry</option>
-              <option value="calculus">Calculus</option>
-              <option value="linear_algebra">Linear Algebra</option>
-              <option value="statistics">Probability & Stats</option>
-              <option value="number_theory">Number Theory</option>
-              <option value="pde">PDEs</option>
-              <option value="combinatorics">Combinatorics</option>
-              <option value="logic">Mathematical Logic</option>
-            </select>
-          </div>
-          <div class="setting-row">
-            <div class="setting-label">Temperature</div>
-            <div class="range-row">
-              <input type="range" min="0" max="100" value="15" id="settingTemp"
-                oninput="document.getElementById('tempVal').textContent=(this.value/100).toFixed(2)">
-              <span class="range-val" id="tempVal">0.15</span>
-            </div>
-          </div>
-        </div>
-        <div class="panel-section">
-          <div class="panel-label">Display Options</div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Show Reasoning</span>
-            <button class="toggle on" id="togReasoning" onclick="this.classList.toggle('on')"></button>
-          </div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">LaTeX Rendering</span>
-            <button class="toggle on" id="togLatex" onclick="this.classList.toggle('on')"></button>
-          </div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Show Confidence</span>
-            <button class="toggle" id="togConf" onclick="this.classList.toggle('on')"></button>
-          </div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Auto-verify</span>
-            <button class="toggle" id="togVerify" onclick="this.classList.toggle('on')"></button>
-          </div>
-        </div>
-        <div class="panel-section" style="border-bottom:none">
-          <div class="panel-label">PhD Mode Options</div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Cite Theorems</span>
-            <button class="toggle on" id="togCite" onclick="this.classList.toggle('on')"></button>
-          </div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Show Generalizations</span>
-            <button class="toggle" id="togGen" onclick="this.classList.toggle('on')"></button>
-          </div>
-          <div class="setting-toggle-row">
-            <span class="setting-label">Open Problems</span>
-            <button class="toggle" id="togOpen" onclick="this.classList.toggle('on')"></button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Examples pane -->
-      <div class="panel-pane" id="pane-examples">
-        <div class="examples-grid" id="examplesGrid"></div>
-      </div>
-
-      <!-- Stats pane -->
-      <div class="panel-pane" id="pane-stats">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Solved</div>
-            <div class="stat-val" id="statSolved">0</div>
-            <div class="stat-sub">this session</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Avg Time</div>
-            <div class="stat-val" id="statTime">—</div>
-            <div class="stat-sub">seconds</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Images</div>
-            <div class="stat-val" id="statImages">0</div>
-            <div class="stat-sub">scanned</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Mode</div>
-            <div class="stat-val" style="font-size:.75rem;margin-top:2px" id="statMode">Step</div>
-            <div class="stat-sub">active</div>
-          </div>
-        </div>
-        <div class="panel-section" style="border-bottom:none">
-          <div class="panel-label">Session Domains</div>
-          <div id="domainStats" style="display:flex;flex-direction:column;gap:4px;margin-top:4px">
-            <div style="font-size:.72rem;color:var(--ink-4);font-family:var(--font)">No problems solved yet</div>
-          </div>
-        </div>
-      </div>
-    </aside>
   </div>
 
   <!-- ══ CAMERA MODAL ══ -->
@@ -3117,19 +2909,6 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       <div class="welcome-orb">∑</div>
       <h2>Zen<em>lab</em></h2>
       <p>PhD-level mathematics powered by Llama 3.3. Handles everything from undergraduate calculus to graduate-level real analysis, algebraic topology, measure theory, abstract algebra, and beyond. Now with vision — scan or photograph any problem.</p>
-      <div class="capability-pills">
-        <span class="cap-pill">∫ Analysis</span>
-        <span class="cap-pill">∑ Algebra</span>
-        <span class="cap-pill">⊗ Linear Algebra</span>
-        <span class="cap-pill">σ Probability</span>
-        <span class="cap-pill">∂ PDEs / ODEs</span>
-        <span class="cap-pill">ℕ Number Theory</span>
-        <span class="cap-pill">⌂ Topology</span>
-        <span class="cap-pill">∇ Differential Geometry</span>
-        <span class="cap-pill">∀ Logic & Proofs</span>
-        <span class="cap-pill">∞ Measure Theory</span>
-        <span class="cap-pill">📸 Vision OCR</span>
-      </div>
     </div>`;
       document.getElementById('agentStatus').textContent = 'PhD-level solver · Vision enabled · Step-by-step reasoning';
     }
