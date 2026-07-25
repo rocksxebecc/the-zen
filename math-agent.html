@@ -2011,7 +2011,7 @@
           const p = await ZenAuth.getUserProfile();
           if (p) {
             document.getElementById('navName').textContent = p.name || p.email;
-            document.getElementById('navAvatar').textContent = (p.name || p.email || 'U')[0].toUpperCase();
+            if (document.getElementById('navAvatar')) document.getElementById('navAvatar').textContent = (p.name || p.email || 'U')[0].toUpperCase();
           }
         } catch (e) { }
       }
@@ -2314,7 +2314,7 @@
         'minimal': 'Give essential steps and the final answer. No elaboration.',
       };
 
-      const domainVal = document.getElementById('settingDomain').value;
+      const domainVal = document.getElementById('settingDomain')?.value || 'auto';
       const domainHint = domainVal !== 'auto'
         ? `Domain context: ${domainVal.replace('_', ' ')}. Apply domain-specific techniques and terminology.`
         : (topicContext || 'Apply the most appropriate techniques and domain-specific methods for this problem.');
@@ -2323,16 +2323,18 @@
         ? `Subject: ${subj.label} › ${topicObj.label}. ${topicContext}`
         : `Subject: ${subj.label}.`;
 
-      const showConf = document.getElementById('togConf').classList.contains('on');
-      const citeTh = document.getElementById('togCite').classList.contains('on');
-      const showGen = document.getElementById('togGen').classList.contains('on');
-      const showOpen = document.getElementById('togOpen').classList.contains('on');
-      const autoVerify = document.getElementById('togVerify').classList.contains('on');
+      const showConf = document.getElementById('togConf')?.classList.contains('on') || false;
+      const citeTh = document.getElementById('togCite')?.classList.contains('on') || false;
+      const showGen = document.getElementById('togGen')?.classList.contains('on') || false;
+      const showOpen = document.getElementById('togOpen')?.classList.contains('on') || false;
+      const autoVerify = document.getElementById('togVerify')?.classList.contains('on') || false;
+
+      const detailVal = document.getElementById('settingDetail')?.value || 'comprehensive';
 
       return `${modeMap[STATE.mode] || modeMap['step-by-step']}
 
 ${subjectLine}
-${detailMap[document.getElementById('settingDetail').value] || detailMap['comprehensive']}
+${detailMap[detailVal] || detailMap['comprehensive']}
 ${domainHint}
 
 CRITICAL FORMATTING RULES — follow exactly:
