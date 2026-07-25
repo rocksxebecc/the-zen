@@ -10869,6 +10869,673 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
   <script src="assets/zenspace.js"></script>
   <script src="assets/call-notify.js"></script>
   <script>
+    /* ══ NOTES ══ */
+    let notes = [], activeNote = null, noteTimer = null;
+    async function newNote() { const n = { id: crypto.randomUUID(), title: '', body: '', updated: Date.now(), tags: [], color: '#1A1A1A', images: [], is_private: currentNotesFolder === 'private' }; notes.unshift(n); renderNotesList(); openNote(n.id); await ZenAuth.upsertNote(n); }
+    function openNote(id) {
+      activeNote = id; const n = notes.find(x => x.id === id); if (!n) return;
+      if (n.is_private && !privateFolderUnlocked) { showToast('Private folder is locked', 'error'); return; }
+      document.getElementById('noteEmpty').style.display = 'none'; document.getElementById('noteActive').style.display = 'flex'; document.getElementById('noteTitleInp').value = n.title; document.getElementById('noteBodyInp').innerHTML = n.body || ''; const cp = document.getElementById('noteColorPick'); if (cp) cp.value = n.color || '#1A1A1A'; renderNoteTags(n); renderNoteImgs(n); countWords(); renderNotesList();
+    }
+    async function saveNote() { if (!activeNote) return; const n = notes.find(x => x.id === activeNote); if (!n) return; n.title = document.getElementById('noteTitleInp').value; n.body = document.getElementById('noteBodyInp').innerHTML; n.updated = Date.now(); sv('ntags-' + n.id, n.tags || []); sv('ncolor-' + n.id, n.color || '#1A1A1A'); renderNotesList(); await ZenAuth.upsertNote(n); }
+    async function saveNoteManual() { if (!activeNote) return; await saveNote(); const btn = document.getElementById('noteSaveBtn'); btn.classList.add('saved'); btn.textContent = '✓ Saved'; showToast('Saved!', 'success'); setTimeout(() => { btn.classList.remove('saved'); btn.textContent = ' Save'; }, 2000); }
+    async function deleteNote() { if (!activeNote) return; const id = activeNote; notes = notes.filter(n => n.id !== id); try { localStorage.removeItem(K('ntags-' + id)); localStorage.removeItem(K('ncolor-' + id)); localStorage.removeItem(K('nimgs-' + id)); } catch (e) { } activeNote = null; document.getElementById('noteEmpty').style.display = 'flex'; document.getElementById('noteActive').style.display = 'none'; renderNotesList(); await ZenAuth.deleteNoteById(id); showToast('Note deleted'); }
+    function setNoteColor(c) { if (!activeNote) return; const n = notes.find(x => x.id === activeNote); if (!n) return; n.color = c; sv('ncolor-' + n.id, c); renderNotesList(); }
+    function renderNoteTags(n) { const c = document.getElementById('noteTagsContainer'); if (!c) return; c.innerHTML = (n.tags || []).map((t, i) => `<span class="note-tag-chip" style="border-color:${n.color || '#1A1A1A'}">${esc(t)}<span class="tag-x" onclick="removeTag(${i})">Ã—</span></span>`).join(''); }
+    function handleTagKey(e) { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); const v = e.target.value.trim().replace(/,$/, ''); if (!v) return; const n = notes.find(x => x.id === activeNote); if (!n) return; if (!n.tags) n.tags = []; if (!n.tags.includes(v)) { n.tags.push(v); renderNoteTags(n); clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 500); } e.target.value = ''; } }
+    function removeTag(i) { const n = notes.find(x => x.id === activeNote); if (!n || !n.tags) return; n.tags.splice(i, 1); renderNoteTags(n); clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 500); }
+    /* ═══════════════════════════════════════════════
+       NOTE IMAGES — drag-to-place with default bottom strip
+    ═══════════════════════════════════════════════ */
+
+    function saveNoteImgs(n) {
+      try { sv('nimgs-' + n.id, n.images); } catch (e) { showToast('Storage full', 'error'); }
+    }
+
+    function getOrCreateImgLayer() {
+      let layer = document.getElementById('noteImgLayer');
+      if (layer) return layer;
+      const ta = document.getElementById('noteBodyInp');
+      if (!ta) return null;
+      // Wrap textarea in a relative container if not already wrapped
+      let wrapper = document.getElementById('noteBodyWrapper');
+      if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.id = 'noteBodyWrapper';
+        wrapper.style.cssText = 'position:relative;flex:1;display:flex;flex-direction:column;min-height:0';
+        ta.parentNode.insertBefore(wrapper, ta);
+        wrapper.appendChild(ta);
+        ta.style.flex = '1';
+      }
+      layer = document.createElement('div');
+      layer.id = 'noteImgLayer';
+      layer.className = 'note-img-layer';
+      layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:3;overflow:visible';
+      wrapper.appendChild(layer);
+      return layer;
+    }
+
+    function renderNoteImgs(n) {
+      const wrap = document.getElementById('noteImagesWrap');
+      const grid = document.getElementById('noteImgGrid');
+      const layer = getOrCreateImgLayer();
+      const imgs = n.images || [];
+
+      // Bottom strip: un-positioned images only
+      const bottomImgs = imgs.filter(img => img.x == null);
+      wrap.style.display = bottomImgs.length > 0 ? 'flex' : 'none';
+      grid.innerHTML = bottomImgs.map((img, i) => {
+        const realIdx = imgs.indexOf(img);
+        return `<div class="note-img-thumb">
+          <img src="${img.data}" alt="${esc(img.name)}"
+            onclick="document.getElementById('lightboxImg').src=this.src;document.getElementById('lightbox').classList.add('open')" />
+          <button class="note-img-del" onclick="removeNoteImg(${realIdx})">Ã—</button>
+          <button class="img-place-btn" onclick="placeImgInline(${realIdx})" title="Embed inline" style="right:48px;border-top-right-radius:0;border-bottom-left-radius:0;background:var(--ok)">Embed</button>
+          <button class="img-place-btn" onclick="placeImgInEditor(${realIdx})" title="Float over note">Float</button>
+        </div>`;
+      }).join('');
+
+      // Floating layer: positioned images
+      if (!layer) return;
+      layer.innerHTML = '';
+      imgs.forEach((img, i) => {
+        if (img.x == null) return;
+        const el = document.createElement('div');
+        el.className = 'note-img-float';
+        el.dataset.idx = i;
+        el.style.left = (img.x || 0) + 'px';
+        el.style.top = (img.y || 0) + 'px';
+        el.style.width = (img.w || 160) + 'px';
+        el.style.height = (img.h || 120) + 'px';
+        el.innerHTML = `
+          <img src="${img.data}" alt="${esc(img.name)}"
+            ondblclick="document.getElementById('lightboxImg').src=this.src;document.getElementById('lightbox').classList.add('open')" />
+          <button class="img-del-btn" onclick="removeNoteImg(${i})">Ã—</button>
+          <div class="img-resize-handle"></div>`;
+        attachImgDrag(el, i, n);
+        layer.appendChild(el);
+      });
+    }
+
+    function placeImgInEditor(i) {
+      const n = notes.find(x => x.id === activeNote); if (!n) return;
+      const img = n.images[i]; if (!img) return;
+      // Default placement: top-left with some padding
+      img.x = 16; img.y = 16; img.w = 160; img.h = 120;
+      saveNoteImgs(n); renderNoteImgs(n);
+      showToast('Image floating — drag to move, corner to resize', 'success', 3500);
+    }
+
+    function placeImgInline(i) {
+      const n = notes.find(x => x.id === activeNote); if (!n) return;
+      const img = n.images[i]; if (!img) return;
+      const ta = document.getElementById('noteBodyInp');
+      ta.focus();
+      document.execCommand('insertHTML', false, `&nbsp;<span class="inline-img-wrap" contenteditable="false" style="display:inline-block; position:relative; max-width:100%; width:300px; border-radius:8px; margin:8px; border:1px solid rgba(255,255,255,0.1);"><img src="${img.data}" alt="${esc(img.name)}" style="width:100%; height:auto; display:block;" ondblclick="document.getElementById('lightboxImg').src=this.src;document.getElementById('lightbox').classList.add('open')" /><button contenteditable="false" onclick="this.parentElement.remove(); saveNote();" style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; border:none; border-radius:50%; width:28px; height:28px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; line-height:1;" title="Delete image">Ã—</button><div class="inline-resize-handle" onmousedown="startInlineResize(event, this.parentElement)" style="position:absolute; bottom:0; right:0; width:20px; height:20px; cursor:nwse-resize; z-index:2;"></div></span>&nbsp;`);
+      n.images.splice(i, 1);
+      saveNoteImgs(n); renderNoteImgs(n); saveNote();
+      showToast('Image embedded! Drag bottom right corner to resize.', 'success');
+    }
+
+    function startInlineResize(e, wrap) {
+      e.preventDefault();
+      e.stopPropagation();
+      const startX = e.clientX;
+      const startW = wrap.offsetWidth;
+      function onMove(e2) {
+        wrap.style.width = Math.max(100, startW + (e2.clientX - startX)) + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        saveNote();
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    }
+
+    function attachImgDrag(el, idx, n) {
+      let dragging = false, resizing = false;
+      let startX, startY, origX, origY, origW, origH;
+      const handle = el.querySelector('.img-resize-handle');
+
+      el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('img-del-btn')) return;
+        e.preventDefault();
+        el.classList.add('selected');
+        // deselect others
+        document.querySelectorAll('.note-img-float').forEach(f => { if (f !== el) f.classList.remove('selected'); });
+
+        if (e.target === handle || e.target.classList.contains('img-resize-handle')) {
+          resizing = true;
+          startX = e.clientX; startY = e.clientY;
+          origW = el.offsetWidth; origH = el.offsetHeight;
+        } else {
+          dragging = true;
+          el.style.cursor = 'grabbing';
+          startX = e.clientX; startY = e.clientY;
+          origX = parseInt(el.style.left); origY = parseInt(el.style.top);
+        }
+      });
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+
+      function onMove(e) {
+        const img = n.images[idx]; if (!img) return;
+        const _taEl = document.getElementById('noteBodyInp');
+        const maxW = _taEl ? _taEl.offsetWidth : 9999;
+        const maxH = _taEl ? _taEl.offsetHeight : 9999;
+
+        if (dragging) {
+          const dx = e.clientX - startX, dy = e.clientY - startY;
+          const nx = Math.max(0, Math.min(origX + dx, maxW - el.offsetWidth));
+          const ny = Math.max(0, Math.min(origY + dy, maxH - el.offsetHeight));
+          el.style.left = nx + 'px'; el.style.top = ny + 'px';
+        }
+        if (resizing) {
+          const dx = e.clientX - startX, dy = e.clientY - startY;
+          const nw = Math.max(60, Math.min(origW + dx, maxW - parseInt(el.style.left)));
+          const nh = Math.max(40, origH + dy);
+          el.style.width = nw + 'px'; el.style.height = nh + 'px';
+        }
+      }
+
+      function onUp() {
+        if (!dragging && !resizing) return;
+        const img = n.images[idx]; if (!img) return;
+        img.x = parseInt(el.style.left); img.y = parseInt(el.style.top);
+        img.w = el.offsetWidth; img.h = el.offsetHeight;
+        saveNoteImgs(n);
+        dragging = false; resizing = false;
+        el.style.cursor = 'grab';
+      }
+    }
+
+    function handleImgUpload(event) {
+      if (!activeNote) { showToast('Open a note first', 'error'); return; }
+      const n = notes.find(x => x.id === activeNote); if (!n) return;
+      if (!n.images) n.images = [];
+      const files = Array.from(event.target.files);
+      let loaded = 0;
+      files.forEach(file => {
+        if (!file.type.startsWith('image/')) { loaded++; return; }
+        if (file.size > 4 * 1024 * 1024) { showToast('Max 4MB per image', 'error'); loaded++; return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          // No x/y = goes to bottom strip by default
+          n.images.push({ name: file.name, data: e.target.result });
+          loaded++;
+          if (loaded === files.length) {
+            saveNoteImgs(n); renderNoteImgs(n);
+            showToast(`${files.length} image${files.length !== 1 ? 's' : ''} added — click Place to position`, 'success', 4000);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      event.target.value = '';
+    }
+
+    function removeNoteImg(i) {
+      const n = notes.find(x => x.id === activeNote); if (!n || !n.images) return;
+      n.images.splice(i, 1);
+      saveNoteImgs(n); renderNoteImgs(n);
+    }
+
+    // Click outside floating images to deselect
+    document.addEventListener('mousedown', e => {
+      if (!e.target.closest('.note-img-float')) {
+        document.querySelectorAll('.note-img-float.selected').forEach(el => el.classList.remove('selected'));
+      }
+    });
+    function wrap(b, a) { const ta = document.getElementById('noteBodyInp'); ta.focus(); const sel = window.getSelection(); const text = sel.toString() || 'text'; document.execCommand('insertText', false, b + text + a); countWords(); clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 800); }
+    function insertLine(prefix) { const ta = document.getElementById('noteBodyInp'); ta.focus(); document.execCommand('insertText', false, '\n' + prefix); countWords(); clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 800); }
+    function countWords() { const b = document.getElementById('noteBodyInp').innerText || ''; const w = b.trim() ? b.trim().split(/\s+/).length : 0; document.getElementById('noteWC').textContent = `${w} word${w !== 1 ? 's' : ''}`; document.getElementById('noteCC').textContent = `${b.length} chars`; }
+    function copyNote() { const n = notes.find(x => x.id === activeNote); if (!n) return; const bodyTxt = document.getElementById('noteBodyInp').innerText || ''; navigator.clipboard.writeText(`# ${n.title}\n\n${bodyTxt}`).then(() => showToast('Copied!', 'success')); }
+    function exportNote(fmt) { const n = notes.find(x => x.id === activeNote); if (!n) return; const bodyTxt = document.getElementById('noteBodyInp').innerText || ''; const content = fmt === 'md' ? `# ${n.title || 'Untitled'}\n\nTags: ${(n.tags || []).join(', ')}\n\n${bodyTxt}` : `${n.title || 'Untitled'}\n${'='.repeat(40)}\n\n${bodyTxt}`; const blob = new Blob([content], { type: 'text/plain;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${(n.title || 'note').replace(/[^a-z0-9]/gi, '_').slice(0, 50)}.${fmt}`; a.click(); showToast('Exported!', 'success'); }
+    let currentNotesFolder = 'public';
+    let privateFolderUnlocked = false;
+
+    async function hashPassword(password) {
+      const msgUint8 = new TextEncoder().encode(password + "zenspace-salt");
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getPrivatePasswordHash() {
+      return dbPrivatePwdHash || localStorage.getItem('zs-private-notes-pwd-hash');
+    }
+
+    async function setPrivateFolderPassword() {
+      const p1 = document.getElementById('newPrivateFolderPwd').value;
+      const p2 = document.getElementById('confirmPrivateFolderPwd').value;
+      if (!p1) { showToast('Password cannot be empty', 'error'); return; }
+      if (p1 !== p2) { showToast('Passwords do not match', 'error'); return; }
+
+      const hash = await hashPassword(p1);
+      dbPrivatePwdHash = hash;
+      localStorage.setItem('zs-private-notes-pwd-hash', hash);
+
+      // Sync to Supabase profile safely
+      const client = ZenAuth.getSupabaseClient();
+      if (client && user) {
+        try {
+          await client.from('profiles').update({ private_notes_password_hash: hash }).eq('id', user.id);
+        } catch (e) {
+          console.warn('Could not sync private password to Supabase profile:', e);
+        }
+      }
+
+      privateFolderUnlocked = true;
+      showToast('Private password set!', 'success');
+      renderNotesList();
+    }
+
+    async function unlockPrivateFolder() {
+      const pwd = document.getElementById('privateFolderPwd').value;
+      const correctHash = getPrivatePasswordHash();
+      if (!correctHash) return;
+      const inputHash = await hashPassword(pwd);
+      if (inputHash === correctHash) {
+        privateFolderUnlocked = true;
+        showToast('Private folder unlocked!', 'success');
+        renderNotesList();
+      } else {
+        showToast('Incorrect password', 'error');
+      }
+    }
+
+    function lockPrivateFolder() {
+      privateFolderUnlocked = false;
+      const act = notes.find(n => n.id === activeNote);
+      if (act && act.is_private) {
+        activeNote = null;
+        document.getElementById('noteActive').style.display = 'none';
+        document.getElementById('noteEmpty').style.display = 'flex';
+      }
+      renderNotesList();
+    }
+
+    // ── Hide Private Folder & Secret Code ──────────────────────────────────
+    let privateHidden = localStorage.getItem('zs-private-folder-hidden') === '1';
+    let privateRevealedByCode = false;
+
+    function getSecretCode() {
+      return localStorage.getItem('zs-private-folder-secret') || '';
+    }
+
+    function applyPrivateFolderVisibility() {
+      const btnPriv = document.getElementById('btnFolderPrivate');
+      if (!btnPriv) return;
+      const shouldHide = privateHidden && !privateRevealedByCode;
+      btnPriv.style.display = shouldHide ? 'none' : '';
+      // If folder was hidden and currently active, switch back to public
+      if (shouldHide && currentNotesFolder === 'private') {
+        switchNotesFolder('public');
+      }
+    }
+
+    function toggleHidePrivateFolder(enabled) {
+      privateHidden = enabled;
+      localStorage.setItem('zs-private-folder-hidden', enabled ? '1' : '0');
+      const wrap = document.getElementById('secretCodeSetupWrap');
+      if (wrap) wrap.style.display = enabled ? 'block' : 'none';
+      if (!enabled) {
+        privateRevealedByCode = false;
+        // Restore the secret code input with current value
+        const inp = document.getElementById('secretCodeInput');
+        if (inp) inp.value = getSecretCode();
+      }
+      applyPrivateFolderVisibility();
+    }
+
+    function saveSecretCode() {
+      const inp = document.getElementById('secretCodeInput');
+      if (!inp) return;
+      const code = inp.value.trim();
+      if (!code) { showToast('Enter a secret code', 'error'); return; }
+      localStorage.setItem('zs-private-folder-secret', code);
+      const hint = document.getElementById('secretCodeHint');
+      if (hint) { hint.style.display = 'block'; setTimeout(() => { hint.style.display = 'none'; }, 2000); }
+      showToast('Secret code saved!', 'success');
+    }
+
+    function checkNoteBodyForSecretCode(bodyText) {
+      if (!privateHidden) return;
+      const code = getSecretCode();
+      if (!code) return;
+      const plainText = bodyText.replace(/<[^>]*>/g, '').trim();
+      if (plainText === code) {
+        privateRevealedByCode = true;
+        applyPrivateFolderVisibility();
+        showToast('🔓 Private folder revealed!', 'success');
+        // Clear the secret code from the note body for security
+        const bodyEl = document.getElementById('noteBodyInp');
+        if (bodyEl) {
+          bodyEl.innerHTML = '';
+          countWords();
+          clearTimeout(noteTimer);
+          noteTimer = setTimeout(saveNote, 800);
+        }
+        // Auto-switch to private folder
+        switchNotesFolder('private');
+        closeModal('notesSettingsModal');
+      }
+    }
+
+    function openNotesSettings() {
+      // Sync UI state when opening modal
+      const hideChk = document.getElementById('notesHidePrivate');
+      if (hideChk) hideChk.checked = privateHidden;
+      const wrap = document.getElementById('secretCodeSetupWrap');
+      if (wrap) wrap.style.display = privateHidden ? 'block' : 'none';
+      const inp = document.getElementById('secretCodeInput');
+      if (inp) inp.value = getSecretCode();
+      const hint = document.getElementById('secretCodeHint');
+      if (hint) hint.style.display = 'none';
+      openModal('notesSettingsModal');
+    }
+
+    function openChangePwdFromSettings() {
+      closeModal('notesSettingsModal');
+      // Small delay so modal transitions feel smooth
+      setTimeout(() => promptChangePrivatePassword(), 120);
+    }
+
+    function deleteAllNotes() {
+      notes = [];
+      activeNote = null;
+      renderNotesList();
+      document.getElementById('noteActive').style.display = 'none';
+      document.getElementById('noteEmpty').style.display = '';
+      // Persist deletions
+      notes.forEach(n => ZenAuth.deleteNoteById && ZenAuth.deleteNoteById(n.id));
+      showToast('All notes deleted', 'success');
+    }
+
+    function applyNotesSort() {
+      const val = document.getElementById('notesSortPref')?.value || 'updated';
+      if (val === 'alpha') {
+        notes.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (val === 'created') {
+        notes.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+      } else {
+        notes.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+      }
+      renderNotesList();
+    }
+
+    function promptChangePrivatePassword() {
+      // Clear fields and open the modal
+      ['changePwdCurrent', 'changePwdNew', 'changePwdConfirm'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      openModal('changePrivatePwdModal');
+      setTimeout(() => {
+        const el = document.getElementById('changePwdCurrent');
+        if (el) el.focus();
+      }, 100);
+    }
+
+    async function submitChangePrivatePassword() {
+      const currentPwd = document.getElementById('changePwdCurrent').value;
+      const newPwd     = document.getElementById('changePwdNew').value;
+      const confirmPwd = document.getElementById('changePwdConfirm').value;
+
+      if (!currentPwd) { showToast('Enter your current password', 'error'); return; }
+      if (!newPwd)     { showToast('New password cannot be empty', 'error'); return; }
+      if (newPwd !== confirmPwd) { showToast('New passwords do not match', 'error'); return; }
+
+      // Verify current password
+      const currentHash  = getPrivatePasswordHash();
+      const enteredHash  = await hashPassword(currentPwd);
+      if (currentHash && enteredHash !== currentHash) {
+        showToast('Current password is incorrect', 'error');
+        document.getElementById('changePwdCurrent').value = '';
+        document.getElementById('changePwdCurrent').focus();
+        return;
+      }
+
+      // Save new password
+      const newHash = await hashPassword(newPwd);
+      dbPrivatePwdHash = newHash;
+      localStorage.setItem('zs-private-notes-pwd-hash', newHash);
+
+      const client = ZenAuth.getSupabaseClient();
+      if (client && user) {
+        try {
+          await client.from('profiles').update({ private_notes_password_hash: newHash }).eq('id', user.id);
+        } catch (e) {
+          console.warn('Could not sync private password to Supabase:', e);
+        }
+      }
+
+      closeModal('changePrivatePwdModal');
+      showToast('Password updated successfully!', 'success');
+    }
+
+    function switchNotesFolder(folder) {
+      currentNotesFolder = folder;
+      const btnPub = document.getElementById('btnFolderPublic');
+      const btnPriv = document.getElementById('btnFolderPrivate');
+      if (btnPub) btnPub.classList.toggle('active', folder === 'public');
+      if (btnPriv) btnPriv.classList.toggle('active', folder === 'private');
+
+      const act = notes.find(n => n.id === activeNote);
+      if (act && act.is_private && folder === 'public') {
+        activeNote = null;
+        document.getElementById('noteActive').style.display = 'none';
+        document.getElementById('noteEmpty').style.display = 'flex';
+      }
+
+      renderNotesList();
+    }
+
+    async function exportAllZip() {
+      const exportable = notes.filter(n => !n.is_private || privateFolderUnlocked);
+      if (!exportable.length) { showToast('No notes to export', 'error'); return; }
+      showToast('Building ZIP…');
+      if (!window.JSZip) {
+        await new Promise(r => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+          s.onload = r;
+          document.head.appendChild(s);
+        });
+      }
+      const zip = new JSZip();
+      const folder = zip.folder('zenspace-notes');
+      exportable.forEach(n => {
+        const fname = (n.title || 'note').replace(/[^a-z0-9]/gi, '_').slice(0, 50) || 'note';
+        const bodyTxt = n.body ? n.body.replace(/<[^>]*>?/gm, '') : '';
+        folder.file(`${fname}.md`, `# ${n.title || 'Untitled'}\n\nTags: ${(n.tags || []).join(', ')}\n\n${bodyTxt}`);
+        (n.images || []).forEach((img, i) => {
+          const ext = img.name.split('.').pop() || 'jpg';
+          folder.file(`${fname}_img${i + 1}.${ext}`, img.data.split(',')[1], { base64: true });
+        });
+      });
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'zenspace-notes.zip';
+      a.click();
+      showToast('ZIP downloaded!', 'success');
+    }
+
+    function renderNotesList() {
+      const el = document.getElementById('notesList');
+      if (!el) return;
+      if (currentNotesFolder === 'private' && !privateFolderUnlocked) {
+        const hasPwd = getPrivatePasswordHash();
+        document.getElementById('notesCnt').textContent = '0';
+        if (!hasPwd) {
+          el.innerHTML = `
+            <div class="private-locked-container">
+              <div class="private-locked-icon">🔒</div>
+              <div style="font-weight:600;font-size:.85rem">Secure Private Notes</div>
+              <div style="font-size:.72rem;color:var(--ink-muted);line-height:1.4">Protect sensitive thoughts, credentials, or journals with a password.</div>
+              <input type="password" id="newPrivateFolderPwd" class="private-pwd-input" placeholder="New Password" />
+              <input type="password" id="confirmPrivateFolderPwd" class="private-pwd-input" placeholder="Confirm Password" />
+              <button onclick="setPrivateFolderPassword()" class="btn btn-primary btn-sm" style="width:100%">Set Password</button>
+            </div>`;
+        } else {
+          el.innerHTML = `
+            <div class="private-locked-container">
+              <div class="private-locked-icon">🔒</div>
+              <div style="font-weight:600;font-size:.85rem">Locked Folder</div>
+              <div style="font-size:.72rem;color:var(--ink-muted)">Enter password to unlock.</div>
+              <input type="password" id="privateFolderPwd" class="private-pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter')unlockPrivateFolder()" />
+              <button onclick="unlockPrivateFolder()" class="btn btn-primary btn-sm" style="width:100%">Unlock Folder</button>
+            </div>`;
+        }
+        return;
+      }
+
+      const filtered = notes.filter(n => currentNotesFolder === 'private' ? n.is_private : !n.is_private);
+      document.getElementById('notesCnt').textContent = filtered.length;
+
+      let headerHtml = '';
+      if (currentNotesFolder === 'private' && privateFolderUnlocked) {
+        headerHtml = `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 12px; background:var(--surface-2); border-radius: var(--r-md); margin: 0 8px 8px; font-size:0.75rem; gap: 6px;">
+            <span style="color:var(--ok)">🔓 Unlocked</span>
+            <div style="display:flex; gap:4px">
+              <button onclick="lockPrivateFolder()" class="btn btn-ghost btn-sm" style="padding: 2px 8px; font-size:0.7rem; border-color:var(--border); color:var(--ink)">🔒 Lock</button>
+            </div>
+          </div>`;
+      }
+
+      if (!filtered.length) {
+        el.innerHTML = headerHtml + '<div style="padding:14px;font-size:.8rem;color:var(--ink-faint)">No notes yet.</div>';
+        return;
+      }
+
+      el.innerHTML = headerHtml + filtered.map(n => {
+        const bodyTxt = n.body ? n.body.replace(/<[^>]*>?/gm, '') : '';
+        return `<div class="note-item ${n.id === activeNote ? 'active' : ''}" onclick="openNote('${n.id}')"><div class="note-item-title" style="border-left:2.5px solid ${n.id === activeNote ? 'rgba(255,255,255,.6)' : n.color || '#1A1A1A'};padding-left:7px;display:flex;align-items:center;gap:6px">${currentNotesFolder === 'private' ? '🔒 ' : ''}${esc(n.title) || 'Untitled'}</div><div class="note-item-preview">${esc(bodyTxt.slice(0, 55)) || 'No content'}</div><div class="note-item-date">${new Date(n.updated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div></div>`;
+      }).join('');
+    }
+    document.getElementById('noteTitleInp').addEventListener('input', () => { clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 800); });
+    document.getElementById('noteBodyInp').addEventListener('input', () => {
+      countWords();
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(saveNote, 800);
+      // Check for secret code to reveal hidden private folder
+      checkNoteBodyForSecretCode(document.getElementById('noteBodyInp').innerText || '');
+    });
+
+    /* ── Note image: drag from bottom strip onto textarea ─────────────────
+       Uses mousedown/mousemove/mouseup instead of the HTML5 drag API.
+       A ghost clone follows the cursor; on mouseup we check if it's over
+       the textarea, and if so place the image as a float there.
+    ────────────────────────────────────────────────────────────────────── */
+    let _dragState = null; // { idx, ghost, startX, startY, moved }
+
+    document.addEventListener('mousedown', e => {
+      const thumb = e.target.closest('.note-img-thumb');
+      if (!thumb) return;
+      // Don't start drag on the delete or place buttons
+      if (e.target.closest('button')) return;
+      const delBtn = thumb.querySelector('.note-img-del');
+      if (!delBtn) return;
+      const m = delBtn.getAttribute('onclick').match(/removeNoteImg\((\d+)\)/);
+      if (!m) return;
+
+      e.preventDefault();
+      const idx = parseInt(m[1]);
+      const thumbRect = thumb.getBoundingClientRect();
+
+      // Create ghost clone
+      const ghost = thumb.cloneNode(true);
+      ghost.style.cssText = `
+        position:fixed;
+        left:${thumbRect.left}px;
+        top:${thumbRect.top}px;
+        width:${thumbRect.width}px;
+        height:${thumbRect.height}px;
+        opacity:0.75;
+        pointer-events:none;
+        z-index:9999;
+        border-radius:6px;
+        box-shadow:0 4px 16px rgba(0,0,0,.25);
+        transition:none;
+      `;
+      document.body.appendChild(ghost);
+
+      _dragState = { idx, ghost, startX: e.clientX, startY: e.clientY, moved: false };
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!_dragState) return;
+      const dx = e.clientX - _dragState.startX;
+      const dy = e.clientY - _dragState.startY;
+      if (!_dragState.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      _dragState.moved = true;
+
+      // Move ghost to follow cursor
+      const rect = _dragState.ghost.getBoundingClientRect();
+      _dragState.ghost.style.left = (e.clientX - rect.width / 2) + 'px';
+      _dragState.ghost.style.top = (e.clientY - rect.height / 2) + 'px';
+
+      // Highlight textarea if hovering over it
+      const ta = document.getElementById('noteBodyInp');
+      if (ta) {
+        const tar = ta.getBoundingClientRect();
+        const over = e.clientX >= tar.left && e.clientX <= tar.right &&
+          e.clientY >= tar.top && e.clientY <= tar.bottom;
+        ta.style.outline = over ? '2px dashed var(--ink)' : '';
+      }
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (!_dragState) return;
+      const { idx, ghost, moved } = _dragState;
+      ghost.remove();
+      _dragState = null;
+
+      if (!moved) return; // was a click, not a drag
+
+      // Remove textarea highlight
+      const ta = document.getElementById('noteBodyInp');
+      if (ta) ta.style.outline = '';
+
+      // Check if dropped over textarea
+      if (!ta) return;
+      const tar = ta.getBoundingClientRect();
+      const overTA = e.clientX >= tar.left && e.clientX <= tar.right &&
+        e.clientY >= tar.top && e.clientY <= tar.bottom;
+      if (!overTA) return;
+
+      const n = notes.find(x => x.id === activeNote);
+      if (!n || !n.images) return;
+      const img = n.images[idx];
+      if (!img) return;
+
+      // Set caret position to where the user dropped the image
+      let range;
+      if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(e.clientX, e.clientY);
+      } else if (document.caretPositionFromPoint) {
+        const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+        if (pos) {
+          range = document.createRange();
+          range.setStart(pos.offsetNode, pos.offset);
+          range.collapse(true);
+        }
+      }
+      if (range) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      placeImgInline(idx);
+    });
+
+    /* ══ DOCUMENTS ══ */
+
+
     /* ═ ═ ROUTING & NAVIGATION ═ ═ */
     let ZS_sub = null;
     const PREMIUM_SECTIONS = new Set(['subjectsSec', 'documentsSec', 'financeSec']);
