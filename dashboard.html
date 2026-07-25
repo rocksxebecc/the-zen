@@ -3794,7 +3794,7 @@
     </div>
   </nav>
 
-  <div class="app-layout">
+  <div class="layout">
     <aside class="sidebar">
       <span class="sidebar-label">Workspace</span>
       <button class="sidebar-link active" onclick="goTo('overviewSec')" data-sec="overviewSec"><svg viewBox="0 0 24 24">
@@ -11781,6 +11781,12 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       })();
       tasks = ld('tasks', tasks); goals = ld('goals', goals); txns = ld('finance', txns); subjects = ld('subjects', subjects);
       if (typeof renderSubjects === 'function') renderSubjects();
+      if (typeof renderTodo === 'function') renderTodo();
+      if (typeof renderTodoAnalytics === 'function') renderTodoAnalytics();
+      if (typeof renderFinance === 'function') renderFinance();
+      if (typeof renderAnalytics === 'function') renderAnalytics();
+      if (typeof renderGoals === 'function') renderGoals();
+      if (typeof updateOvStats === 'function') updateOvStats();
       // Fetch cloud subjects, finance, tasks, goals & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
         try {
