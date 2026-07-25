@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zenspace — Zenlab</title>
+  <title>Zenspace — Sugii</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
@@ -1755,7 +1755,7 @@
         </svg></span>
       <span class="nav-brand-name">Zenspace</span>
     </a>
-    <span class="nav-badge">Zenlab</span>
+    <span class="nav-badge">Sugii</span>
     <div class="nav-spacer"></div>
     <div class="nav-pill">
       <div class="dot"></div>Agent Active
@@ -1808,8 +1808,8 @@
       <div class="chat-topbar">
         <div class="agent-icon">∑</div>
         <div class="topbar-info">
-          <h3>Zenlab</h3>
-          <p id="agentStatus">PhD-level solver · Vision enabled · Step-by-step reasoning</p>
+          <h3>Sugii</h3>
+          <p id="agentStatus">Your all-subject study companion · Vision enabled</p>
         </div>
         <div class="topbar-actions">
           <button class="icon-btn" title="Recent History" onclick="toggleHistoryPopover(event)" id="historyBtn">
@@ -1846,11 +1846,8 @@
       <!-- Messages -->
       <div id="chatMessages">
         <div class="welcome-state" id="welcomeState">
-          <div class="welcome-orb">∑</div>
-          <h2>Zen<em>lab</em></h2>
-          <p>PhD-level mathematics powered by Llama 3.3. Handles everything from undergraduate calculus to
-            graduate-level real analysis, algebraic topology, measure theory, abstract algebra, and beyond. Now with
-            vision — scan or photograph any problem.</p>
+          <div class="welcome-orb">📖</div>
+          <h2><em>Sugii</em></h2>
         </div>
       </div>
 
@@ -2161,7 +2158,7 @@
     function updateAgentStatus() {
       const subj = SUBJECT_DATA[STATE.subject];
       const topicObj = subj?.topics?.find(t => t.id === STATE.topic);
-      const status = topicObj ? `${subj.label} · ${topicObj.label}` : (subj?.label || 'PhD-level solver');
+      const status = topicObj ? `${subj.label} · ${topicObj.label}` : (subj?.label || 'All subjects');
       document.getElementById('agentStatus').textContent = `${status} · Vision enabled`;
     }
 
@@ -2585,7 +2582,7 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
         }
         appendError(msg);
         document.getElementById('agentStatus').textContent = 'Error — see message below';
-        console.error('Apex Math Agent:', err);
+        console.error('Sugii:', err);
       }
 
       STATE.isLoading = false;
@@ -2906,11 +2903,10 @@ Be mathematically precise and rigorous. Never make computational errors. Double-
       const container = document.getElementById('chatMessages');
       container.innerHTML = `
     <div class="welcome-state" id="welcomeState">
-      <div class="welcome-orb">∑</div>
-      <h2>Zen<em>lab</em></h2>
-      <p>PhD-level mathematics powered by Llama 3.3. Handles everything from undergraduate calculus to graduate-level real analysis, algebraic topology, measure theory, abstract algebra, and beyond. Now with vision — scan or photograph any problem.</p>
+      <div class="welcome-orb">📖</div>
+      <h2><em>Sugii</em></h2>
     </div>`;
-      document.getElementById('agentStatus').textContent = 'PhD-level solver · Vision enabled · Step-by-step reasoning';
+      document.getElementById('agentStatus').textContent = 'Your all-subject study companion · Vision enabled';
     }
 
     // ── FOLLOW UP ─────────────────────────────────────────────────
