@@ -11545,36 +11545,54 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     async function syncAllFromCloud() {
       if (!window.ZenAuth || !window.ZenAuth.fetchUserState || !user) return;
       try {
-        const [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
+        let [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
           window.ZenAuth.fetchUserState('subjects'),
           window.ZenAuth.fetchUserState('finance'),
           window.ZenAuth.fetchUserState('tasks'),
           window.ZenAuth.fetchUserState('goals')
         ]);
 
-        if (Array.isArray(cloudSubj) && cloudSubj.length > 0) {
+        const ensureArray = (v) => {
+          if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) {} }
+          return Array.isArray(v) ? v : null;
+        };
+
+        cloudSubj = ensureArray(cloudSubj);
+        cloudTxns = ensureArray(cloudTxns);
+        cloudTasks = ensureArray(cloudTasks);
+        cloudGoals = ensureArray(cloudGoals);
+
+        if (cloudSubj && cloudSubj.length > 0) {
           subjects = cloudSubj;
           sv('subjects', subjects);
           if (typeof renderSubjects === 'function') renderSubjects();
+        } else if (Array.isArray(subjects) && subjects.length > 0) {
+          await window.ZenAuth.upsertUserState('subjects', subjects);
         }
 
-        if (Array.isArray(cloudTxns) && cloudTxns.length > 0) {
+        if (cloudTxns && cloudTxns.length > 0) {
           txns = cloudTxns;
           sv('finance', txns);
           if (typeof renderFinance === 'function') renderFinance();
           if (typeof renderAnalytics === 'function') renderAnalytics();
+        } else if (Array.isArray(txns) && txns.length > 0) {
+          await window.ZenAuth.upsertUserState('finance', txns);
         }
 
-        if (Array.isArray(cloudTasks) && cloudTasks.length > 0) {
+        if (cloudTasks && cloudTasks.length > 0) {
           tasks = cloudTasks;
           sv('tasks', tasks);
           if (typeof renderTodo === 'function') renderTodo();
+        } else if (Array.isArray(tasks) && tasks.length > 0) {
+          await window.ZenAuth.upsertUserState('tasks', tasks);
         }
 
-        if (Array.isArray(cloudGoals) && cloudGoals.length > 0) {
+        if (cloudGoals && cloudGoals.length > 0) {
           goals = cloudGoals;
           sv('goals', goals);
           if (typeof renderGoals === 'function') renderGoals();
+        } else if (Array.isArray(goals) && goals.length > 0) {
+          await window.ZenAuth.upsertUserState('goals', goals);
         }
 
         if (typeof updateOvStats === 'function') updateOvStats();
@@ -11790,43 +11808,53 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       // Fetch cloud subjects, finance, tasks, goals & subscribe to realtime cross-device updates
       if (window.ZenAuth && window.ZenAuth.fetchUserState) {
         try {
-          const [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
+          let [cloudSubj, cloudTxns, cloudTasks, cloudGoals] = await Promise.all([
             window.ZenAuth.fetchUserState('subjects'),
             window.ZenAuth.fetchUserState('finance'),
             window.ZenAuth.fetchUserState('tasks'),
             window.ZenAuth.fetchUserState('goals')
           ]);
 
-          if (Array.isArray(cloudSubj) && cloudSubj.length > 0) {
+          const ensureArray = (v) => {
+            if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) {} }
+            return Array.isArray(v) ? v : null;
+          };
+
+          cloudSubj = ensureArray(cloudSubj);
+          cloudTxns = ensureArray(cloudTxns);
+          cloudTasks = ensureArray(cloudTasks);
+          cloudGoals = ensureArray(cloudGoals);
+
+          if (cloudSubj && cloudSubj.length > 0) {
             subjects = cloudSubj;
             sv('subjects', subjects);
             if (typeof renderSubjects === 'function') renderSubjects();
-          } else if (subjects && subjects.length > 0) {
+          } else if (Array.isArray(subjects) && subjects.length > 0) {
             await window.ZenAuth.upsertUserState('subjects', subjects);
           }
 
-          if (Array.isArray(cloudTxns) && cloudTxns.length > 0) {
+          if (cloudTxns && cloudTxns.length > 0) {
             txns = cloudTxns;
             sv('finance', txns);
             if (typeof renderFinance === 'function') renderFinance();
             if (typeof renderAnalytics === 'function') renderAnalytics();
-          } else if (txns && txns.length > 0) {
+          } else if (Array.isArray(txns) && txns.length > 0) {
             await window.ZenAuth.upsertUserState('finance', txns);
           }
 
-          if (Array.isArray(cloudTasks) && cloudTasks.length > 0) {
+          if (cloudTasks && cloudTasks.length > 0) {
             tasks = cloudTasks;
             sv('tasks', tasks);
             if (typeof renderTodo === 'function') renderTodo();
-          } else if (tasks && tasks.length > 0) {
+          } else if (Array.isArray(tasks) && tasks.length > 0) {
             await window.ZenAuth.upsertUserState('tasks', tasks);
           }
 
-          if (Array.isArray(cloudGoals) && cloudGoals.length > 0) {
+          if (cloudGoals && cloudGoals.length > 0) {
             goals = cloudGoals;
             sv('goals', goals);
             if (typeof renderGoals === 'function') renderGoals();
-          } else if (goals && goals.length > 0) {
+          } else if (Array.isArray(goals) && goals.length > 0) {
             await window.ZenAuth.upsertUserState('goals', goals);
           }
 
@@ -11848,12 +11876,15 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
             }, payload => {
               if (payload.new && payload.new.user_id === user.id) {
                 const k = payload.new.key;
-                const v = payload.new.value || [];
-                if (k === 'subjects') { subjects = v; sv('subjects', subjects); if (typeof renderSubjects === 'function') renderSubjects(); }
-                if (k === 'finance') { txns = v; sv('finance', txns); if (typeof renderFinance === 'function') renderFinance(); if (typeof renderAnalytics === 'function') renderAnalytics(); }
-                if (k === 'tasks') { tasks = v; sv('tasks', tasks); if (typeof renderTodo === 'function') renderTodo(); }
-                if (k === 'goals') { goals = v; sv('goals', goals); if (typeof renderGoals === 'function') renderGoals(); }
-                if (typeof updateOvStats === 'function') updateOvStats();
+                let v = payload.new.value;
+                if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) {} }
+                if (Array.isArray(v) && v.length > 0) {
+                  if (k === 'subjects') { subjects = v; sv('subjects', subjects); if (typeof renderSubjects === 'function') renderSubjects(); }
+                  if (k === 'finance') { txns = v; sv('finance', txns); if (typeof renderFinance === 'function') renderFinance(); if (typeof renderAnalytics === 'function') renderAnalytics(); }
+                  if (k === 'tasks') { tasks = v; sv('tasks', tasks); if (typeof renderTodo === 'function') renderTodo(); }
+                  if (k === 'goals') { goals = v; sv('goals', goals); if (typeof renderGoals === 'function') renderGoals(); }
+                  if (typeof updateOvStats === 'function') updateOvStats();
+                }
               }
             })
             .subscribe();
@@ -11870,7 +11901,9 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
       }, 3000);
       notes = await ZenAuth.fetchNotes();
       notes.forEach(n => { n.tags = ld('ntags-' + n.id, []); n.color = ld('ncolor-' + n.id, '#1A1A1A'); n.images = ld('nimgs-' + n.id, []); });
-      renderOverview(); syncDisplays(); renderSubjects();
+      if (typeof renderOverview === 'function') renderOverview();
+      if (typeof syncDisplays === 'function') syncDisplays();
+      if (typeof renderSubjects === 'function') renderSubjects();
       // ── Final re-render: call goTo() on current section so data is visible immediately after refresh ──
       try {
         const _activeSec = localStorage.getItem('zs-active-sec') ||
@@ -12809,40 +12842,111 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     }
 
 
-    /* ═ ═  STORAGE ═ ═  */
+    /* ═ ═  STORAGE & OVERVIEW STATS ═ ═  */
     const K = k => `zs-${user ? user.email : 'anon'}-${k}`;
+
+    function safeParseData(raw) {
+      if (!raw || raw === '[]' || raw === '{}') return null;
+      let parsed = raw;
+      if (typeof parsed === 'string') {
+        try { parsed = JSON.parse(parsed); } catch(e) { return null; }
+      }
+      if (typeof parsed === 'string') {
+        try { parsed = JSON.parse(parsed); } catch(e) {}
+      }
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+      return null;
+    }
+
     function ld(k, def) {
       try {
-        const primary = localStorage.getItem(K(k));
-        if (primary !== null && primary !== '[]') {
-          const parsed = JSON.parse(primary);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+        const primary = safeParseData(localStorage.getItem(K(k)));
+        if (primary) return primary;
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const lk = localStorage.key(i);
+          if (lk && lk.endsWith('-' + k) && lk.startsWith('zs-') && !lk.startsWith('zs-anon-') && lk !== 'zs-' + k) {
+            const val = safeParseData(localStorage.getItem(lk));
+            if (val) return val;
+          }
         }
-        const anonVal = localStorage.getItem('zs-anon-' + k);
-        if (anonVal !== null && anonVal !== '[]') {
-          const parsed = JSON.parse(anonVal);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+
+        for (const lk of [`zs-anon-${k}`, `zs-${k}`]) {
+          const val = safeParseData(localStorage.getItem(lk));
+          if (val) return val;
         }
-        const rawVal = localStorage.getItem('zs-' + k);
-        if (rawVal !== null && rawVal !== '[]') {
-          const parsed = JSON.parse(rawVal);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
-        }
-        return primary ? JSON.parse(primary) : def;
+
+        return Array.isArray(def) ? def : (def || []);
       } catch (e) {
-        return def;
+        return Array.isArray(def) ? def : (def || []);
       }
     }
+
     function sv(k, v) {
       try {
         localStorage.setItem(K(k), JSON.stringify(v));
         localStorage.setItem('zs-' + k, JSON.stringify(v));
+        if (window.ZenAuth && window.ZenAuth.upsertUserState && user && ['subjects','tasks','goals','finance'].includes(k)) {
+          window.ZenAuth.upsertUserState(k, v).catch(() => {});
+        }
       } catch (e) {
         showToast('Storage full', 'error');
       }
+    }
+
+    function updateOvStats() {
+      try {
+        if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
+          const pending = tasks.filter(t => !t.done);
+          const completed = tasks.filter(t => t.done);
+          const pendEl = document.getElementById('scPending');
+          if (pendEl) pendEl.textContent = pending.length;
+
+          const totTasks = tasks.length;
+          const pct = totTasks > 0 ? Math.round((completed.length / totTasks) * 100) : 0;
+          const ovPct = document.getElementById('ovPct');
+          const ovFill = document.getElementById('ovFill');
+          if (ovPct) ovPct.textContent = pct + '%';
+          if (ovFill) ovFill.style.width = pct + '%';
+        }
+
+        if (typeof subjects !== 'undefined' && Array.isArray(subjects)) {
+          const attEl = document.getElementById('scAttendance');
+          if (attEl) {
+            if (subjects.length > 0) {
+              const totAtt = subjects.reduce((a, s) => a + (Number(s.attended) || 0), 0);
+              const totLec = subjects.reduce((a, s) => a + (Number(s.total) || 0), 0);
+              attEl.textContent = totLec > 0 ? Math.round((totAtt / totLec) * 100) + '%' : '0%';
+            } else {
+              attEl.textContent = '—';
+            }
+          }
+        }
+
+        if (typeof txns !== 'undefined' && Array.isArray(txns)) {
+          const balEl = document.getElementById('scBalance');
+          if (balEl) {
+            const now = new Date();
+            const yr = now.getFullYear(), mo = now.getMonth();
+            const monthTxns = txns.filter(t => {
+              const d = new Date(t.date);
+              return d.getFullYear() === yr && d.getMonth() === mo;
+            });
+            const inc = monthTxns.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount || 0), 0);
+            const exp = monthTxns.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount || 0), 0);
+            const net = inc - exp;
+            balEl.textContent = (net < 0 ? '-₹' : '₹') + Math.abs(net).toLocaleString('en-IN');
+          }
+        }
+      } catch (e) {
+        console.error('[Zenspace] Error updating overview stats:', e);
+      }
+    }
+
+    function renderOverview() {
+      updateOvStats();
+      if (typeof renderTaskList === 'function') renderTaskList();
     }
     const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const today = () => new Date().toISOString().split('T')[0];
@@ -13090,6 +13194,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     function classesNeededFor(s) { const pct = s.total > 0 ? s.attended / s.total : 0; if (pct * 100 >= s.minPct) return 0; const r = s.minPct / 100; if (r >= 1) return '∞'; return Math.max(0, Math.ceil((r * s.total - s.attended) / (1 - r))); }
 
     function renderSubjects() {
+      if (typeof subjects === 'string') { try { subjects = JSON.parse(subjects); } catch(e) {} }
+      if (!Array.isArray(subjects)) subjects = [];
       updateAttendanceLockUI();
       const grid = document.getElementById('subjectsGrid');
       const isLocked = isAttendanceLockEnabled && isAttendanceLocked;
@@ -13349,6 +13455,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     function tagCls(t) { if (t.done) return 'tag-muted'; const d = t.due ? daysLeft(t.due) : null; if (d !== null && d < 0) return 'tag-error'; if (t.priority === 'high' || d === 0) return 'tag-amber'; if (d !== null && d <= 3) return 'tag-amber'; return 'tag-muted'; }
     function tagTxt(t) { if (t.done) return 'Done'; if (!t.due) return t.priority === 'high' ? 'High priority' : 'No due date'; return fmtDays(daysLeft(t.due)); }
     function renderTaskList(filter = '') {
+      if (typeof tasks === 'string') { try { tasks = JSON.parse(tasks); } catch(e) {} }
+      if (!Array.isArray(tasks)) tasks = [];
       const el = document.getElementById('taskList');
       let vis = tasks.filter(t => !filter || t.name.toLowerCase().includes(filter) || t.course.toLowerCase().includes(filter));
       if (!vis.length) { el.innerHTML = `<div class="empty-msg">${filter ? 'No matching tasks.' : 'No tasks yet!'}</div>`; updateOvStats(); return; }
@@ -13612,6 +13720,8 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     function deleteGoal(id) { goals = goals.filter(g => g.id !== id); sv('goals', goals); renderGoals(); updateOvStats(); }
     function setGoalProgress(id, v) { const g = goals.find(x => x.id === id); if (!g) return; g.progress = +v; sv('goals', goals); renderGoals(); }
     function renderGoals() {
+      if (typeof goals === 'string') { try { goals = JSON.parse(goals); } catch(e) {} }
+      if (!Array.isArray(goals)) goals = [];
       const gr = document.getElementById('goalsGrid');
       if (!goals.length) { gr.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No goals yet.</div>'; return; }
       gr.innerHTML = goals.map(g => {
