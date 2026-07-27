@@ -511,7 +511,12 @@ async function fetchUserState(key) {
     }
     return null;
   }
-  return data ? data.value : null;
+  if (!data || data.value === null || data.value === undefined) return null;
+  let val = data.value;
+  if (typeof val === 'string') {
+    try { val = JSON.parse(val); } catch (e) {}
+  }
+  return val;
 }
 
 /**
