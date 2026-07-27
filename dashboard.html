@@ -12956,7 +12956,7 @@ ${images.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" Conte
     const dateOff = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0]; };
 
     /* ═ ═  SUBJECTS — CUSTOMIZABLE ATTENDANCE ═ ═  */
-    let subjects = ld('subjects', []);
+    subjects = ld('subjects', subjects);
 
     /* ═ ═ ATTENDANCE LOCK SYSTEM ═ ═ */
     let isAttendanceLockEnabled = localStorage.getItem('zs-attendance-lock-enabled') === 'true';
